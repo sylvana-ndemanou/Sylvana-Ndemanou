@@ -1,16 +1,18 @@
-## Hi there 👋
+# Sylvana Ndemano
 
-<!--
-**sylvana-ndemano/Sylvana-Ndemano** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+BI & Data Consultant based in Sherbrooke, QC.
 
-Here are some ideas to get you started:
+I work with SQL, Python, BigQuery, and Matillion to build
+data pipelines and reporting solutions for clients.
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+Currently learning how to build with the Claude API —
+exploring how LLMs can make BI tools more useful
+for non-technical users.
+
+## What I'm building
+
+- `bigquery-claude-reporter` — in progress
+
+## Stack
+
+SQL · Python · BigQuery · Matillion · Power BI · Astrato · Claude API
