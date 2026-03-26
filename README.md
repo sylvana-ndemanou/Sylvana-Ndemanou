@@ -1,4 +1,4 @@
-# Sylvana Ndemano
+# Sylvana Ndemanou
 
 BI & Data Consultant based in Sherbrooke, QC.
 
