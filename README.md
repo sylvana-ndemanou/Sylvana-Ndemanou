@@ -11,7 +11,7 @@ for non-technical users.
 
 ## What I'm building
 
-- `bigquery-claude-reporter` — in progress
+- `bigquery-claude-reporter` — Done !
 
 ## Stack
 
