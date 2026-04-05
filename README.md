@@ -9,7 +9,7 @@ Currently learning how to build with the Claude API —
 exploring how LLMs can make BI tools more useful
 for non-technical users.
 While privacy remains the principal concern in the data universe,
-I'm exploring on how to use all the potential of LLMs applying to 
+I'm exploring on how to use all the potential of LLMs applying 
 to business without giving up on data security.
 
 ## What I'm building
