@@ -40,7 +40,8 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ error: "invalid_input" }, { status: 422 });
   }
 
-  const apiKey = process.env.RESEND_API_KEY;
+  const apiKey =
+    process.env.RESEND_API_KEY_PORTFOLIO ?? process.env.RESEND_API_KEY;
   if (!apiKey) {
     // Not configured yet — fail clearly so the UI can suggest the mailto fallback.
     console.warn("[contact] RESEND_API_KEY is not set; cannot send email.");

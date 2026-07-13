@@ -41,8 +41,11 @@ Non-obvious caveats:
 
 ### Contact form (Resend) + Cal.com
 
-- `POST /api/contact` sends email via Resend. It needs `RESEND_API_KEY` as a Cloud Secret (never
-  committed). Optional `RESEND_FROM` overrides the sender.
+- `POST /api/contact` sends email via Resend. It reads `RESEND_API_KEY_PORTFOLIO` first and falls
+  back to `RESEND_API_KEY` (Cloud Secret / Vercel env var; never committed). Optional `RESEND_FROM`
+  overrides the sender. Note: Cloud Agent secrets are injected at VM startup, so a secret added
+  mid-session won't be visible until a new session; for the deployed site, add the key in the
+  Vercel project env vars.
 - Resend sandbox limitation: with the default `onboarding@resend.dev` sender, Resend only delivers
   to the account owner's own email. To deliver to `sylvana.ndemanou@proton.me`, verify a domain at
   resend.com/domains and set `RESEND_FROM` to an address on that domain. The route degrades
