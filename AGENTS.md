@@ -34,8 +34,10 @@ Non-obvious caveats:
   UI strings in components — add keys to both files. Lists/objects (skills, experience, case-study
   arrays) are read with `t.raw(...)`.
 - i18n wiring: `i18n/routing.ts`, `i18n/navigation.ts` (locale-aware `Link`/`useRouter`/`usePathname`
-  — import navigation from here, not `next/navigation`), `i18n/request.ts`, and `proxy.ts` at the
-  repo root (Next 16 renamed `middleware.ts` → `proxy.ts`).
+  — import navigation from here, not `next/navigation`), `i18n/request.ts`, and `middleware.ts` at
+  the repo root. NOTE: Next 16 prints a warning suggesting `proxy.ts`, but keep `middleware.ts` —
+  with `proxy.ts` the build leaves `middleware-manifest.json` empty, so Vercel never runs the
+  middleware and the locale rewrite for `/` 404s in production. `middleware.ts` registers correctly.
 - Project case studies are anonymized (no client names anywhere). Narrative content is in
   `messages/*.json` under `CaseStudy.items.<slug>`; the slug/icon registry is `lib/projects.ts`.
 
