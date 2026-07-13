@@ -6,8 +6,8 @@ import { AnimatedLogo } from "@/components/ui/animated-logo";
 import { FadeIn, ScaleUnblur } from "@/components/ui/motion-primitives";
 import { PortraitMorph } from "./portrait-morph";
 
-const PORTRAIT_SRC = "/sylvana-avatar.png";
-const PORTRAIT_HOVER_SRC = "/sylvana-avatar-wave.png";
+const PORTRAIT_SRC = "/sylvana-hero-neutral.png";
+const PORTRAIT_HOVER_SRC = "/sylvana-hero-wave.png";
 
 export function Hero(): ReactNode {
   const t = useTranslations("Hero");
@@ -44,7 +44,7 @@ export function Hero(): ReactNode {
           </FadeIn>
 
           <ScaleUnblur className="flex justify-stretch md:justify-end">
-            <div className="relative aspect-square w-full md:max-w-105 overflow-hidden rounded-4xl border border-foreground/8 bg-neutral-100 p-1.5 shadow-sm dark:bg-neutral-200">
+            <div className="relative aspect-square w-full md:max-w-105 overflow-hidden rounded-4xl border border-foreground/8 bg-background p-1.5 shadow-sm">
               <div className="relative h-full w-full overflow-hidden rounded-[1.6rem]">
                 <PortraitMorph
                   srcA={PORTRAIT_SRC}
