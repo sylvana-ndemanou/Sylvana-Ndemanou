@@ -17,7 +17,7 @@ export function Projects({
   viewMoreVisible = false,
 }: ProjectsProps): ReactNode {
   const t = useTranslations("Projects");
-  const items = viewMoreVisible ? PROJECTS.slice(0, 3) : PROJECTS;
+  const items = viewMoreVisible ? PROJECTS.slice(0, 4) : PROJECTS;
 
   return (
     <section className="relative w-full">

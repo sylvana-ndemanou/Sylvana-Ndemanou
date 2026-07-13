@@ -92,6 +92,35 @@
         "outcome": "Ongoing exploration — framed transparently as active learning, not a finished client deliverable.",
         "tools": ["Claude API", "Python / JS"],
         "flow": ["Business question", "LLM (RAG)", "Structured data", "Plain-language answer"]
+      },
+      "executive-reporting-automation": {
+        "tag": "Process Automation",
+        "title": "Automated Executive Reporting",
+        "summary": "Removing a critical single-person dependency from a weekly executive report — now fully automated with built-in quality checks.",
+        "context": "A client's most business-critical weekly report — feeding senior leadership decisions every Monday morning — depended entirely on one person manually preparing and running a complex Python script at 6am each week. Any absence put a critical report at risk.",
+        "approach": [
+          "Rather than patching the fragile script, rebuilt the pipeline from the ground up.",
+          "Designed a star-schema data model with SCD2 history tracking to preserve accurate point-in-time reporting.",
+          "Layered a dashboard on top, optimized for heavy, repetitive queries."
+        ],
+        "solution": "Star-schema ETL with SCD2 history management, a dashboard layer with materialized views for query performance, and fully automated data-quality and consistency checks running before each report generation and delivery — no manual intervention required.",
+        "outcome": "Eliminated the single-person dependency entirely. A report that once required someone to wake up at 6am to run it by hand now generates and delivers itself automatically every week, with built-in quality validation before it reaches decision-makers.",
+        "tools": ["Matillion", "Snowflake", "Astrato", "SQL (SCD2)", "Materialized views"],
+        "flow": ["Source data", "Star-schema ETL (SCD2)", "Quality checks", "Materialized views", "Automated delivery"]
+      },
+      "dashboard-poc": {
+        "tag": "Dashboard Design",
+        "title": "Dashboard Proof-of-Concept",
+        "summary": "Rebuilding a dashboard from a Figma mockup against live warehouse data, in Scrum — where surfacing a real problem mattered more than a finished product.",
+        "context": "A prospective client wanted to evaluate consulting capabilities through a proof-of-concept: rebuild a dashboard from their own Figma mockup, fully connected to live warehouse data, matching their intended design as closely as possible.",
+        "approach": [
+          "Worked in Scrum with daily standups to track progress and adjust scope as the PoC evolved.",
+          "Built the real, data-connected version of the mockup rather than a static prototype."
+        ],
+        "solution": "A dashboard built against live cloud data-warehouse sources, engineered to visually and functionally match the client's design specification.",
+        "outcome": "The process surfaced a genuine internal data-quality issue on the client's side — significant enough that the PoC was paused as a result. Even so, the dashboard build itself drew strong positive feedback on execution quality — a case where the process working correctly (surfacing a real problem) mattered more than reaching a finished product.",
+        "tools": ["Snowflake", "Astrato", "Figma (design reference)", "Scrum"],
+        "flow": ["Figma mockup", "Live warehouse data", "Dashboard build (Scrum)", "Stakeholder review"]
       }
     }
   },

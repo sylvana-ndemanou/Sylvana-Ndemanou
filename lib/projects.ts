@@ -1,6 +1,8 @@
 import {
   BrainCircuit,
   Database,
+  Gauge,
+  LayoutDashboard,
   Network,
   Workflow,
   type LucideIcon,
@@ -9,8 +11,10 @@ import {
 export type ProjectSlug =
   | "etl-modernization"
   | "bi-architecture"
+  | "executive-reporting-automation"
+  | "applied-ai-exploration"
   | "reporting-automation"
-  | "applied-ai-exploration";
+  | "dashboard-poc";
 
 export type ProjectMeta = {
   slug: ProjectSlug;
@@ -27,8 +31,10 @@ export type ProjectMeta = {
 export const PROJECTS: readonly ProjectMeta[] = [
   { slug: "etl-modernization", icon: Database, personal: false },
   { slug: "bi-architecture", icon: Network, personal: false },
-  { slug: "reporting-automation", icon: Workflow, personal: true },
+  { slug: "executive-reporting-automation", icon: Gauge, personal: false },
   { slug: "applied-ai-exploration", icon: BrainCircuit, personal: true },
+  { slug: "reporting-automation", icon: Workflow, personal: true },
+  { slug: "dashboard-poc", icon: LayoutDashboard, personal: false },
 ];
 
 export const PROJECT_SLUGS: readonly ProjectSlug[] = PROJECTS.map(

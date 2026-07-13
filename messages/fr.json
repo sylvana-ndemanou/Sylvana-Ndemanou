@@ -92,6 +92,35 @@
         "outcome": "Exploration en cours — présentée en toute transparence comme un apprentissage actif, pas un livrable client finalisé.",
         "tools": ["API Claude", "Python / JS"],
         "flow": ["Question d’affaires", "LLM (RAG)", "Données structurées", "Réponse en langage clair"]
+      },
+      "executive-reporting-automation": {
+        "tag": "Automatisation de processus",
+        "title": "Reporting exécutif automatisé",
+        "summary": "Supprimer une dépendance critique à une seule personne dans un rapport exécutif hebdomadaire — désormais entièrement automatisé, avec contrôles qualité intégrés.",
+        "context": "Le rapport hebdomadaire le plus critique d’un client — qui alimente les décisions de la direction chaque lundi matin — reposait entièrement sur une seule personne, préparant et exécutant à la main un script Python complexe à 6 h chaque semaine. La moindre absence mettait un rapport critique en péril.",
+        "approach": [
+          "Plutôt que de rafistoler le script fragile, reconstruction du pipeline de zéro.",
+          "Conception d’un modèle en étoile avec historisation SCD2 pour préserver un reporting exact à un instant donné.",
+          "Ajout d’un tableau de bord par-dessus, optimisé pour des requêtes lourdes et répétitives."
+        ],
+        "solution": "ETL en modèle étoile avec gestion d’historique SCD2, une couche de tableau de bord avec vues matérialisées pour la performance des requêtes, et des contrôles de qualité et de cohérence entièrement automatisés, exécutés avant chaque génération et diffusion du rapport — sans aucune intervention manuelle.",
+        "outcome": "La dépendance à une seule personne a été entièrement éliminée. Un rapport qui exigeait autrefois de se lever à 6 h pour le lancer à la main se génère et se diffuse désormais tout seul chaque semaine, avec une validation qualité intégrée avant d’atteindre les décideurs.",
+        "tools": ["Matillion", "Snowflake", "Astrato", "SQL (SCD2)", "Vues matérialisées"],
+        "flow": ["Données source", "ETL modèle étoile (SCD2)", "Contrôles qualité", "Vues matérialisées", "Diffusion automatisée"]
+      },
+      "dashboard-poc": {
+        "tag": "Conception de tableaux de bord",
+        "title": "Preuve de concept — tableau de bord",
+        "summary": "Reconstruire un tableau de bord depuis une maquette Figma, connecté à des données live, en Scrum — où révéler un vrai problème comptait plus qu’un produit fini.",
+        "context": "Un client potentiel souhaitait évaluer des compétences de conseil via une preuve de concept : reconstruire un tableau de bord à partir de sa propre maquette Figma, entièrement connecté à des données d’entrepôt en direct, au plus près du design visé.",
+        "approach": [
+          "Travail en Scrum avec mêlées quotidiennes pour suivre l’avancement et ajuster le périmètre au fil de la PoC.",
+          "Construction de la vraie version connectée aux données de la maquette, plutôt qu’un prototype statique."
+        ],
+        "solution": "Un tableau de bord construit sur des sources d’entrepôt de données cloud en direct, conçu pour correspondre visuellement et fonctionnellement au cahier des charges de design du client.",
+        "outcome": "Le processus a révélé un véritable problème interne de qualité des données côté client — suffisamment important pour que la PoC soit mise en pause. Malgré cela, la réalisation du tableau de bord a reçu des retours très positifs sur la qualité d’exécution — un cas où le processus qui fonctionne (révéler un vrai problème) comptait plus que d’aboutir à un produit fini.",
+        "tools": ["Snowflake", "Astrato", "Figma (référence design)", "Scrum"],
+        "flow": ["Maquette Figma", "Données d’entrepôt live", "Construction (Scrum)", "Revue des parties prenantes"]
       }
     }
   },

@@ -6,8 +6,8 @@ import { AnimatedLogo } from "@/components/ui/animated-logo";
 import { FadeIn, ScaleUnblur } from "@/components/ui/motion-primitives";
 import { PortraitMorph } from "./portrait-morph";
 
-const PORTRAIT_SRC = "/sylvana-hero-neutral.png";
-const PORTRAIT_HOVER_SRC = "/sylvana-hero-wave.png";
+const PORTRAIT_SRC = "/sylvana-portrait.png";
+const PORTRAIT_HOVER_SRC = "/sylvana-portrait-wave.png";
 
 export function Hero(): ReactNode {
   const t = useTranslations("Hero");
