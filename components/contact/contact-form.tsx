@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState, type FormEvent, type ReactNode } from "react";
 
 import { siteLinks } from "@/lib/site";
@@ -11,6 +11,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function ContactForm(): ReactNode {
   const t = useTranslations("Contact.form");
+  const locale = useLocale();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -33,7 +34,7 @@ export function ContactForm(): ReactNode {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, message }),
+        body: JSON.stringify({ name, email, message, locale }),
       });
 
       if (!res.ok) throw new Error(`Request failed: ${res.status}`);
