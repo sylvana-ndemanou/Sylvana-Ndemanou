@@ -2,6 +2,7 @@ import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { HeroCtas } from "./hero-ctas";
+import { AnimatedLogo } from "@/components/ui/animated-logo";
 import { FadeIn, ScaleUnblur } from "@/components/ui/motion-primitives";
 import { PortraitMorph } from "./portrait-morph";
 
@@ -12,8 +13,15 @@ export function Hero(): ReactNode {
   const t = useTranslations("Hero");
 
   return (
-    <section className="relative w-full">
-      <div className="mx-auto w-full max-w-275 px-6 pt-44 pb-24 sm:px-10 sm:pt-56 sm:pb-32">
+    <section className="relative w-full overflow-hidden">
+      <AnimatedLogo
+        className="pointer-events-none absolute left-1/2 top-24 -z-0 hidden h-[24rem] w-[24rem] -translate-x-1/2 text-accent/20 sm:block lg:top-28 lg:h-[30rem] lg:w-[30rem]"
+        title=""
+        duration={3.2}
+        strokeWidth={1.5}
+        loop
+      />
+      <div className="relative mx-auto w-full max-w-275 px-6 pt-44 pb-24 sm:px-10 sm:pt-56 sm:pb-32">
         <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2 md:gap-8">
           <FadeIn className="flex flex-col gap-4">
             <p className="text-[20px] leading-tight tracking-tight font-medium text-foreground">
