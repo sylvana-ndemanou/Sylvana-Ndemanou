@@ -172,6 +172,7 @@
     "socialLinkedin": "LinkedIn",
     "socialGithub": "GitHub",
     "socialNotion": "Notion",
+    "socialUpwork": "Upwork",
     "form": {
       "title": "Envoyer un message",
       "name": "Nom",
@@ -198,5 +199,75 @@
     "projectsDescription": "Études de cas anonymisées en BI, ingénierie de données et IA appliquée.",
     "aboutTitle": "À propos",
     "aboutDescription": "Sylvana Ndemanou — consultante BI & Data et ingénieure de données : parcours, expérience et stack."
+  },
+  "Story": {
+    "metaTitle": "D’où je viens",
+    "metaDescription": "Un chapitre plus personnel — les racines, le parcours et les moteurs de Sylvana Ndemanou.",
+    "entryLabel": "Une histoire plus personnelle",
+    "openHint": "Faites défiler pour ouvrir le livre",
+    "backHome": "Retour au site",
+    "audioPlay": "Lancer la musique",
+    "audioPause": "Mettre la musique en pause",
+    "audioTitle": "Ambiance sonore du récit",
+    "cover": {
+      "kicker": "L’histoire derrière le travail",
+      "title": "D’où je viens",
+      "subtitle": "Un chapitre plus personnel — mes racines, mon parcours, et ce qui me fait avancer."
+    },
+    "chapters": [
+      {
+        "scene": "roots",
+        "title": "Tout commence au Cameroun",
+        "body": [
+          "Je suis née et j’ai grandi au Cameroun — ce pays chaleureux et vivant est la racine de qui je suis. Il m’a appris la curiosité, la patience et un espoir tenace.",
+          "J’y ai obtenu mon baccalauréat en Mathématiques et Sciences de la Vie et de la Terre. Les chiffres et le vivant m’ont fascinée très tôt — un premier indice, peut-être, du chemin vers la donnée."
+        ]
+      },
+      {
+        "scene": "france",
+        "title": "Le grand saut vers la France",
+        "body": [
+          "Fin 2020, en pleine pandémie, je pars à Lyon étudier le Management à l’ECEMA. Tout est nouveau à la fois : la culture, les codes du monde professionnel, des amitiés à reconstruire de zéro.",
+          "Ça a pris du temps. Je me suis adaptée, j’ai trébuché, j’ai continué — et j’ai obtenu ma licence en Management. Cette période m’a appris à me sentir étrangère et à en faire une force."
+        ]
+      },
+      {
+        "scene": "piano",
+        "title": "Tomber amoureuse du piano",
+        "body": [
+          "Avec mon tout premier revenu, je me suis offert un piano. J’en avais joué un peu enfant avant que la vie ne m’oblige à arrêter — mais je n’ai jamais oublié la sensation.",
+          "La musique est devenue une seconde langue pour moi : quand les mots manquent, je compose. (Je parle aussi anglais, au passage — haha.)"
+        ]
+      },
+      {
+        "scene": "canada",
+        "title": "Cap au Canada",
+        "body": [
+          "À l’été 2023, je m’envole vers le Canada — avec mon piano, évidemment — pour retrouver ma famille. L’hiver suivant, je commence ma maîtrise en Intelligence d’affaires à l’Université de Sherbrooke.",
+          "Le choc culturel a été plus doux cette fois : ce n’était pas le premier, et ma famille était là pour m’aider à atterrir. J’ai fait des rencontres qui m’ont enrichie bien au-delà d’un diplôme."
+        ]
+      },
+      {
+        "scene": "life",
+        "title": "Ce qui me garde entière",
+        "body": [
+          "Loin de l’écran, on me trouve à la salle de sport, au piano à composer, ou en quête de nouvelles saveurs en cuisine — quand je suis motivée, je deviens très manuelle.",
+          "Je suis une bosseuse à ma manière, et j’adore voyager. Le monde a bien trop à offrir pour lui tourner le dos."
+        ]
+      },
+      {
+        "scene": "now",
+        "title": "Là où je vais",
+        "body": [
+          "Aujourd’hui, je construis des systèmes de données fiables, et j’explore comment l’IA peut les rendre vraiment utiles aux gens — pas seulement aux machines.",
+          "Je veux continuer à relier le technique et l’humain : rigoureuse avec la donnée, chaleureuse avec les personnes, et toujours en apprentissage."
+        ]
+      }
+    ],
+    "closing": {
+      "title": "À suivre",
+      "body": "Il reste une page à écrire.",
+      "testimonialSoon": "Un court message vidéo de moi — bientôt."
+    }
   }
 }

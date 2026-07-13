@@ -13,6 +13,7 @@ export const siteLinks = {
    * private, logged-in settings page and is not shareable.
    */
   notion: "https://app.notion.com/profile",
+  upwork: "https://www.upwork.com/freelancers/sylvanan",
   /**
    * Public Cal.com link. Can be a username ("sylvana-ndemanou") to show all
    * event types, or "username/event-slug" to open a specific one.

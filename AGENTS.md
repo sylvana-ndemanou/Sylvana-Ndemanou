@@ -55,6 +55,13 @@ Non-obvious caveats:
   to the account owner's own email. To deliver to `sylvana.ndemanou@proton.me`, verify a domain at
   resend.com/domains and set `RESEND_FROM` to an address on that domain. The route degrades
   gracefully (the form shows a mailto fallback) when sending fails or the key is missing.
+- Hidden "story" page: `app/[locale]/story/page.tsx` (`/en/story`, `/fr/story`), reached via a
+  discreet book icon in the contact footer. It's a scroll-driven book that opens (`components/story/`)
+  with illustrated color scenes (`public/story-*.png`) and bilingual copy under the `Story` namespace.
+  It is `noIndex` and intentionally not in the nav or sitemap. Global nav + brand mark are hidden on
+  this route. Optional assets (absent = gracefully hidden/placeholder): `public/story-audio.mp3`
+  (floating soundtrack toggle, starts on first scroll) and `public/story-testimonial.mp4` (future
+  testimonial slot on the closing page).
 - Email templates are React Email components in `emails/contact-emails.tsx` (a branded
   notification to Sylvana + a localized EN/FR confirmation auto-reply), rendered via
   `@react-email/render`. The confirmation is best-effort and never fails the request.

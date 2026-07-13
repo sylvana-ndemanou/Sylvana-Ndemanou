@@ -172,6 +172,7 @@
     "socialLinkedin": "LinkedIn",
     "socialGithub": "GitHub",
     "socialNotion": "Notion",
+    "socialUpwork": "Upwork",
     "form": {
       "title": "Send a message",
       "name": "Name",
@@ -198,5 +199,75 @@
     "projectsDescription": "Anonymized case studies from BI, data engineering, and applied-AI projects.",
     "aboutTitle": "About",
     "aboutDescription": "Sylvana Ndemanou — BI & Data Consultant and Data Engineer, background, experience, and stack."
+  },
+  "Story": {
+    "metaTitle": "Where I come from",
+    "metaDescription": "A more personal chapter — Sylvana Ndemanou's roots, journey, and what drives her.",
+    "entryLabel": "A more personal story",
+    "openHint": "Scroll to open the book",
+    "backHome": "Back to the site",
+    "audioPlay": "Play the soundtrack",
+    "audioPause": "Pause the soundtrack",
+    "audioTitle": "Story soundtrack",
+    "cover": {
+      "kicker": "The story behind the work",
+      "title": "Where I come from",
+      "subtitle": "A more personal chapter — my roots, my journey, and what keeps me moving."
+    },
+    "chapters": [
+      {
+        "scene": "roots",
+        "title": "It started in Cameroon",
+        "body": [
+          "I was born and raised in Cameroon — that warm, vibrant place is the root of who I am. It taught me to be curious, patient, and stubbornly hopeful.",
+          "I earned my baccalauréat in Mathematics and Life & Earth Sciences. Numbers and living systems fascinated me early — a quiet hint of the data path to come."
+        ]
+      },
+      {
+        "scene": "france",
+        "title": "A leap to France",
+        "body": [
+          "In late 2020, in the middle of the pandemic, I moved to Lyon to study Management at ECEMA. Everything was new at once: a culture, the codes of the professional world, friendships to rebuild from scratch.",
+          "It took time. I adapted, I stumbled, I kept going — and earned my bachelor's in Management. That season taught me how to feel like a stranger and turn it into strength."
+        ]
+      },
+      {
+        "scene": "piano",
+        "title": "Falling for the piano",
+        "body": [
+          "With my very first paycheck, I bought myself a piano. I had played a little as a child before life made me stop — but I never forgot the feeling.",
+          "Music became a second language for me: when words fall short, I compose. (I also speak English, by the way — haha.)"
+        ]
+      },
+      {
+        "scene": "canada",
+        "title": "North, to Canada",
+        "body": [
+          "In the summer of 2023 I flew to Canada — with my piano, of course — to rejoin my family. That winter I began my master's in Business Intelligence at the Université de Sherbrooke.",
+          "The culture shock was gentler this time: it wasn't my first, and my family was right there to help me land. I met people who made me grow in ways no diploma could."
+        ]
+      },
+      {
+        "scene": "life",
+        "title": "What keeps me whole",
+        "body": [
+          "Away from the screen, you'll find me at the gym, at the piano composing, or chasing new flavours in the kitchen — when I'm motivated, I get very hands-on.",
+          "I'm a hard worker in my own way, and I love to travel. The world has far too much to offer to turn my back on it."
+        ]
+      },
+      {
+        "scene": "now",
+        "title": "Where I'm headed",
+        "body": [
+          "Today I build reliable data systems, and I'm exploring how AI can make them genuinely useful to people — not just to machines.",
+          "I want to keep bridging the technical and the human: rigorous with data, warm with people, and always learning."
+        ]
+      }
+    ],
+    "closing": {
+      "title": "To be continued",
+      "body": "There's one more page waiting to be written.",
+      "testimonialSoon": "A short video message from me — coming soon."
+    }
   }
 }

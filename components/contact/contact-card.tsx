@@ -1,4 +1,4 @@
-import { Github, Linkedin, Mail } from "lucide-react";
+import { BookOpen, Github, Linkedin, Mail } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
@@ -7,6 +7,7 @@ import { ContactForm } from "./contact-form";
 import { Logo } from "@/components/ui/logo";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { NotionIcon } from "@/components/ui/notion-icon";
+import { UpworkIcon } from "@/components/ui/upwork-icon";
 import { Link } from "@/i18n/navigation";
 import { siteLinks } from "@/lib/site";
 import { ShaderFlow } from "../shaders/shader-flow";
@@ -16,6 +17,7 @@ const CARD_FADE_MASK =
 
 export function ContactCard(): ReactNode {
   const t = useTranslations("Contact");
+  const tStory = useTranslations("Story");
   const year = new Date().getFullYear();
 
   return (
@@ -69,6 +71,7 @@ export function ContactCard(): ReactNode {
                   <SocialIcon href={siteLinks.linkedin} label={t("socialLinkedin")} icon={Linkedin} />
                   <SocialIcon href={siteLinks.github} label={t("socialGithub")} icon={Github} />
                   <SocialIcon href={siteLinks.notion} label={t("socialNotion")} icon={NotionIcon} />
+                  <SocialIcon href={siteLinks.upwork} label={t("socialUpwork")} icon={UpworkIcon} />
                 </div>
 
                 <div className="mt-2 flex items-center gap-2">
@@ -76,6 +79,17 @@ export function ContactCard(): ReactNode {
                   <p className="text-[12px] tracking-tight text-foreground/45">
                     {t("footerBuilt", { year })}
                   </p>
+                  <Link
+                    href="/story"
+                    aria-label={tStory("entryLabel")}
+                    title={tStory("entryLabel")}
+                    className="focus-ring group/story ml-1 inline-flex items-center gap-1 rounded-full px-1.5 py-1 text-foreground/25 transition-colors hover:text-accent"
+                  >
+                    <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span className="max-w-0 overflow-hidden whitespace-nowrap text-[11px] italic opacity-0 transition-all duration-500 group-hover/story:max-w-[10rem] group-hover/story:opacity-70">
+                      {tStory("entryLabel")}
+                    </span>
+                  </Link>
                 </div>
               </div>
 

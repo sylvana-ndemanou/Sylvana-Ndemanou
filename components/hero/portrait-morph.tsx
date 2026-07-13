@@ -307,7 +307,7 @@ export function PortraitMorph({
       role="img"
       aria-label={alt}
       className={className}
-      style={{ position: "relative", width: "100%", height: "100%", filter: "grayscale(100%)" }}
+      style={{ position: "relative", width: "100%", height: "100%" }}
     >
       {!ready ? (
         <img

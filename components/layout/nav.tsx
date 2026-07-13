@@ -148,6 +148,7 @@ export function Nav(): ReactNode {
   const t = useTranslations("Nav");
   const pathname = usePathname();
   const listRef = useRef<HTMLUListElement>(null);
+  const hidden = pathname === "/story" || pathname.startsWith("/story/");
   const itemRefs = useRef<Array<HTMLLIElement | null>>([]);
   const [pillRect, setPillRect] = useState<{
     x: number;
@@ -182,6 +183,8 @@ export function Nav(): ReactNode {
     const id = requestAnimationFrame(() => setHasMeasured(true));
     return () => cancelAnimationFrame(id);
   }, [pillRect]);
+
+  if (hidden) return null;
 
   return (
     <nav
