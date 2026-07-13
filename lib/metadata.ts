@@ -4,7 +4,7 @@ export const siteConfig = {
   name: "Sylvana Ndemanou",
   description:
     "BI & Data Consultant and Data Engineer in Sherbrooke, QC — reliable pipelines, migrations, and dashboards, with active exploration of applied AI (LLMs, RAG, agents).",
-  url: "https://sylvana-ndemanou.vercel.app",
+  url: "https://sylvanandemanou.vercel.app",
   ogImage: "/sylvana.jpg",
   creator: "Sylvana Ndemanou",
   authors: [
