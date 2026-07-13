@@ -22,8 +22,8 @@ Standard scripts (see `package.json`):
 - `npm run lint` / `npm run format` — ESLint 9 / Prettier.
 
 Non-obvious caveats:
-- Use **`npm install`** (not `npm ci`): the committed `package-lock.json` is out of sync with
-  `package.json`, so `npm ci` fails. A `pnpm-lock.yaml` is also committed but the project uses npm.
+- The project uses **npm** (`package-lock.json`). The old, stale `pnpm-lock.yaml` was removed so
+  Vercel/CI don't pick pnpm and fail a frozen install; do not re-add it.
 
 ### i18n (bilingual EN/FR — next-intl)
 
