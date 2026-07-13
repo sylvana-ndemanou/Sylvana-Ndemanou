@@ -67,5 +67,7 @@ Non-obvious caveats:
   `@react-email/render`. The confirmation is best-effort and never fails the request.
 - Cal.com booking uses a popup embed; the public event link is set in `lib/site.ts`
   (`calLink`) — replace with the real `username/event-slug`.
-- The hero portrait and OG image reference `public/sylvana.jpg` (not committed). Drop the photo
-  there; until then the portrait shows an empty framed box (no crash).
+- The hero portrait is an illustrated avatar that morphs between a resting smile
+  (`public/sylvana-portrait.png`) and a waving pose (`public/sylvana-portrait-wave.png`) on hover.
+  These are APPROVED/FINAL — do not regenerate or change them or the morph animation unless the
+  user explicitly asks. The OG/social image still uses the real photo `public/sylvana.jpg`.
