@@ -7,15 +7,36 @@ import { ContactCard } from "@/components/contact/contact-card";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { createMetadata } from "@/lib/metadata";
 import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { ReactNode } from "react";
 
-export const metadata: Metadata = createMetadata({
-  title: "About",
-  description: "About me, background, and how to get in touch.",
-  path: "/about",
-});
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "Metadata" });
+  return createMetadata({
+    title: t("aboutTitle"),
+    description: t("aboutDescription"),
+    path: "/about",
+  });
+}
 
-export default function AboutPage(): ReactNode {
+export default async function AboutPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<ReactNode> {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("About");
+
+  const bold = (chunks: ReactNode): ReactNode => (
+    <strong className="font-semibold text-foreground">{chunks}</strong>
+  );
+
   return (
     <main id="main-content" className="flex flex-1 flex-col">
       <section className="mx-auto w-full max-w-312 pt-40 sm:pt-56">
@@ -26,18 +47,16 @@ export default function AboutPage(): ReactNode {
         <FadeIn delay={0.5}>
           <div className="rounded-4xl border border-foreground/5 bg-foreground/1.5 p-8 sm:p-12 dark:bg-foreground/3">
             <h1 className="font-serif text-[1.75rem] font-medium tracking-tight text-foreground sm:text-[2rem]">
-              Hello! I&rsquo;m <span className="border-b border-foreground/30 pb-0.5">Josh Mercer</span>.
+              {t("helloPrefix")}
+              <span className="border-b border-foreground/30 pb-0.5">
+                {t("name")}
+              </span>
+              .
             </h1>
             <div className="mt-8 space-y-6 text-[17px] leading-[1.7] tracking-tight text-foreground/75 sm:text-[18px]">
-              <p>
-                A <strong className="font-semibold text-foreground">product designer and frontend engineer</strong> passionate about building intuitive, human-centered digital experiences. With a background in <strong className="font-semibold text-foreground">visual craft</strong> and <strong className="font-semibold text-foreground">interaction design</strong>, I bring a unique blend of design thinking and technical execution to every project.
-              </p>
-              <p>
-                My journey into design began when I realized how often good user experience was missing from powerful tools. That led me to embrace <strong className="font-semibold text-foreground">user-centered design</strong> as both a mindset and a craft, one that balances clarity, creativity, and functionality.
-              </p>
-              <p>
-                Currently leading design at small product teams shipping software for <strong className="font-semibold text-foreground">creative professionals</strong>, I&rsquo;m always looking for opportunities to <strong className="font-semibold text-foreground">shape thoughtful interfaces and build scalable design systems</strong>.
-              </p>
+              <p>{t.rich("bio1", { b: bold })}</p>
+              <p>{t.rich("bio2", { b: bold })}</p>
+              <p>{t.rich("bio3", { b: bold })}</p>
             </div>
           </div>
         </FadeIn>

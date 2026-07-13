@@ -1,0 +1,201 @@
+{
+  "Nav": {
+    "home": "Accueil",
+    "projects": "Projets",
+    "about": "À propos",
+    "toggleTheme": "Changer de thème",
+    "switchToLight": "Passer au thème clair",
+    "switchToDark": "Passer au thème sombre",
+    "language": "Langue",
+    "switchToEnglish": "Switch to English",
+    "switchToFrench": "Passer en français"
+  },
+  "Hero": {
+    "greeting": "Bonjour, je suis Sylvana",
+    "title1": "Consultante BI & Data",
+    "title2": "Ingénieure de données",
+    "subtitle": "Consultante BI & Data avec une base solide en ingénierie de données — pipelines, migrations et tableaux de bord fiables. En exploration active de l’IA appliquée : LLM, RAG et agents IA.",
+    "portraitAlt": "Sylvana Ndemanou",
+    "ctaWork": "Voir mes réalisations"
+  },
+  "Projects": {
+    "homeHeadline": "Réalisations",
+    "homeIntro": "Études de cas en BI, ingénierie de données et IA appliquée — les résultats dont je suis fière.",
+    "listTitle": "Réalisations",
+    "listIntro": "Études de cas anonymisées en BI, ingénierie de données et IA appliquée.",
+    "viewAll": "Voir tous les projets",
+    "viewCaseStudy": "Lire l’étude de cas",
+    "personalBadge": "Projet personnel"
+  },
+  "CaseStudy": {
+    "backToProjects": "Tous les projets",
+    "sections": {
+      "context": "Contexte / Enjeu",
+      "approach": "Approche",
+      "solution": "Solution technique",
+      "outcome": "Résultat",
+      "tools": "Outils utilisés"
+    },
+    "diagramCaption": "Flux de données simplifié — illustratif, pas un système client.",
+    "items": {
+      "etl-modernization": {
+        "tag": "Migration ETL",
+        "title": "D’un ETL hérité vers une orchestration moderne",
+        "summary": "Migration d’une orchestration ETL héritée vers une plateforme cloud moderne sans interrompre les pipelines de production nocturnes.",
+        "context": "Une grande entreprise exploitant des données intégrées à SAP devait migrer une orchestration ETL héritée vers une plateforme cloud-native moderne — sans perturber les pipelines de production nocturnes alimentant les rapports d’inventaire, de logistique et de ventes.",
+        "approach": [
+          "Mise en place d’une phase d’observation en parallèle de deux semaines, les systèmes hérité et moderne fonctionnant côte à côte.",
+          "Construction d’un score de comparaison quotidien automatisé pour détecter les écarts tôt.",
+          "Audit systématique de configuration pour repérer les risques de portée d’environnement avant la mise en production."
+        ],
+        "solution": "Migration de plus de 800 tables de pipelines couvrant des systèmes source SAP, des intégrations CRM et un entrepôt cible Snowflake. Identification et documentation de 17 différences comportementales au niveau plateforme entre les moteurs d’orchestration hérité et moderne (gestion des types de données, limites de lots d’API, portée des identifiants, performance des itérations).",
+        "outcome": "Un taux de correspondance automatisé élevé entre les sorties des pipelines hérité et moderne avant la bascule. Le processus de validation a aussi révélé un risque critique d’intégrité des données pendant les tests — avant qu’il n’atteigne la production.",
+        "tools": ["Matillion", "Snowflake", "SQL", "API REST / OData"],
+        "flow": ["Sources SAP / CRM", "Orchestration Matillion", "Validation & score", "Entrepôt Snowflake"]
+      },
+      "bi-architecture": {
+        "tag": "Architecture de données",
+        "title": "Architecture BI multi-sources",
+        "summary": "Consolidation de données publicitaires dispersées sur plusieurs plateformes en une architecture de reporting unifiée et réutilisable.",
+        "context": "Une agence gérant des données de performance publicitaire pour de nombreux clients et plusieurs plateformes avait besoin d’une architecture de reporting unifiée plutôt que d’exports dispersés et incohérents.",
+        "approach": [
+          "Conception d’une architecture d’entrepôt en couches (ingestion brute → staging → modèle dimensionnel) pour intégrer chaque nouvelle plateforme via un patron réutilisable plutôt qu’un pipeline sur mesure.",
+          "Standardisation de la logique d’extraction incrémentale et de déduplication sur toutes les sources."
+        ],
+        "solution": "Consolidation de multiples intégrations de plateformes publicitaires en modèles dimensionnels standardisés (campagnes, groupes d’annonces, comptes, performance) dans Snowflake, et migration de la couche de diffusion des tableaux de bord pour améliorer l’autonomie des parties prenantes.",
+        "outcome": "Les nouvelles sources peuvent être intégrées avec le même patron standardisé, réduisant le travail de mise en place pour chaque plateforme supplémentaire par rapport à des pipelines uniques.",
+        "tools": ["Matillion", "Snowflake", "Astrato", "Power BI", "API REST"],
+        "flow": ["Plateformes publicitaires", "Ingestion brute", "Staging", "Modèle dimensionnel", "Tableaux de bord"]
+      },
+      "reporting-automation": {
+        "tag": "Automatisation de processus",
+        "title": "Pipeline de reporting automatisé",
+        "summary": "Une automatisation bout-en-bout reliant dépôt de documents, extraction de texte par IA et saisie en base structurée.",
+        "context": "Le suivi budgétaire et le reporting manuels sont chronophages et sujets aux erreurs pour les particuliers et petites entreprises qui gèrent leurs propres finances.",
+        "approach": [
+          "Construction d’un pipeline d’automatisation bout-en-bout reliant dépôt de documents, extraction de texte par IA et saisie en base structurée — supprimant entièrement la saisie manuelle."
+        ],
+        "solution": "Pipeline d’automatisation (Make) reliant stockage de fichiers cloud → extraction PDF/texte → catégorisation par IA via l’API Claude → base de données structurée (Notion), entièrement automatisé du dépôt jusqu’à l’entrée catégorisée.",
+        "outcome": "Projet personnel/produit, toujours en développement actif — illustre une conception d’automatisation bout-en-bout au-delà du travail BI client.",
+        "tools": ["Make", "API Claude", "Notion", "Outils d’extraction PDF"],
+        "flow": ["Dépôt de fichier", "Extraction PDF / texte", "Catégorisation API Claude", "Base Notion"]
+      },
+      "applied-ai-exploration": {
+        "tag": "IA appliquée (LLM / RAG)",
+        "title": "Exploration de l’IA appliquée",
+        "summary": "Une exploration personnelle de la façon dont les LLM peuvent rendre les outils BI plus accessibles sans compromettre la sécurité des données.",
+        "context": "Exploration personnelle de la façon dont les grands modèles de langage peuvent rendre les outils BI plus accessibles aux utilisateurs non techniques sans compromettre la sécurité des données — un écart que j’observe régulièrement dans le travail client.",
+        "approach": [
+          "Expérimentation concrète avec l’API Claude — pour tester comment les LLM peuvent interpréter, catégoriser et résumer des données d’affaires de manière directement exploitable par des parties prenantes non techniques."
+        ],
+        "solution": "Prototypes explorant la catégorisation de données assistée par LLM et les interfaces en langage naturel sur des données structurées.",
+        "outcome": "Exploration en cours — présentée en toute transparence comme un apprentissage actif, pas un livrable client finalisé.",
+        "tools": ["API Claude", "Python / JS"],
+        "flow": ["Question d’affaires", "LLM (RAG)", "Données structurées", "Réponse en langage clair"]
+      }
+    }
+  },
+  "About": {
+    "kicker": "À propos",
+    "helloPrefix": "Bonjour ! Je suis ",
+    "name": "Sylvana Ndemanou",
+    "bio1": "<b>Consultante BI & Data</b> avec une base solide en <b>ingénierie de données</b>, basée à Sherbrooke, QC. Je construis des pipelines de données fiables, je mène des migrations ETL/ELT et je conçois des architectures multi-sources qui transforment des données dispersées en un reporting sur lequel on peut compter.",
+    "bio2": "Chez <b>Codex Consulting</b>, je travaille sur des plateformes de données cloud — modernisation de l’orchestration, consolidation des sources et automatisation du reporting pour que les équipes puissent faire confiance aux chiffres sur lesquels elles s’appuient.",
+    "bio3": "J’explore aussi activement l’<b>IA appliquée</b> — LLM, RAG et agents IA — pour rendre les outils BI plus accessibles aux utilisateurs non techniques sans compromettre la sécurité des données.",
+    "experienceTitle": "Expérience",
+    "educationTitle": "Formation",
+    "skillsTitle": "Ce que je fais",
+    "stackTitle": "Stack",
+    "showMore": "Afficher {count} de plus",
+    "showLess": "Afficher moins",
+    "experience": [
+      {
+        "company": "Codex Consulting",
+        "role": "Analyste BI, Cloud Technology",
+        "period": "Septembre 2025 – Présent"
+      },
+      {
+        "company": "Codex Consulting",
+        "role": "Ingénieure de données",
+        "period": "Juillet 2025 – Août 2025"
+      }
+    ],
+    "education": [
+      {
+        "school": "Université de Sherbrooke",
+        "degree": "M. Sc., Stratégie en intelligence d’affaires",
+        "period": "2024 – 2025"
+      },
+      {
+        "school": "ECEMA",
+        "degree": "Master 1, Management (stratégie et développement d’entreprise)",
+        "period": "2022 – 2023"
+      },
+      {
+        "school": "ECEMA",
+        "degree": "Licence, Management (gestion d’unité opérationnelle)",
+        "period": "2021 – 2022"
+      }
+    ],
+    "skills": [
+      "Ingénierie de données",
+      "BI & Analytique",
+      "Migration ETL/ELT",
+      "Entreposage de données",
+      "Conception de tableaux de bord",
+      "IA appliquée (LLM/RAG)",
+      "Automatisation de processus",
+      "Architecture de données"
+    ],
+    "stack": [
+      "Snowflake",
+      "Matillion",
+      "BigQuery",
+      "Astrato",
+      "Power BI",
+      "SQL",
+      "Notion",
+      "Make",
+      "Python"
+    ]
+  },
+  "Contact": {
+    "heading": "Restons en contact",
+    "blurb": "Ouverte aux opportunités en BI, ingénierie de données et IA appliquée. Écrivez-moi un message, contactez-moi directement par courriel, ou réservez un appel découverte de 30 minutes.",
+    "bookCall": "Réserver un appel de 30 min",
+    "seeProjects": "Voir les projets",
+    "showEmail": "Afficher le courriel",
+    "copyEmailLabel": "Copier {email}",
+    "emailCopied": "Courriel copié",
+    "contact": "Contact",
+    "socialEmail": "Courriel",
+    "socialLinkedin": "LinkedIn",
+    "socialGithub": "GitHub",
+    "form": {
+      "title": "Envoyer un message",
+      "name": "Nom",
+      "namePlaceholder": "Votre nom",
+      "email": "Courriel",
+      "emailPlaceholder": "vous@exemple.com",
+      "message": "Message",
+      "messagePlaceholder": "Décrivez brièvement votre projet ou votre question…",
+      "send": "Envoyer le message",
+      "sending": "Envoi…",
+      "success": "Merci ! Votre message a été envoyé.",
+      "error": "Une erreur est survenue. Contactez-moi directement par courriel.",
+      "invalid": "Veuillez remplir tous les champs avec un courriel valide."
+    },
+    "bookTitle": "Réserver un appel découverte",
+    "footerBuilt": "© {year} Sylvana Ndemanou"
+  },
+  "Metadata": {
+    "siteName": "Sylvana Ndemanou",
+    "siteDescription": "Consultante BI & Data et ingénieure de données à Sherbrooke, QC — pipelines, migrations et tableaux de bord fiables, avec une exploration active de l’IA appliquée (LLM, RAG, agents).",
+    "homeTitle": "Accueil",
+    "homeDescription": "Consultante BI & Data et ingénieure de données : pipelines, migrations et tableaux de bord fiables, avec une exploration active de l’IA appliquée.",
+    "projectsTitle": "Projets",
+    "projectsDescription": "Études de cas anonymisées en BI, ingénierie de données et IA appliquée.",
+    "aboutTitle": "À propos",
+    "aboutDescription": "Sylvana Ndemanou — consultante BI & Data et ingénieure de données : parcours, expérience et stack."
+  }
+}

@@ -2,27 +2,29 @@
 
 import { Moon, Sun } from "lucide-react";
 import { motion } from "motion/react";
+import { useLocale, useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import {
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
   useSyncExternalStore,
+  useTransition,
   type ReactNode,
 } from "react";
 
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
+
 type NavItem = {
-  label: string;
-  href: string;
+  key: "home" | "projects" | "about";
+  href: "/" | "/projects" | "/about";
 };
 
 const NAV_ITEMS: readonly NavItem[] = [
-  { label: "Home", href: "/" },
-  { label: "Projects", href: "/projects" },
-  { label: "About", href: "/about" },
+  { key: "home", href: "/" },
+  { key: "projects", href: "/projects" },
+  { key: "about", href: "/about" },
 ];
 
 function useIsMounted(): boolean {
@@ -34,6 +36,7 @@ function useIsMounted(): boolean {
 }
 
 function NavThemeToggle(): ReactNode {
+  const t = useTranslations("Nav");
   const mounted = useIsMounted();
   const { setTheme, resolvedTheme } = useTheme();
   const isDark = mounted && resolvedTheme === "dark";
@@ -84,9 +87,9 @@ function NavThemeToggle(): ReactNode {
       aria-label={
         mounted
           ? isDark
-            ? "Switch to light theme"
-            : "Switch to dark theme"
-          : "Toggle theme"
+            ? t("switchToLight")
+            : t("switchToDark")
+          : t("toggleTheme")
       }
       aria-pressed={mounted ? isDark : undefined}
       className="focus-ring relative inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-background ring-1 ring-foreground/8 transition-colors"
@@ -111,7 +114,38 @@ function NavThemeToggle(): ReactNode {
   );
 }
 
+function LanguageToggle(): ReactNode {
+  const t = useTranslations("Nav");
+  const locale = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isPending, startTransition] = useTransition();
+
+  const nextLocale = locale === "fr" ? "en" : "fr";
+
+  const switchLocale = (): void => {
+    startTransition(() => {
+      router.replace(pathname, { locale: nextLocale });
+    });
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={switchLocale}
+      disabled={isPending}
+      aria-label={
+        nextLocale === "fr" ? t("switchToFrench") : t("switchToEnglish")
+      }
+      className="focus-ring relative inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-full bg-background px-2 text-[13px] font-semibold uppercase tracking-wide text-foreground/70 ring-1 ring-foreground/8 transition-colors hover:text-foreground"
+    >
+      {nextLocale}
+    </button>
+  );
+}
+
 export function Nav(): ReactNode {
+  const t = useTranslations("Nav");
   const pathname = usePathname();
   const listRef = useRef<HTMLUListElement>(null);
   const itemRefs = useRef<Array<HTMLLIElement | null>>([]);
@@ -129,9 +163,9 @@ export function Nav(): ReactNode {
 
   useLayoutEffect(() => {
     const list = listRef.current;
-    const activeEl =
-      activeIndex >= 0 ? itemRefs.current[activeIndex] : null;
+    const activeEl = activeIndex >= 0 ? itemRefs.current[activeIndex] : null;
     if (!list || !activeEl) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- DOM measurement pattern
       setPillRect(null);
       return;
     }
@@ -192,13 +226,14 @@ export function Nav(): ReactNode {
                         : "relative z-10 text-foreground/60 hover:text-foreground"
                     }
                   >
-                    {item.label}
+                    {t(item.key)}
                   </span>
                 </Link>
               </li>
             );
           })}
         </ul>
+        <LanguageToggle />
         <NavThemeToggle />
       </div>
     </nav>

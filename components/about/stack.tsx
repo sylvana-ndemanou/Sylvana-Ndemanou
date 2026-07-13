@@ -1,34 +1,29 @@
 "use client";
 
 import { RotateCcw } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 type Chip = {
   label: string;
-  slug: string;
   bg: string;
   fg: string;
-  iconUrl?: string;
 };
 
-const CHIPS: Chip[] = [
-  {
-    label: "Figma",
-    slug: "figma",
-    bg: "#1f1f1f",
-    fg: "#ffffff",
-    iconUrl: "https://svgl.app/library/figma.svg",
-  },
-  { label: "React", slug: "react", bg: "#1FB6CB", fg: "#ffffff" },
-  { label: "Next.js", slug: "nextdotjs", bg: "#1f1f1f", fg: "#ffffff" },
-  { label: "TypeScript", slug: "typescript", bg: "#2F74C0", fg: "#ffffff" },
-  { label: "shadcn/ui", slug: "shadcnui", bg: "#5b54ff", fg: "#ffffff" },
-  { label: "Cursor", slug: "cursor", bg: "#111111", fg: "#ffffff" },
-  { label: "GSAP", slug: "gsap", bg: "#0AE448", fg: "#0a0a0a" },
-  { label: "GitHub", slug: "github", bg: "#181717", fg: "#ffffff" },
-  { label: "Vercel", slug: "vercel", bg: "#0a0a0a", fg: "#ffffff" },
-  { label: "Tailwind CSS", slug: "tailwindcss", bg: "#2BBCF5", fg: "#ffffff" },
-];
+// Brand-ish colors for the real tools; falls back to graphite.
+const COLORS: Record<string, { bg: string; fg: string }> = {
+  Snowflake: { bg: "#29B5E8", fg: "#ffffff" },
+  Matillion: { bg: "#19232D", fg: "#ffffff" },
+  BigQuery: { bg: "#4285F4", fg: "#ffffff" },
+  Astrato: { bg: "#6C5CE7", fg: "#ffffff" },
+  "Power BI": { bg: "#F2C811", fg: "#1a1a1a" },
+  SQL: { bg: "#4479A1", fg: "#ffffff" },
+  Notion: { bg: "#1f1f1f", fg: "#ffffff" },
+  Make: { bg: "#6D00CC", fg: "#ffffff" },
+  Python: { bg: "#3776AB", fg: "#ffffff" },
+};
+
+const DEFAULT_COLOR = { bg: "#3a3a3a", fg: "#ffffff" };
 
 const CHIP_RADIUS = 14;
 const ICON_RADIUS = 10;
@@ -42,6 +37,14 @@ type ChipState = {
 };
 
 export function Stack(): ReactNode {
+  const t = useTranslations("About");
+  const labels = t.raw("stack") as string[];
+  const chips: Chip[] = labels.map((label) => ({
+    label,
+    ...(COLORS[label] ?? DEFAULT_COLOR),
+  }));
+  const chipsKey = labels.join("|");
+
   const containerRef = useRef<HTMLDivElement | null>(null);
   const measureRef = useRef<HTMLDivElement | null>(null);
   const chipRefs = useRef<Array<HTMLDivElement | null>>([]);
@@ -107,7 +110,7 @@ export function Stack(): ReactNode {
       );
       World.add(world, [floor, leftWall, rightWall]);
 
-      const states: ChipState[] = CHIPS.map((chip, i) => {
+      const states: ChipState[] = chips.map((chip, i) => {
         const dim = dims[i] ?? { w: 120, h: 36 };
         const { w, h } = dim;
         const halfW = w / 2;
@@ -208,13 +211,14 @@ export function Stack(): ReactNode {
       cancelled = true;
       cleanup?.();
     };
-  }, [resetKey]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resetKey, chipsKey]);
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-3">
         <h3 className="text-foreground text-[15px] font-semibold tracking-tight">
-          Stack
+          {t("stackTitle")}
         </h3>
       </div>
 
@@ -225,11 +229,7 @@ export function Stack(): ReactNode {
           aria-label="Reset stack"
           className="focus-ring border-foreground/8 bg-background text-foreground/70 hover:text-foreground absolute top-3 right-3 z-20 inline-flex h-9 w-9 items-center justify-center rounded-xl border transition-colors"
         >
-          <RotateCcw
-            className="h-4 w-4"
-            strokeWidth={2.25}
-            aria-hidden="true"
-          />
+          <RotateCcw className="h-4 w-4" strokeWidth={2.25} aria-hidden="true" />
         </button>
 
         <div
@@ -237,7 +237,7 @@ export function Stack(): ReactNode {
           aria-hidden="true"
           className="pointer-events-none invisible absolute top-0 left-0 flex flex-wrap gap-2"
         >
-          {CHIPS.map((chip) => (
+          {chips.map((chip) => (
             <ChipPill key={`m-${chip.label}`} chip={chip} />
           ))}
         </div>
@@ -247,7 +247,7 @@ export function Stack(): ReactNode {
           className="absolute inset-0 cursor-grab select-none"
           style={{ touchAction: "none" }}
         >
-          {CHIPS.map((chip, i) => (
+          {chips.map((chip, i) => (
             <div
               key={`${resetKey}-${chip.label}`}
               ref={(el) => {
@@ -269,7 +269,7 @@ export function Stack(): ReactNode {
 function ChipPill({ chip }: { chip: Chip }): ReactNode {
   return (
     <div
-      className="dark:ring-1 dark:ring-white/15 inline-flex items-center gap-2 p-1 pr-2 text-[15px] font-medium tracking-tight sm:text-[16px]"
+      className="dark:ring-1 dark:ring-white/15 inline-flex items-center gap-2 p-1 pr-3 text-[15px] font-medium tracking-tight sm:text-[16px]"
       style={{
         backgroundColor: chip.bg,
         color: chip.fg,
@@ -277,18 +277,11 @@ function ChipPill({ chip }: { chip: Chip }): ReactNode {
       }}
     >
       <span
-        className="inline-flex h-8 w-8 items-center justify-center bg-white/95"
+        className="inline-flex h-8 w-8 items-center justify-center bg-white/95 text-[15px] font-semibold text-neutral-800"
         style={{ borderRadius: `${ICON_RADIUS}px` }}
         aria-hidden="true"
       >
-        <img
-          src={chip.iconUrl ?? `https://cdn.simpleicons.org/${chip.slug}`}
-          alt=""
-          width={18}
-          height={18}
-          className="h-5 w-5"
-          draggable={false}
-        />
+        {chip.label.charAt(0)}
       </span>
       <span>{chip.label}</span>
     </div>

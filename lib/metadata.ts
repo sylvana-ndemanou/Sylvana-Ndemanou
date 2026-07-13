@@ -1,25 +1,29 @@
 import type { Metadata } from "next";
 
 export const siteConfig = {
-  name: "Portfolio",
+  name: "Sylvana Ndemanou",
   description:
-    "A modern, accessible portfolio template built with Next.js, Tailwind CSS, and TypeScript.",
-  url: "https://example.com",
-  ogImage: "/og-image.png",
-  creator: "@yourhandle",
+    "BI & Data Consultant and Data Engineer in Sherbrooke, QC — reliable pipelines, migrations, and dashboards, with active exploration of applied AI (LLMs, RAG, agents).",
+  url: "https://sylvana-ndemanou.vercel.app",
+  ogImage: "/sylvana.jpg",
+  creator: "Sylvana Ndemanou",
   authors: [
     {
-      name: "Your Name",
-      url: "https://example.com",
+      name: "Sylvana Ndemanou",
+      url: "https://www.linkedin.com/in/sylvanandemanou",
     },
   ],
   keywords: [
-    "portfolio",
-    "personal site",
-    "Next.js",
-    "React",
-    "Tailwind CSS",
-    "TypeScript",
+    "BI Consultant",
+    "Data Engineer",
+    "Business Intelligence",
+    "Data Engineering",
+    "ETL",
+    "Snowflake",
+    "Matillion",
+    "Power BI",
+    "Applied AI",
+    "Sherbrooke",
   ],
 } as const;
 
@@ -69,12 +73,6 @@ export const baseMetadata: Metadata = {
     title: siteConfig.name,
     description: siteConfig.description,
     images: [siteConfig.ogImage],
-    creator: siteConfig.creator,
-  },
-  icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon-16x16.png",
-    apple: "/apple-icon.png",
   },
   manifest: "/site.webmanifest",
 };

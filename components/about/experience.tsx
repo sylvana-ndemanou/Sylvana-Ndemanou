@@ -2,106 +2,57 @@
 
 import { ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
+import { useTranslations } from "next-intl";
 import { useState, type ReactNode } from "react";
 
 type Entry = {
   company: string;
   role: string;
   period: string;
-  slug?: string;
-  brand?: string;
 };
-
-const ENTRIES: Entry[] = [
-  {
-    company: "Linear",
-    role: "Senior Design Engineer",
-    period: "Mar 2024 – Present",
-    slug: "linear",
-    brand: "#5E6AD2",
-  },
-  {
-    company: "Vercel",
-    role: "Product Designer",
-    period: "Aug 2022 – Feb 2024",
-    slug: "vercel",
-    brand: "#0a0a0a",
-  },
-  {
-    company: "Stripe",
-    role: "Design Engineer",
-    period: "Jun 2021 – Jul 2022",
-    slug: "stripe",
-    brand: "#635BFF",
-  },
-  {
-    company: "Figma",
-    role: "UI Engineer",
-    period: "Sep 2019 – May 2021",
-    slug: "figma",
-    brand: "#A259FF",
-  },
-  {
-    company: "Notion",
-    role: "Product Designer",
-    period: "Jan 2018 – Aug 2019",
-    slug: "notion",
-    brand: "#111111",
-  },
-  {
-    company: "Airbnb",
-    role: "Design Intern",
-    period: "May 2017 – Dec 2017",
-    slug: "airbnb",
-    brand: "#FF5A5F",
-  },
-  {
-    company: "Freelance",
-    role: "Designer & Developer",
-    period: "2015 – 2017",
-    brand: "#0AE448",
-  },
-];
 
 const COLLAPSED_COUNT = 2.5;
 const ROW_HEIGHT = 64;
 const ROW_GAP = 8;
 
 export function Experience(): ReactNode {
+  const t = useTranslations("About");
+  const entries = t.raw("experience") as Entry[];
   const [open, setOpen] = useState(false);
   const collapsedHeight =
     Math.floor(COLLAPSED_COUNT) * ROW_HEIGHT +
     Math.floor(COLLAPSED_COUNT) * ROW_GAP +
     (COLLAPSED_COUNT % 1) * ROW_HEIGHT;
-  const hiddenCount = ENTRIES.length - Math.floor(COLLAPSED_COUNT);
+  const hiddenCount = entries.length - Math.floor(COLLAPSED_COUNT);
+  const collapsible = hiddenCount > 0;
 
   return (
     <div className="flex flex-col gap-3">
       <h3 className="text-foreground text-[15px] font-semibold tracking-tight">
-        Experience
+        {t("experienceTitle")}
       </h3>
       <div
         className={`border-foreground/5 bg-foreground/2 dark:bg-foreground/5 relative overflow-hidden rounded-4xl border px-2 pt-2 sm:px-4 sm:pt-4 ${
-          open ? "pb-2 sm:pb-4" : "pb-0"
+          open || !collapsible ? "pb-2 sm:pb-4" : "pb-0"
         }`}
       >
         <motion.div
           className="relative"
           initial={false}
           animate={{
-            height: open ? "auto" : collapsedHeight,
+            height: open || !collapsible ? "auto" : collapsedHeight,
           }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           style={{ overflow: "hidden" }}
         >
           <ul className="flex flex-col gap-2">
-            {ENTRIES.map((entry) => (
+            {entries.map((entry) => (
               <li
                 key={`${entry.company}-${entry.period}`}
                 className="bg-background border-foreground/5 flex items-center gap-4 rounded-3xl border p-2"
                 style={{ minHeight: ROW_HEIGHT }}
               >
-                <CompanyLogo entry={entry} />
+                <CompanyLogo company={entry.company} />
                 <div className="flex min-w-0 flex-col">
                   <span className="text-foreground text-[17px] font-semibold tracking-tight sm:text-[18px]">
                     {entry.company}
@@ -118,7 +69,7 @@ export function Experience(): ReactNode {
         </motion.div>
 
         <AnimatePresence>
-          {!open && (
+          {collapsible && !open && (
             <motion.div
               key="fade"
               initial={{ opacity: 0 }}
@@ -140,7 +91,7 @@ export function Experience(): ReactNode {
           )}
         </AnimatePresence>
 
-        {hiddenCount > 0 && (
+        {collapsible && (
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
@@ -151,7 +102,7 @@ export function Experience(): ReactNode {
                 : "absolute inset-x-0 bottom-0 z-10 py-3 sm:py-4"
             }`}
           >
-            {open ? "Show less" : `Show ${hiddenCount} more`}
+            {open ? t("showLess") : t("showMore", { count: hiddenCount })}
             <motion.span
               animate={{ rotate: open ? 180 : 0 }}
               transition={{ duration: 0.25 }}
@@ -166,31 +117,16 @@ export function Experience(): ReactNode {
   );
 }
 
-function CompanyLogo({ entry }: { entry: Entry }): ReactNode {
-  const initials = entry.company.charAt(0);
+function CompanyLogo({ company }: { company: string }): ReactNode {
   return (
     <span
-      className="ring-foreground/8 inline-flex h-12 w-12 shrink-0 items-center justify-center bg-white ring-1 dark:ring-white/10"
+      className="ring-foreground/8 inline-flex h-12 w-12 shrink-0 items-center justify-center bg-foreground text-background ring-1 dark:ring-white/10"
       aria-hidden="true"
-      style={{
-        borderRadius: 14,
-        ...(entry.slug ? {} : { backgroundColor: entry.brand }),
-      }}
+      style={{ borderRadius: 14 }}
     >
-      {entry.slug ? (
-        <img
-          src={`https://cdn.simpleicons.org/${entry.slug}`}
-          alt=""
-          width={24}
-          height={24}
-          className="h-6 w-6"
-          draggable={false}
-        />
-      ) : (
-        <span className="text-[18px] font-semibold tracking-tight text-white">
-          {initials}
-        </span>
-      )}
+      <span className="text-[18px] font-semibold tracking-tight">
+        {company.charAt(0)}
+      </span>
     </span>
   );
 }
