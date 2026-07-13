@@ -3,11 +3,18 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
   productionBrowserSourceMaps: false,
-  // Workaround for a Next.js 16 + Vercel bug where the middleware/lambda trace
-  // drops @swc/helpers ESM modules, causing MIDDLEWARE_INVOCATION_FAILED (500)
-  // on deploy while working locally. See vercel/next.js discussion #93895.
-  outputFileTracingIncludes: {
-    "*": ["./node_modules/@swc/helpers/**/*"],
+  async redirects() {
+    // No i18n middleware, so redirect the bare root to the default locale.
+    return [
+      { source: "/", destination: "/en", permanent: false },
+      { source: "/projects", destination: "/en/projects", permanent: false },
+      { source: "/about", destination: "/en/about", permanent: false },
+      {
+        source: "/projects/:slug",
+        destination: "/en/projects/:slug",
+        permanent: false,
+      },
+    ];
   },
   images: {
     remotePatterns: [

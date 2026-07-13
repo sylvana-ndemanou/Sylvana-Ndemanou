@@ -31,7 +31,7 @@ export async function generateMetadata({
   return createMetadata({
     title: t(`items.${slug}.title`),
     description: t(`items.${slug}.summary`),
-    path: `/projects/${slug}`,
+    path: `/${locale}/projects/${slug}`,
   });
 }
 

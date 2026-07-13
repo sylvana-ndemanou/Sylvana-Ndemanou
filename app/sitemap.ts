@@ -5,9 +5,9 @@ import { siteConfig } from "@/lib/metadata";
 import { PROJECT_SLUGS } from "@/lib/projects";
 
 function localizedUrl(locale: string, path: string): string {
-  const prefix = locale === routing.defaultLocale ? "" : `/${locale}`;
+  // Locales are always prefixed (localePrefix: "always").
   const clean = path === "/" ? "" : path;
-  return `${siteConfig.url}${prefix}${clean}` || siteConfig.url;
+  return `${siteConfig.url}/${locale}${clean}`;
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {

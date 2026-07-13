@@ -28,16 +28,19 @@ Non-obvious caveats:
 ### i18n (bilingual EN/FR — next-intl)
 
 - Uses `next-intl` v4 with the App Router. Routes live under `app/[locale]/`; the root layout is
-  `app/[locale]/layout.tsx`. `localePrefix: "as-needed"` → English is served at `/` (no prefix),
-  French at `/fr`.
+  `app/[locale]/layout.tsx`. `localePrefix: "always"` → locales are always prefixed (`/en`, `/fr`).
+  `/`, `/projects`, `/about`, `/projects/:slug` are redirected to the `/en` equivalents in
+  `next.config.ts`.
 - All user-facing copy is externalized in `messages/en.json` and `messages/fr.json`. Do NOT hardcode
   UI strings in components — add keys to both files. Lists/objects (skills, experience, case-study
   arrays) are read with `t.raw(...)`.
 - i18n wiring: `i18n/routing.ts`, `i18n/navigation.ts` (locale-aware `Link`/`useRouter`/`usePathname`
-  — import navigation from here, not `next/navigation`), `i18n/request.ts`, and `middleware.ts` at
-  the repo root. NOTE: Next 16 prints a warning suggesting `proxy.ts`, but keep `middleware.ts` —
-  with `proxy.ts` the build leaves `middleware-manifest.json` empty, so Vercel never runs the
-  middleware and the locale rewrite for `/` 404s in production. `middleware.ts` registers correctly.
+  — import navigation from here, not `next/navigation`), `i18n/request.ts`. There is intentionally
+  **no middleware/proxy**: every page is prerendered under `[locale]` and the locale is provided by
+  `setRequestLocale(locale)` in each layout/page. This was a deliberate choice — the next-intl edge
+  middleware crashed on Vercel with `MIDDLEWARE_INVOCATION_FAILED` (Next 16 deployment bug), while
+  the middleware-less "always prefix" setup deploys reliably. Do not re-introduce the i18n
+  middleware without re-testing the Vercel deployment.
 - Project case studies are anonymized (no client names anywhere). Narrative content is in
   `messages/*.json` under `CaseStudy.items.<slug>`; the slug/icon registry is `lib/projects.ts`.
 
