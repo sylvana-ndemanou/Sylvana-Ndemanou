@@ -135,6 +135,8 @@
     "educationTitle": "Education",
     "skillsTitle": "What I do",
     "stackTitle": "Stack",
+    "linkedinCtaText": "Let's stay in touch — I share what I'm learning and building in BI, data, and applied AI.",
+    "linkedinCtaButton": "Connect on LinkedIn",
     "showMore": "Show {count} more",
     "showLess": "Show less",
     "experience": [

@@ -6,6 +6,8 @@ import { Stack } from "@/components/about/stack";
 import { ContactCard } from "@/components/contact/contact-card";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { createMetadata } from "@/lib/metadata";
+import { siteLinks } from "@/lib/site";
+import { Linkedin } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { ReactNode } from "react";
@@ -43,7 +45,7 @@ export default async function AboutPage({
         <PolaroidStrip />
       </section>
 
-      <section className="mx-auto w-full max-w-160 px-6 pt-20 pb-16 sm:px-10 sm:pt-28 sm:pb-24">
+      <section className="mx-auto w-full max-w-3xl px-6 pt-20 pb-16 sm:px-10 sm:pt-28 sm:pb-24">
         <FadeIn delay={0.5}>
           <div className="rounded-4xl border border-foreground/5 bg-foreground/1.5 p-8 sm:p-12 dark:bg-foreground/3">
             <h1 className="font-serif text-[1.75rem] font-medium tracking-tight text-foreground sm:text-[2rem]">
@@ -53,11 +55,28 @@ export default async function AboutPage({
               </span>
               .
             </h1>
-            <div className="mt-8 space-y-6 text-[17px] leading-[1.7] tracking-tight text-foreground/75 sm:text-[18px]">
+            <div className="mt-8 space-y-6 text-[17px] leading-[1.75] tracking-tight text-foreground/75 sm:text-[18px]">
               <p>{t.rich("bio1", { b: bold })}</p>
               <p>{t.rich("bio2", { b: bold })}</p>
               <p>{t.rich("bio3", { b: bold })}</p>
             </div>
+          </div>
+        </FadeIn>
+
+        <FadeIn delay={0.15}>
+          <div className="mt-6 flex flex-col items-start gap-4 rounded-3xl border border-accent/20 bg-accent/[0.06] p-6 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+            <p className="text-[15px] leading-[1.5] tracking-tight text-foreground/75">
+              {t("linkedinCtaText")}
+            </p>
+            <a
+              href={siteLinks.linkedin}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="focus-ring inline-flex shrink-0 items-center gap-2 rounded-xl bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
+            >
+              <Linkedin className="h-4 w-4" aria-hidden="true" />
+              {t("linkedinCtaButton")}
+            </a>
           </div>
         </FadeIn>
       </section>

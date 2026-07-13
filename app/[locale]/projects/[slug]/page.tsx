@@ -1,5 +1,6 @@
 import { ContactCard } from "@/components/contact/contact-card";
 import { FlowDiagram } from "@/components/projects/flow-diagram";
+import { ToolGrid } from "@/components/projects/tool-grid";
 import { ShaderFlow } from "@/components/shaders/shader-flow";
 import { FadeIn, Reveal } from "@/components/ui/motion-primitives";
 import { Link } from "@/i18n/navigation";
@@ -69,8 +70,8 @@ export default async function CaseStudyPage({
       >
         <ShaderFlow scale={3} brightness={3} />
       </div>
-      <article className="relative mx-auto w-full max-w-160 px-6 pt-40 pb-16 sm:px-10 sm:pt-52 sm:pb-20">
-        <FadeIn className="flex flex-col gap-6">
+      <article className="relative mx-auto w-full max-w-5xl px-6 pt-40 pb-16 sm:px-10 sm:pt-52 sm:pb-20">
+        <FadeIn className="flex max-w-2xl flex-col gap-6">
           <Link
             href="/projects"
             className="focus-ring inline-flex w-fit items-center gap-1.5 text-[14px] font-medium tracking-tight text-foreground/60 transition-colors hover:text-foreground"
@@ -99,50 +100,52 @@ export default async function CaseStudyPage({
           <div className="h-1 w-16 rounded-full bg-gradient-to-r from-accent to-accent/0" />
         </FadeIn>
 
-        <div className="mt-12 flex flex-col gap-10">
-          <Section title={t("sections.context")}>
-            <p>{t(`${base}.context`)}</p>
-          </Section>
+        <div className="mt-12 grid gap-10 lg:grid-cols-[1fr_16rem] lg:gap-14">
+          <div className="flex min-w-0 flex-col gap-10">
+            <Section title={t("sections.context")}>
+              <p>{t(`${base}.context`)}</p>
+            </Section>
 
-          <Section title={t("sections.approach")}>
-            <ul className="flex flex-col gap-3">
-              {approach.map((step, i) => (
-                <li key={i} className="flex gap-3">
-                  <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-accent/30 bg-accent/10 text-[12px] font-semibold text-accent">
-                    {i + 1}
-                  </span>
-                  <span>{step}</span>
-                </li>
-              ))}
-            </ul>
-          </Section>
+            <Section title={t("sections.approach")}>
+              <ul className="flex flex-col gap-3">
+                {approach.map((step, i) => (
+                  <li key={i} className="flex gap-3">
+                    <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-accent/30 bg-accent/10 text-[12px] font-semibold text-accent">
+                      {i + 1}
+                    </span>
+                    <span>{step}</span>
+                  </li>
+                ))}
+              </ul>
+            </Section>
 
-          <Section title={t("sections.solution")}>
-            <p>{t(`${base}.solution`)}</p>
-            <div className="mt-5 rounded-2xl border border-foreground/8 bg-foreground/[0.02] p-4 dark:bg-foreground/[0.04] sm:p-5">
-              <FlowDiagram steps={flow} />
-              <p className="mt-3 text-[12px] italic tracking-tight text-foreground/40">
-                {t("diagramCaption")}
-              </p>
-            </div>
-          </Section>
+            <Section title={t("sections.solution")}>
+              <p>{t(`${base}.solution`)}</p>
+              <div className="mt-5 rounded-2xl border border-foreground/8 bg-foreground/[0.02] p-4 dark:bg-foreground/[0.04] sm:p-5">
+                <FlowDiagram steps={flow} />
+                <p className="mt-3 text-[12px] italic tracking-tight text-foreground/40">
+                  {t("diagramCaption")}
+                </p>
+              </div>
+            </Section>
 
-          <Section title={t("sections.outcome")}>
-            <p>{t(`${base}.outcome`)}</p>
-          </Section>
+            <Section title={t("sections.outcome")}>
+              <p>{t(`${base}.outcome`)}</p>
+            </Section>
+          </div>
 
-          <Section title={t("sections.tools")}>
-            <div className="flex flex-wrap gap-2.5">
-              {tools.map((tool) => (
-                <span
-                  key={tool}
-                  className="rounded-full border border-foreground/10 bg-background px-4 py-2 text-[14px] tracking-tight text-foreground/85"
-                >
-                  {tool}
-                </span>
-              ))}
-            </div>
-          </Section>
+          <aside className="lg:sticky lg:top-28 lg:self-start">
+            <Reveal>
+              <div className="rounded-2xl border border-foreground/8 bg-foreground/[0.02] p-5 dark:bg-foreground/[0.04]">
+                <h2 className="text-[13px] font-semibold uppercase tracking-wide text-accent">
+                  {t("sections.tools")}
+                </h2>
+                <div className="mt-4">
+                  <ToolGrid tools={tools} />
+                </div>
+              </div>
+            </Reveal>
+          </aside>
         </div>
       </article>
 
