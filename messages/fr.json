@@ -171,6 +171,7 @@
     "socialEmail": "Courriel",
     "socialLinkedin": "LinkedIn",
     "socialGithub": "GitHub",
+    "socialNotion": "Notion",
     "form": {
       "title": "Envoyer un message",
       "name": "Nom",

@@ -4,8 +4,9 @@ import type { ReactNode } from "react";
 
 import { BookCallButton } from "./book-call-button";
 import { ContactForm } from "./contact-form";
-import { FadeIn } from "@/components/ui/motion-primitives";
 import { Logo } from "@/components/ui/logo";
+import { FadeIn } from "@/components/ui/motion-primitives";
+import { NotionIcon } from "@/components/ui/notion-icon";
 import { Link } from "@/i18n/navigation";
 import { siteLinks } from "@/lib/site";
 import { ShaderFlow } from "../shaders/shader-flow";
@@ -67,6 +68,7 @@ export function ContactCard(): ReactNode {
                   <SocialIcon href={`mailto:${siteLinks.email}`} label={t("socialEmail")} icon={Mail} />
                   <SocialIcon href={siteLinks.linkedin} label={t("socialLinkedin")} icon={Linkedin} />
                   <SocialIcon href={siteLinks.github} label={t("socialGithub")} icon={Github} />
+                  <SocialIcon href={siteLinks.notion} label={t("socialNotion")} icon={NotionIcon} />
                 </div>
 
                 <div className="mt-2 flex items-center gap-2">
