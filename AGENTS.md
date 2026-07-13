@@ -52,7 +52,10 @@ Non-obvious caveats:
   to the account owner's own email. To deliver to `sylvana.ndemanou@proton.me`, verify a domain at
   resend.com/domains and set `RESEND_FROM` to an address on that domain. The route degrades
   gracefully (the form shows a mailto fallback) when sending fails or the key is missing.
-- Cal.com booking uses a popup embed; the public event link is a placeholder in `lib/site.ts`
+- Email templates are React Email components in `emails/contact-emails.tsx` (a branded
+  notification to Sylvana + a localized EN/FR confirmation auto-reply), rendered via
+  `@react-email/render`. The confirmation is best-effort and never fails the request.
+- Cal.com booking uses a popup embed; the public event link is set in `lib/site.ts`
   (`calLink`) — replace with the real `username/event-slug`.
 - The hero portrait and OG image reference `public/sylvana.jpg` (not committed). Drop the photo
   there; until then the portrait shows an empty framed box (no crash).
