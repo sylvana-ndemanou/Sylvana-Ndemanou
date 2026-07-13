@@ -1,6 +1,7 @@
 import { ContactCard } from "@/components/contact/contact-card";
 import { FlowDiagram } from "@/components/projects/flow-diagram";
-import { FadeIn } from "@/components/ui/motion-primitives";
+import { ShaderFlow } from "@/components/shaders/shader-flow";
+import { FadeIn, Reveal } from "@/components/ui/motion-primitives";
 import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { createMetadata } from "@/lib/metadata";
@@ -55,8 +56,20 @@ export default async function CaseStudyPage({
   const flow = t.raw(`${base}.flow`) as string[];
 
   return (
-    <main id="main-content" className="flex flex-1 flex-col">
-      <article className="mx-auto w-full max-w-160 px-6 pt-40 pb-16 sm:px-10 sm:pt-52 sm:pb-20">
+    <main id="main-content" className="relative flex flex-1 flex-col overflow-hidden">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[420px] opacity-30 dark:opacity-20"
+        style={{
+          WebkitMaskImage:
+            "linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%)",
+          maskImage:
+            "linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%)",
+        }}
+      >
+        <ShaderFlow scale={3} brightness={3} />
+      </div>
+      <article className="relative mx-auto w-full max-w-160 px-6 pt-40 pb-16 sm:px-10 sm:pt-52 sm:pb-20">
         <FadeIn className="flex flex-col gap-6">
           <Link
             href="/projects"
@@ -83,9 +96,10 @@ export default async function CaseStudyPage({
           <p className="text-[19px] leading-[1.5] tracking-tight text-foreground/70">
             {t(`${base}.summary`)}
           </p>
+          <div className="h-1 w-16 rounded-full bg-gradient-to-r from-accent to-accent/0" />
         </FadeIn>
 
-        <FadeIn delay={0.1} className="mt-12 flex flex-col gap-10">
+        <div className="mt-12 flex flex-col gap-10">
           <Section title={t("sections.context")}>
             <p>{t(`${base}.context`)}</p>
           </Section>
@@ -129,7 +143,7 @@ export default async function CaseStudyPage({
               ))}
             </div>
           </Section>
-        </FadeIn>
+        </div>
       </article>
 
       <ContactCard />
@@ -146,13 +160,15 @@ function Section({
   children: ReactNode;
 }): ReactNode {
   return (
-    <section className="flex flex-col gap-3">
-      <h2 className="text-[13px] font-semibold uppercase tracking-wide text-accent">
-        {title}
-      </h2>
-      <div className="text-[17px] leading-[1.7] tracking-tight text-foreground/75 sm:text-[18px]">
-        {children}
-      </div>
-    </section>
+    <Reveal>
+      <section className="flex flex-col gap-3">
+        <h2 className="text-[13px] font-semibold uppercase tracking-wide text-accent">
+          {title}
+        </h2>
+        <div className="text-[17px] leading-[1.7] tracking-tight text-foreground/75 sm:text-[18px]">
+          {children}
+        </div>
+      </section>
+    </Reveal>
   );
 }

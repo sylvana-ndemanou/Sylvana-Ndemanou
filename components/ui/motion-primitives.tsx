@@ -28,6 +28,32 @@ export function FadeIn({
   );
 }
 
+export function Reveal({
+  children,
+  delay = 0,
+  duration = 0.6,
+  y = 16,
+  className,
+}: {
+  children: ReactNode;
+  delay?: number;
+  duration?: number;
+  y?: number;
+  className?: string;
+}): ReactNode {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration, delay, ease: EASE }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 export function ScaleUnblur({
   children,
   delay = 0,
