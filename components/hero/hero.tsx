@@ -1,12 +1,11 @@
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { HeroCtas } from "./hero-ctas";
 import { FadeIn, ScaleUnblur } from "@/components/ui/motion-primitives";
-import { PortraitMorph } from "./portrait-morph";
 
 const PORTRAIT_SRC = "/sylvana.jpg";
-const PORTRAIT_HOVER_SRC = "/sylvana.jpg";
 
 export function Hero(): ReactNode {
   const t = useTranslations("Hero");
@@ -36,12 +35,15 @@ export function Hero(): ReactNode {
           </FadeIn>
 
           <ScaleUnblur className="flex justify-stretch md:justify-end">
-            <div className="relative aspect-square w-full md:max-w-105 overflow-hidden rounded-4xl border border-foreground/8 bg-background p-1.5 shadow-sm">
+            <div className="group relative aspect-square w-full md:max-w-105 overflow-hidden rounded-4xl border border-foreground/8 bg-background p-1.5 shadow-sm">
               <div className="relative h-full w-full overflow-hidden rounded-[1.6rem]">
-                <PortraitMorph
-                  srcA={PORTRAIT_SRC}
-                  srcB={PORTRAIT_HOVER_SRC}
+                <Image
+                  src={PORTRAIT_SRC}
                   alt={t("portraitAlt")}
+                  fill
+                  priority
+                  sizes="(min-width: 768px) 420px, 100vw"
+                  className="object-cover object-[center_18%] grayscale transition-all duration-700 ease-out group-hover:scale-[1.03] group-hover:grayscale-0"
                 />
               </div>
             </div>
