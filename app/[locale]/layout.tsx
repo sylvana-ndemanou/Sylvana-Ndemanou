@@ -2,6 +2,8 @@ import { Nav } from "@/components/layout/nav";
 import { PageBackdrop } from "@/components/layout/page-backdrop";
 import { Providers } from "@/components/layout/providers";
 import { SkipToContent } from "@/components/layout/skip-to-content";
+import { Logo } from "@/components/ui/logo";
+import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { baseMetadata } from "@/lib/metadata";
 import type { Metadata, Viewport } from "next";
@@ -79,6 +81,13 @@ export default async function LocaleLayout({
             </svg>
             <SkipToContent />
             <PageBackdrop />
+            <Link
+              href="/"
+              aria-label="Sylvana Ndemanou — home"
+              className="focus-ring fixed left-5 top-5 z-50 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-foreground/8 bg-background text-foreground shadow-sm transition-colors hover:text-accent"
+            >
+              <Logo className="h-5 w-5" />
+            </Link>
             <Nav />
             {children}
           </Providers>

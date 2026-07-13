@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { BookCallButton } from "./book-call-button";
 import { ContactForm } from "./contact-form";
 import { FadeIn } from "@/components/ui/motion-primitives";
+import { Logo } from "@/components/ui/logo";
 import { Link } from "@/i18n/navigation";
 import { siteLinks } from "@/lib/site";
 import { ShaderFlow } from "../shaders/shader-flow";
@@ -68,9 +69,12 @@ export function ContactCard(): ReactNode {
                   <SocialIcon href={siteLinks.github} label={t("socialGithub")} icon={Github} />
                 </div>
 
-                <p className="mt-2 text-[12px] tracking-tight text-foreground/45">
-                  {t("footerBuilt", { year })}
-                </p>
+                <div className="mt-2 flex items-center gap-2">
+                  <Logo className="h-5 w-5 text-foreground/40" />
+                  <p className="text-[12px] tracking-tight text-foreground/45">
+                    {t("footerBuilt", { year })}
+                  </p>
+                </div>
               </div>
 
               <div className="border-foreground/8 flex flex-col gap-4 rounded-[1.4rem] border bg-background/80 p-5 backdrop-blur-sm sm:p-6">

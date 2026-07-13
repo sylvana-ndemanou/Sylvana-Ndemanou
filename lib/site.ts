@@ -7,9 +7,8 @@ export const siteLinks = {
   linkedin: "https://www.linkedin.com/in/sylvanandemanou",
   github: "https://github.com/sylvana-ndemanou",
   /**
-   * Public Cal.com event link in the form "username/event-slug".
-   * TODO(Sylvana): replace with your real public booking link
-   * (Cal.com → your event type → "Copy public link").
+   * Public Cal.com link. Can be a username ("sylvana-ndemanou") to show all
+   * event types, or "username/event-slug" to open a specific one.
    */
-  calLink: "sylvana-ndemanou/30min",
+  calLink: "sylvana-ndemanou",
 } as const;
