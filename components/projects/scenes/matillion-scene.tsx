@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BadgeCheck,
   Database,
   ShieldCheck,
   Shuffle,
@@ -19,28 +20,23 @@ import { useAutoScale } from "@/components/projects/scenes/use-auto-scale";
 const FORCE_MOTION = false;
 const DEMO_LOOP = false;
 
-const W = 980;
-const H = 600;
-const TOOLBAR = 56;
-const PALETTE_W = 214;
+const W = 1360;
+const H = 760;
+const APPBAR = 44;
+const TABBAR = 36;
+const RAIL = 56;
+const PANEL = 150; // bottom panel height
 const ICON = 46;
-const NODE_W = 152;
+const NODE_W = 156;
 
-type Node = {
-  icon: LucideIcon;
-  label: string;
-  color: string;
-  cx: number;
-  cy: number;
-  py: number;
-};
-
+type Node = { icon: LucideIcon; label: string; color: string; cx: number; cy: number };
 const NODES: Node[] = [
-  { icon: Table2, label: "Extract · SAP", color: "#3E7BFB", cx: 372, cy: 180, py: 128 },
-  { icon: Users, label: "Extract · CRM", color: "#3E7BFB", cx: 372, cy: 432, py: 196 },
-  { icon: Shuffle, label: "Transform", color: "#C8A86A", cx: 566, cy: 306, py: 264 },
-  { icon: ShieldCheck, label: "Validate", color: "#7C6BEF", cx: 736, cy: 306, py: 332 },
-  { icon: Database, label: "Load · Snowflake", color: "#29B5E8", cx: 896, cy: 306, py: 400 },
+  { icon: Table2, label: "Extract · SAP", color: "#3E7BFB", cx: 220, cy: 268 },
+  { icon: Users, label: "Extract · CRM", color: "#3E7BFB", cx: 220, cy: 452 },
+  { icon: Shuffle, label: "Transform", color: "#C8A86A", cx: 470, cy: 360 },
+  { icon: ShieldCheck, label: "Quality gate", color: "#7C6BEF", cx: 700, cy: 360 },
+  { icon: BadgeCheck, label: "Validate", color: "#2FA35F", cx: 930, cy: 360 },
+  { icon: Database, label: "Load · Snowflake", color: "#29B5E8", cx: 1160, cy: 360 },
 ];
 
 const R = 30;
@@ -54,6 +50,7 @@ const CONNS: Conn[] = [
   { s: 1, t: 2 },
   { s: 2, t: 3 },
   { s: 3, t: 4 },
+  { s: 4, t: 5 },
 ];
 const port = (n: Node, side: "out" | "in"): [number, number] => [
   side === "out" ? n.cx + R : n.cx - R,
@@ -62,24 +59,38 @@ const port = (n: Node, side: "out" | "in"): [number, number] => [
 const connPath = (c: Conn): string => {
   const [x0, y0] = port(NODES[c.s]!, "out");
   const [x1, y1] = port(NODES[c.t]!, "in");
-  const dy = NODES[c.s]!.cy > NODES[c.t]!.cy ? 8 : NODES[c.s]!.cy < NODES[c.t]!.cy ? -8 : 0;
+  const dy = NODES[c.s]!.cy > NODES[c.t]!.cy ? 10 : NODES[c.s]!.cy < NODES[c.t]!.cy ? -10 : 0;
   return curve(x0, y0, x1, y1 + dy);
 };
 
-const RUN_BTN: [number, number] = [905, 28];
-const START: [number, number] = [930, 540];
+const TABS = [
+  "main_orchestration",
+  "load_dimensions",
+  "load_facts",
+  "extract_orders",
+  "flatten_raw",
+  "get_totals_api",
+  "fetch_delta",
+];
+const TASKS: [string, string, string][] = [
+  ["load_dimensions", "14:40:13", "Running"],
+  ["extract_orders", "14:40:08", "Running"],
+  ["extract_sap_sales", "14:21:05", "14:21:10"],
+];
+
+const RUN_BTN: [number, number] = [1305, 104];
+const START: [number, number] = [1280, 560];
 
 export function MatillionScene(): ReactNode {
   const prefersReduce = useReducedMotion() ?? false;
   const reduce = FORCE_MOTION ? false : prefersReduce;
   const ref = useRef<HTMLDivElement | null>(null);
   const scale = useAutoScale(ref, W);
-  const inView = useInView(ref, { once: !DEMO_LOOP, amount: 0.4 });
+  const inView = useInView(ref, { once: !DEMO_LOOP, amount: 0.35 });
 
   const [cursor, setCursor] = useState<{ x: number; y: number }>({ x: START[0], y: START[1] });
   const [cursorOn, setCursorOn] = useState(false);
   const [placed, setPlaced] = useState(reduce ? NODES.length : 0);
-  const [drag, setDrag] = useState<number | null>(null);
   const [drawn, setDrawn] = useState(reduce ? CONNS.length : 0);
   const [pressed, setPressed] = useState(false);
   const [success, setSuccess] = useState(reduce);
@@ -91,7 +102,6 @@ export function MatillionScene(): ReactNode {
 
     const runOnce = async (): Promise<void> => {
       setPlaced(0);
-      setDrag(null);
       setDrawn(0);
       setSuccess(false);
       setPressed(false);
@@ -104,18 +114,11 @@ export function MatillionScene(): ReactNode {
 
       for (let i = 0; i < NODES.length; i++) {
         if (!alive) return;
-        setCursor({ x: 112, y: NODES[i]!.py });
-        await sleep(950);
-        if (!alive) return;
-        setDrag(i);
-        await sleep(420);
-        if (!alive) return;
         setCursor({ x: NODES[i]!.cx, y: NODES[i]!.cy });
-        await sleep(1100);
+        await sleep(900);
         if (!alive) return;
         setPlaced(i + 1);
-        setDrag(null);
-        await sleep(420);
+        await sleep(520);
       }
 
       for (let i = 0; i < CONNS.length; i++) {
@@ -124,11 +127,11 @@ export function MatillionScene(): ReactNode {
         const [sx, sy] = port(NODES[c.s]!, "out");
         const [tx, ty] = port(NODES[c.t]!, "in");
         setCursor({ x: sx, y: sy });
-        await sleep(650);
+        await sleep(620);
         if (!alive) return;
         setCursor({ x: tx, y: ty });
         setDrawn(i + 1);
-        await sleep(1050);
+        await sleep(1000);
       }
 
       if (!alive) return;
@@ -140,7 +143,7 @@ export function MatillionScene(): ReactNode {
       if (!alive) return;
       setPressed(false);
       setSuccess(true);
-      await sleep(2600);
+      await sleep(2800);
       if (!alive) return;
       setCursorOn(false);
     };
@@ -159,71 +162,86 @@ export function MatillionScene(): ReactNode {
 
   const EASE = "cubic-bezier(0.4, 0, 0.2, 1)";
   const MOVE = "0.85s";
-
-  const nodePos = (i: number): { left: number; top: number; on: boolean; grabbed: boolean } => {
-    const n = NODES[i]!;
-    if (i < placed) return { left: n.cx - NODE_W / 2, top: n.cy - ICON / 2, on: true, grabbed: false };
-    if (i === drag) return { left: cursor.x - NODE_W / 2, top: cursor.y - 8, on: true, grabbed: true };
-    return { left: 24, top: n.py - ICON / 2, on: false, grabbed: false };
-  };
+  const canvasTop = APPBAR + TABBAR;
 
   return (
     <div
       ref={ref}
-      className="relative mx-auto w-full overflow-hidden rounded-2xl border border-black/10 shadow-sm"
+      className="relative mx-auto w-full overflow-hidden rounded-2xl border border-black/10 shadow-md"
       style={{ height: H * scale, backgroundColor: "#f6f7f9" }}
     >
       <div style={{ width: W, height: H, transform: `scale(${scale})`, transformOrigin: "top left", position: "absolute", top: 0, left: 0 }}>
-        {/* Dot grid over canvas */}
+        {/* App bar */}
+        <div className="absolute inset-x-0 top-0 flex items-center justify-between bg-[#0f1729] px-4 text-white" style={{ height: APPBAR }}>
+          <div className="flex items-center gap-3 text-[13px]">
+            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#1e293b]">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M8 2 L8 14 M2.5 5 L13.5 11 M2.5 11 L13.5 5" stroke="#38bdf8" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+            </span>
+            <span className="font-semibold">analytics_dw</span>
+            <span className="text-white/40">/ Production</span>
+            <span className="ml-2 rounded bg-[#1e293b] px-2 py-0.5 text-[11px] text-white/70">⑂ main</span>
+            <span className="ml-1 text-white/50">Schemas</span>
+          </div>
+          <span className="text-[12px] text-white/40">Search files &amp; quick actions</span>
+        </div>
+
+        {/* Left rail */}
+        <div className="absolute left-0 flex flex-col items-center gap-4 bg-[#0b1220] py-4" style={{ top: APPBAR, width: RAIL, bottom: 0 }}>
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <span key={i} className="h-5 w-5 rounded bg-white/12" />
+          ))}
+        </div>
+
+        {/* Tab strip */}
+        <div className="absolute flex items-stretch overflow-hidden border-b border-black/10 bg-[#eceff3]" style={{ left: RAIL, right: 0, top: APPBAR, height: TABBAR }}>
+          {TABS.map((tname, i) => (
+            <div
+              key={tname}
+              className="flex items-center gap-2 border-r border-black/8 px-3 text-[11.5px] font-medium"
+              style={{ backgroundColor: i === 0 ? "#f6f7f9" : "transparent", color: i === 0 ? "#1e293b" : "#64748b" }}
+            >
+              <span className="h-2.5 w-2.5 rounded-[3px] bg-[#3E7BFB]" />
+              <span className="whitespace-nowrap">{tname}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Canvas dot grid */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute"
           style={{
-            left: PALETTE_W,
+            left: RAIL,
             right: 0,
-            top: TOOLBAR,
-            bottom: 0,
+            top: canvasTop,
+            bottom: PANEL,
+            backgroundColor: "#f6f7f9",
             backgroundImage: "radial-gradient(circle, rgba(20,30,50,0.10) 1.4px, transparent 1.4px)",
-            backgroundSize: "26px 26px",
+            backgroundSize: "28px 28px",
           }}
         />
 
-        {/* Toolbar */}
-        <div className="absolute inset-x-0 top-0 flex items-center justify-between border-b border-black/8 bg-white px-5" style={{ height: TOOLBAR }}>
-          <div className="flex items-center gap-2.5">
-            <span className="h-3 w-3 rounded-full bg-black/15" />
-            <span className="h-3 w-3 rounded-full bg-black/15" />
-            <span className="h-3 w-3 rounded-full bg-black/15" />
-            <span className="ml-3 text-[15px] font-semibold text-[#3C4450]">daily_load.orch</span>
-          </div>
+        {/* Floating action toolbar (top-right) */}
+        <div className="absolute z-20 flex items-center gap-4 text-[13px]" style={{ right: 24, top: 92 }}>
+          <span className="text-[#475569]">Review ▾</span>
+          <span className="text-[#475569]">Validate ✓</span>
+          <span className="text-[#475569]">Schedule ⏱</span>
           <div
-            className="rounded-lg bg-[#2D7FF9] px-4 py-2 text-[14px] font-semibold text-white"
+            className="rounded-lg bg-[#16324f] px-5 py-2 font-semibold text-white shadow"
             style={{ transform: pressed ? "scale(0.92)" : "scale(1)", transition: "transform 0.16s ease" }}
           >
-            ▶ Validate
+            ▶ Run
           </div>
         </div>
 
-        {/* Palette */}
-        <div className="absolute border-r border-black/8 bg-[#eef1f4]" style={{ left: 0, top: TOOLBAR, width: PALETTE_W, bottom: 0 }}>
-          <div className="px-4 pt-4 text-[11px] font-semibold uppercase tracking-wide text-[#8A93A0]">Components</div>
-          <div className="mt-2 flex flex-col gap-2 px-3">
-            {NODES.map((n, i) => {
-              const Icon = n.icon;
-              return (
-                <div
-                  key={i}
-                  className="flex items-center gap-2.5 rounded-lg border border-black/5 bg-white px-2.5 py-2.5"
-                  style={{ opacity: i < placed || i === drag ? 0.35 : 1, transition: "opacity 0.4s ease" }}
-                >
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md" style={{ backgroundColor: n.color }}>
-                    <Icon className="h-3.5 w-3.5 text-white" strokeWidth={2.4} aria-hidden="true" />
-                  </span>
-                  <span className="truncate text-[12.5px] font-medium text-[#3C4450]">{n.label}</span>
-                </div>
-              );
-            })}
-          </div>
+        {/* Sticky notes */}
+        <div className="absolute rounded-md bg-[#fff2b0] px-3 py-2 text-[11px] font-medium text-[#7A6410] shadow-sm" style={{ left: 120, top: 150, width: 150 }}>
+          Re-orch · parallel sources
+        </div>
+        <div className="absolute rounded-md bg-[#fff2b0] px-3 py-2 text-[11px] font-medium text-[#7A6410] shadow-sm" style={{ left: 980, top: 172, width: 160 }}>
+          Finance validation before delivery
         </div>
 
         {/* Connectors */}
@@ -245,24 +263,23 @@ export function MatillionScene(): ReactNode {
         {/* Nodes */}
         {NODES.map((n, i) => {
           const Icon = n.icon;
-          const p = nodePos(i);
+          const on = i < placed;
           return (
             <div
               key={i}
               className="absolute flex flex-col items-center"
               style={{
-                left: p.left,
-                top: p.top,
+                left: n.cx - NODE_W / 2,
+                top: n.cy - ICON / 2,
                 width: NODE_W,
-                opacity: p.on ? 1 : 0,
-                transform: p.grabbed ? "scale(1.06)" : "scale(1)",
-                zIndex: p.grabbed ? 20 : 1,
-                transition: `left ${MOVE} ${EASE}, top ${MOVE} ${EASE}, opacity 0.35s ease, transform 0.25s ease`,
+                opacity: on ? 1 : 0,
+                transform: on ? "translateY(0) scale(1)" : "translateY(-16px) scale(0.9)",
+                transition: `opacity 0.4s ease, transform 0.5s cubic-bezier(0.34,1.4,0.64,1)`,
               }}
             >
               <div className="relative">
                 <span
-                  className="absolute rounded-[15px] border-[2.5px] border-[#34A853]"
+                  className="absolute rounded-[16px] border-[2.5px] border-[#34A853]"
                   style={{
                     inset: -6,
                     opacity: success ? 1 : 0,
@@ -272,13 +289,7 @@ export function MatillionScene(): ReactNode {
                 />
                 <span
                   className="flex items-center justify-center rounded-xl"
-                  style={{
-                    width: ICON,
-                    height: ICON,
-                    backgroundColor: n.color,
-                    boxShadow: p.grabbed ? "0 12px 24px -6px rgba(0,0,0,0.35)" : "0 2px 5px rgba(0,0,0,0.18)",
-                    transition: "box-shadow 0.25s ease",
-                  }}
+                  style={{ width: ICON, height: ICON, backgroundColor: n.color, boxShadow: "0 2px 6px rgba(0,0,0,0.18)" }}
                 >
                   <Icon className="h-6 w-6 text-white" strokeWidth={2.2} aria-hidden="true" />
                 </span>
@@ -288,17 +299,59 @@ export function MatillionScene(): ReactNode {
           );
         })}
 
+        {/* Zoom control */}
+        <div className="absolute rounded-md border border-black/10 bg-white px-2.5 py-1 text-[12px] text-[#64748b] shadow-sm" style={{ right: 20, bottom: PANEL + 16 }}>
+          55% ▾
+        </div>
+
         {/* Success toast */}
         <div
-          className="absolute left-1/2 flex items-center gap-2 rounded-full border border-[#34A853]/30 bg-white px-4 py-2 text-[13px] font-semibold text-[#2f8f47] shadow-sm"
+          className="absolute z-20 flex items-center gap-2 rounded-full border border-[#34A853]/30 bg-white px-4 py-2 text-[13px] font-semibold text-[#2f8f47] shadow-sm"
           style={{
-            bottom: 22,
+            left: RAIL + (W - RAIL) / 2,
+            bottom: PANEL + 18,
             opacity: success ? 1 : 0,
             transform: success ? "translate(-50%, 0)" : "translate(-50%, 10px)",
             transition: "opacity 0.5s ease, transform 0.5s ease",
           }}
         >
           <span className="h-2.5 w-2.5 rounded-full bg-[#34A853]" /> Pipeline validated · 0 errors
+        </div>
+
+        {/* Bottom panel */}
+        <div className="absolute border-t border-black/10 bg-white" style={{ left: RAIL, right: 0, bottom: 0, height: PANEL }}>
+          <div className="flex items-center gap-5 border-b border-black/8 px-5 py-2.5 text-[12px]">
+            <span className="font-semibold text-[#1e293b]">Task history</span>
+            {["Sample data", "Metadata", "Variables", "Review results", "Tests"].map((t) => (
+              <span key={t} className="text-[#94a3b8]">{t}</span>
+            ))}
+          </div>
+          <div className="grid grid-cols-[120px_1fr_120px_120px] gap-3 px-5 py-1.5 text-[10.5px] font-semibold uppercase tracking-wide text-[#94a3b8]">
+            <span>Task</span><span>Pipeline</span><span>Queued</span><span>Completed</span>
+          </div>
+          {TASKS.map((row, i) => {
+            const running = row[2] === "Running";
+            return (
+              <div
+                key={i}
+                className="grid grid-cols-[120px_1fr_120px_120px] items-center gap-3 px-5 text-[12.5px]"
+                style={{
+                  height: 26,
+                  opacity: success ? 1 : 0,
+                  transform: success ? "translateY(0)" : "translateY(6px)",
+                  transition: `opacity 0.4s ease ${i * 0.12}s, transform 0.4s ease ${i * 0.12}s`,
+                }}
+              >
+                <span className="flex items-center gap-1.5 text-[#334155]">
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: running ? "#e0a400" : "#34A853" }} />
+                  Validate
+                </span>
+                <span className="truncate text-[#334155]">Production/{row[0]}</span>
+                <span className="text-[#64748b]">{row[1]}</span>
+                <span style={{ color: running ? "#e0a400" : "#2f8f47" }}>{running ? "Running" : row[2]}</span>
+              </div>
+            );
+          })}
         </div>
 
         {/* Cursor */}

@@ -7,7 +7,8 @@ import { useLayoutEffect, useState, type RefObject } from "react";
  */
 export function useAutoScale(
   ref: RefObject<HTMLElement | null>,
-  designWidth: number
+  designWidth: number,
+  maxScale = 1.3
 ): number {
   const [scale, setScale] = useState(1);
 
@@ -16,13 +17,15 @@ export function useAutoScale(
     if (!el) return;
     const update = (): void => {
       const w = el.clientWidth;
-      if (w) setScale(Math.min(1, w / designWidth));
+      // Allow scaling up (to fill a wide band) as well as down (to fit small
+      // screens), capped so upscaled text doesn't get too soft.
+      if (w) setScale(Math.min(maxScale, w / designWidth));
     };
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [ref, designWidth]);
+  }, [ref, designWidth, maxScale]);
 
   return scale;
 }

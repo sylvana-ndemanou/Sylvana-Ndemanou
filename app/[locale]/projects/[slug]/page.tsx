@@ -116,18 +116,25 @@ export default async function CaseStudyPage({
           <div className="h-1 w-16 rounded-full bg-gradient-to-r from-accent to-accent/0" />
         </FadeIn>
 
-        <FadeIn delay={0.1} className="mt-10">
-          {(() => {
-            const Scene = SCENES[slug];
-            return Scene ? (
-              <Scene />
-            ) : (
+        {(() => {
+          const Scene = SCENES[slug];
+          return Scene ? (
+            <FadeIn
+              delay={0.1}
+              className="relative left-1/2 mt-10 w-screen -translate-x-1/2 px-4 sm:px-8"
+            >
+              <div className="mx-auto w-full max-w-[1400px]">
+                <Scene />
+              </div>
+            </FadeIn>
+          ) : (
+            <FadeIn delay={0.1} className="mt-10">
               <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl ring-1 ring-foreground/10">
                 <ProjectPoster kind={project.visual} />
               </div>
-            );
-          })()}
-        </FadeIn>
+            </FadeIn>
+          );
+        })()}
 
         <div className="mt-12 grid gap-10 lg:grid-cols-[1fr_16rem] lg:gap-14">
           <div className="flex min-w-0 flex-col gap-10">
