@@ -220,3 +220,44 @@ html[data-theme-anim="1"]::view-transition-new(root) {
 .project-card:hover .project-card__image-inner {
   transform: scale(1.06);
 }
+
+/* Code-generated project schematics (see components/projects/project-poster,
+   solution-diagram). A short dash travels each connector; emphasized nodes
+   breathe. Both are disabled under reduced-motion. */
+.pv-flow {
+  animation: pv-flow-move 3.4s linear infinite;
+}
+
+@keyframes pv-flow-move {
+  from {
+    stroke-dashoffset: 61;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.pv-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pv-pulse-breathe 2.8s ease-in-out infinite;
+}
+
+@keyframes pv-pulse-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-flow,
+  .pv-pulse {
+    animation: none !important;
+  }
+}

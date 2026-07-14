@@ -1,5 +1,6 @@
 import { ContactCard } from "@/components/contact/contact-card";
-import { FlowDiagram } from "@/components/projects/flow-diagram";
+import { ProjectPoster } from "@/components/projects/project-poster";
+import { SolutionDiagram } from "@/components/projects/solution-diagram";
 import { ToolGrid } from "@/components/projects/tool-grid";
 import { ShaderFlow } from "@/components/shaders/shader-flow";
 import { FadeIn, Reveal } from "@/components/ui/motion-primitives";
@@ -100,6 +101,12 @@ export default async function CaseStudyPage({
           <div className="h-1 w-16 rounded-full bg-gradient-to-r from-accent to-accent/0" />
         </FadeIn>
 
+        <FadeIn delay={0.1} className="mt-10">
+          <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl ring-1 ring-foreground/10">
+            <ProjectPoster kind={project.visual} />
+          </div>
+        </FadeIn>
+
         <div className="mt-12 grid gap-10 lg:grid-cols-[1fr_16rem] lg:gap-14">
           <div className="flex min-w-0 flex-col gap-10">
             <Section title={t("sections.context")}>
@@ -121,8 +128,8 @@ export default async function CaseStudyPage({
 
             <Section title={t("sections.solution")}>
               <p>{t(`${base}.solution`)}</p>
-              <div className="mt-5 rounded-2xl border border-foreground/8 bg-foreground/[0.02] p-4 dark:bg-foreground/[0.04] sm:p-5">
-                <FlowDiagram steps={flow} />
+              <div className="mt-5">
+                <SolutionDiagram kind={project.visual} steps={flow} />
                 <p className="mt-3 text-[12px] italic tracking-tight text-foreground/40">
                   {t("diagramCaption")}
                 </p>

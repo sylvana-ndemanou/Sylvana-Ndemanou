@@ -2,7 +2,7 @@ import { ArrowRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
-import { FlowDiagram } from "./flow-diagram";
+import { ProjectPoster } from "@/components/projects/project-poster";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { Link } from "@/i18n/navigation";
 import { PROJECTS, type ProjectMeta } from "@/lib/projects";
@@ -69,15 +69,20 @@ function ProjectCard({
   const tProjects = useTranslations("Projects");
   const Icon = project.icon;
   const base = `items.${project.slug}`;
-  const flow = t.raw(`${base}.flow`) as string[];
 
   return (
     <FadeIn delay={Math.min(index * 0.06, 0.3)} className="h-full">
       <Link
         href={`/projects/${project.slug}`}
-        className="project-card group flex h-full flex-col gap-4 rounded-3xl border border-foreground/8 bg-background p-5 sm:p-6"
+        className="project-card group flex h-full flex-col gap-4 rounded-3xl border border-foreground/8 bg-background p-3 sm:p-3.5"
       >
-        <header className="flex items-center gap-2.5">
+        <div className="project-card__image relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-[#0d0f12] ring-1 ring-foreground/5">
+          <div className="project-card__image-inner">
+            <ProjectPoster kind={project.visual} />
+          </div>
+        </div>
+
+        <header className="flex items-center gap-2.5 px-1">
           <span className="border-foreground/10 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border bg-background">
             <Icon className="h-4 w-4 text-accent" aria-hidden="true" />
           </span>
@@ -91,11 +96,7 @@ function ProjectCard({
           ) : null}
         </header>
 
-        <div className="rounded-2xl border border-foreground/5 bg-foreground/[0.02] p-4 dark:bg-foreground/[0.04]">
-          <FlowDiagram steps={flow} compact />
-        </div>
-
-        <div className="flex flex-1 flex-col gap-2.5">
+        <div className="flex flex-1 flex-col gap-2.5 px-1">
           <h3 className="text-[20px] font-medium leading-[1.2] tracking-tight text-foreground sm:text-[22px]">
             {t(`${base}.title`)}
           </h3>
@@ -104,7 +105,7 @@ function ProjectCard({
           </p>
         </div>
 
-        <span className="inline-flex items-center gap-1.5 text-[13px] font-medium tracking-tight text-accent">
+        <span className="inline-flex items-center gap-1.5 px-1 pb-1 text-[13px] font-medium tracking-tight text-accent">
           {tProjects("viewCaseStudy")}
           <ArrowRight
             className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5"
