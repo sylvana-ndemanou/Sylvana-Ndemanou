@@ -1,5 +1,6 @@
 import { ContactCard } from "@/components/contact/contact-card";
 import { ProjectPoster } from "@/components/projects/project-poster";
+import { MatillionScene } from "@/components/projects/scenes/matillion-scene";
 import { SolutionDiagram } from "@/components/projects/solution-diagram";
 import { ToolGrid } from "@/components/projects/tool-grid";
 import { ShaderFlow } from "@/components/shaders/shader-flow";
@@ -102,9 +103,13 @@ export default async function CaseStudyPage({
         </FadeIn>
 
         <FadeIn delay={0.1} className="mt-10">
-          <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl ring-1 ring-foreground/10">
-            <ProjectPoster kind={project.visual} />
-          </div>
+          {slug === "etl-modernization" ? (
+            <MatillionScene />
+          ) : (
+            <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl ring-1 ring-foreground/10">
+              <ProjectPoster kind={project.visual} />
+            </div>
+          )}
         </FadeIn>
 
         <div className="mt-12 grid gap-10 lg:grid-cols-[1fr_16rem] lg:gap-14">
