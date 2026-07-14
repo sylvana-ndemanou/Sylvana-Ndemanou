@@ -1,7 +1,11 @@
 import { ContactCard } from "@/components/contact/contact-card";
 import { ProjectPoster } from "@/components/projects/project-poster";
+import { AppliedAiScene } from "@/components/projects/scenes/applied-ai-scene";
+import { DashboardScene } from "@/components/projects/scenes/dashboard-scene";
 import { MatillionScene } from "@/components/projects/scenes/matillion-scene";
+import { SnowflakeScene } from "@/components/projects/scenes/snowflake-scene";
 import { SolutionDiagram } from "@/components/projects/solution-diagram";
+import type { ComponentType } from "react";
 import { ToolGrid } from "@/components/projects/tool-grid";
 import { ShaderFlow } from "@/components/shaders/shader-flow";
 import { FadeIn, Reveal } from "@/components/ui/motion-primitives";
@@ -16,6 +20,16 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
 type Params = { locale: string; slug: string };
+
+// Animated, cursor-driven "tool" scenes per case study (real representations of
+// the work: Matillion pipeline, Snowflake worksheet, BI dashboard, AI chat).
+const SCENES: Record<string, ComponentType> = {
+  "etl-modernization": MatillionScene,
+  "bi-architecture": SnowflakeScene,
+  "executive-reporting-automation": DashboardScene,
+  "dashboard-poc": DashboardScene,
+  "applied-ai-exploration": AppliedAiScene,
+};
 
 export function generateStaticParams(): Params[] {
   return routing.locales.flatMap((locale) =>
@@ -103,13 +117,16 @@ export default async function CaseStudyPage({
         </FadeIn>
 
         <FadeIn delay={0.1} className="mt-10">
-          {slug === "etl-modernization" ? (
-            <MatillionScene />
-          ) : (
-            <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl ring-1 ring-foreground/10">
-              <ProjectPoster kind={project.visual} />
-            </div>
-          )}
+          {(() => {
+            const Scene = SCENES[slug];
+            return Scene ? (
+              <Scene />
+            ) : (
+              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl ring-1 ring-foreground/10">
+                <ProjectPoster kind={project.visual} />
+              </div>
+            );
+          })()}
         </FadeIn>
 
         <div className="mt-12 grid gap-10 lg:grid-cols-[1fr_16rem] lg:gap-14">
