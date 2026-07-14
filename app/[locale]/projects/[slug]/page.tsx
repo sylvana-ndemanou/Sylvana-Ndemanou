@@ -2,6 +2,8 @@ import { ContactCard } from "@/components/contact/contact-card";
 import { ProjectPoster } from "@/components/projects/project-poster";
 import { AppliedAiScene } from "@/components/projects/scenes/applied-ai-scene";
 import { DashboardScene } from "@/components/projects/scenes/dashboard-scene";
+import { ExecutiveReportScene } from "@/components/projects/scenes/executive-report-scene";
+import { MakeScene } from "@/components/projects/scenes/make-scene";
 import { MatillionScene } from "@/components/projects/scenes/matillion-scene";
 import { SnowflakeScene } from "@/components/projects/scenes/snowflake-scene";
 import { SolutionDiagram } from "@/components/projects/solution-diagram";
@@ -26,7 +28,8 @@ type Params = { locale: string; slug: string };
 const SCENES: Record<string, ComponentType> = {
   "etl-modernization": MatillionScene,
   "bi-architecture": SnowflakeScene,
-  "executive-reporting-automation": DashboardScene,
+  "executive-reporting-automation": ExecutiveReportScene,
+  "reporting-automation": MakeScene,
   "dashboard-poc": DashboardScene,
   "applied-ai-exploration": AppliedAiScene,
 };
