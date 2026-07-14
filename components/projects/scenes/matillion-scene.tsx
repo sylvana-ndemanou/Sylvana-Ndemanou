@@ -10,10 +10,11 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useInView, useReducedMotion } from "motion/react";
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 import { ToolCursor } from "@/components/projects/scenes/tool-cursor";
 import { useAutoScale } from "@/components/projects/scenes/use-auto-scale";
+import { useIsDark } from "@/components/projects/scenes/use-is-dark";
 
 // TEMP(testing): force motion + loop so the build can be recorded even in
 // reduced-motion browsers. Set BOTH back to false before committing.
@@ -84,6 +85,10 @@ const START: [number, number] = [1280, 560];
 export function MatillionScene(): ReactNode {
   const prefersReduce = useReducedMotion() ?? false;
   const reduce = FORCE_MOTION ? false : prefersReduce;
+  const dark = useIsDark();
+  const S = dark
+    ? { surface: "#14161b", grid: "rgba(200,212,232,0.10)", tabBar: "#1b1d23", tabActive: "#14161b", tabInk: "#e2e6ec", tabMuted: "#8b909a", label: "#c9cdd4", panel: "#1b1d23", line: "rgba(255,255,255,0.09)", pInk: "#e2e6ec", pMuted: "#7c828d", prow: "#c2c7cf", tbText: "#aab2bd", note: "#4a4222", noteTx: "#e7d9a3" }
+    : { surface: "#f6f7f9", grid: "rgba(20,30,50,0.10)", tabBar: "#eceff3", tabActive: "#f6f7f9", tabInk: "#1e293b", tabMuted: "#64748b", label: "#3C4450", panel: "#ffffff", line: "rgba(0,0,0,0.08)", pInk: "#1e293b", pMuted: "#94a3b8", prow: "#334155", tbText: "#475569", note: "#fff2b0", noteTx: "#7A6410" };
   const ref = useRef<HTMLDivElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const scale = useAutoScale(ref, W);
@@ -203,8 +208,8 @@ export function MatillionScene(): ReactNode {
   return (
     <div
       ref={ref}
-      className="relative mx-auto w-full overflow-hidden rounded-2xl border border-black/10 shadow-md"
-      style={{ height: H * scale, backgroundColor: "#f6f7f9" }}
+      className="relative mx-auto w-full overflow-hidden rounded-2xl border shadow-md"
+      style={{ height: H * scale, backgroundColor: S.surface, borderColor: S.line, ["--panel"]: S.panel, ["--line"]: S.line, ["--label"]: S.label, ["--pink"]: S.pInk, ["--pmuted"]: S.pMuted, ["--prow"]: S.prow, ["--tbtext"]: S.tbText, ["--tabbar"]: S.tabBar, ["--note"]: S.note, ["--notetx"]: S.noteTx } as CSSProperties}
     >
       <div style={{ width: W, height: H, transform: `scale(${scale})`, transformOrigin: "top left", position: "absolute", top: 0, left: 0 }}>
         {/* App bar */}
@@ -226,17 +231,17 @@ export function MatillionScene(): ReactNode {
         {/* Left rail */}
         <div className="absolute left-0 flex flex-col items-center gap-4 bg-[#0b1220] py-4" style={{ top: APPBAR, width: RAIL, bottom: 0 }}>
           {[0, 1, 2, 3, 4, 5].map((i) => (
-            <span key={i} className="h-5 w-5 rounded bg-white/12" />
+            <span key={i} className="h-5 w-5 rounded bg-[var(--panel)]/12" />
           ))}
         </div>
 
         {/* Tab strip */}
-        <div className="absolute flex items-stretch overflow-hidden border-b border-black/10 bg-[#eceff3]" style={{ left: RAIL, right: 0, top: APPBAR, height: TABBAR }}>
+        <div className="absolute flex items-stretch overflow-hidden border-b border-[var(--line)] bg-[var(--tabbar)]" style={{ left: RAIL, right: 0, top: APPBAR, height: TABBAR }}>
           {TABS.map((tname, i) => (
             <div
               key={tname}
-              className="flex items-center gap-2 border-r border-black/8 px-3 text-[11.5px] font-medium"
-              style={{ backgroundColor: i === 0 ? "#f6f7f9" : "transparent", color: i === 0 ? "#1e293b" : "#64748b" }}
+              className="flex items-center gap-2 border-r border-[var(--line)] px-3 text-[11.5px] font-medium"
+              style={{ backgroundColor: i === 0 ? S.tabActive : "transparent", color: i === 0 ? S.tabInk : S.tabMuted }}
             >
               <span className="h-2.5 w-2.5 rounded-[3px] bg-[#3E7BFB]" />
               <span className="whitespace-nowrap">{tname}</span>
@@ -253,17 +258,17 @@ export function MatillionScene(): ReactNode {
             right: 0,
             top: canvasTop,
             bottom: PANEL,
-            backgroundColor: "#f6f7f9",
-            backgroundImage: "radial-gradient(circle, rgba(20,30,50,0.10) 1.4px, transparent 1.4px)",
+            backgroundColor: S.surface,
+            backgroundImage: `radial-gradient(circle, ${S.grid} 1.4px, transparent 1.4px)`,
             backgroundSize: "28px 28px",
           }}
         />
 
         {/* Floating action toolbar (top-right) */}
         <div className="absolute z-20 flex items-center gap-4 text-[13px]" style={{ right: 24, top: 92 }}>
-          <span className="text-[#475569]">Review ▾</span>
-          <span className="text-[#475569]">Validate ✓</span>
-          <span className="text-[#475569]">Schedule ⏱</span>
+          <span className="text-[var(--tbtext)]">Review ▾</span>
+          <span className="text-[var(--tbtext)]">Validate ✓</span>
+          <span className="text-[var(--tbtext)]">Schedule ⏱</span>
           <div
             className="rounded-lg bg-[#16324f] px-5 py-2 font-semibold text-white shadow"
             style={{ transform: pressed ? "scale(0.92)" : "scale(1)", transition: "transform 0.16s ease" }}
@@ -273,10 +278,10 @@ export function MatillionScene(): ReactNode {
         </div>
 
         {/* Sticky notes */}
-        <div className="absolute rounded-md bg-[#fff2b0] px-3 py-2 text-[11px] font-medium text-[#7A6410] shadow-sm" style={{ left: 120, top: 150, width: 150 }}>
+        <div className="absolute rounded-md bg-[var(--note)] px-3 py-2 text-[11px] font-medium text-[var(--notetx)] shadow-sm" style={{ left: 120, top: 150, width: 150 }}>
           Re-orch · parallel sources
         </div>
-        <div className="absolute rounded-md bg-[#fff2b0] px-3 py-2 text-[11px] font-medium text-[#7A6410] shadow-sm" style={{ left: 980, top: 172, width: 160 }}>
+        <div className="absolute rounded-md bg-[var(--note)] px-3 py-2 text-[11px] font-medium text-[var(--notetx)] shadow-sm" style={{ left: 980, top: 172, width: 160 }}>
           Finance validation before delivery
         </div>
 
@@ -349,19 +354,19 @@ export function MatillionScene(): ReactNode {
                   <Icon className="h-6 w-6 text-white" strokeWidth={2.2} aria-hidden="true" />
                 </span>
               </div>
-              <span className="mt-2 text-center text-[13px] font-medium leading-tight text-[#3C4450]">{n.label}</span>
+              <span className="mt-2 text-center text-[13px] font-medium leading-tight text-[var(--label)]">{n.label}</span>
             </div>
           );
         })}
 
         {/* Zoom control */}
-        <div className="absolute rounded-md border border-black/10 bg-white px-2.5 py-1 text-[12px] text-[#64748b] shadow-sm" style={{ right: 20, bottom: PANEL + 16 }}>
+        <div className="absolute rounded-md border border-[var(--line)] bg-[var(--panel)] px-2.5 py-1 text-[12px] text-[var(--pmuted)] shadow-sm" style={{ right: 20, bottom: PANEL + 16 }}>
           55% ▾
         </div>
 
         {/* Success toast */}
         <div
-          className="absolute z-20 flex items-center gap-2 rounded-full border border-[#34A853]/30 bg-white px-4 py-2 text-[13px] font-semibold text-[#2f8f47] shadow-sm"
+          className="absolute z-20 flex items-center gap-2 rounded-full border border-[#34A853]/30 bg-[var(--panel)] px-4 py-2 text-[13px] font-semibold text-[#2f8f47] shadow-sm"
           style={{
             left: RAIL + (W - RAIL) / 2,
             bottom: PANEL + 18,
@@ -374,14 +379,14 @@ export function MatillionScene(): ReactNode {
         </div>
 
         {/* Bottom panel */}
-        <div className="absolute border-t border-black/10 bg-white" style={{ left: RAIL, right: 0, bottom: 0, height: PANEL }}>
-          <div className="flex items-center gap-5 border-b border-black/8 px-5 py-2.5 text-[12px]">
-            <span className="font-semibold text-[#1e293b]">Task history</span>
+        <div className="absolute border-t border-[var(--line)] bg-[var(--panel)]" style={{ left: RAIL, right: 0, bottom: 0, height: PANEL }}>
+          <div className="flex items-center gap-5 border-b border-[var(--line)] px-5 py-2.5 text-[12px]">
+            <span className="font-semibold text-[var(--pink)]">Task history</span>
             {["Sample data", "Metadata", "Variables", "Review results", "Tests"].map((t) => (
-              <span key={t} className="text-[#94a3b8]">{t}</span>
+              <span key={t} className="text-[var(--pmuted)]">{t}</span>
             ))}
           </div>
-          <div className="grid grid-cols-[120px_1fr_120px_120px] gap-3 px-5 py-1.5 text-[10.5px] font-semibold uppercase tracking-wide text-[#94a3b8]">
+          <div className="grid grid-cols-[120px_1fr_120px_120px] gap-3 px-5 py-1.5 text-[10.5px] font-semibold uppercase tracking-wide text-[var(--pmuted)]">
             <span>Task</span><span>Pipeline</span><span>Queued</span><span>Completed</span>
           </div>
           {TASKS.map((row, i) => {
@@ -397,12 +402,12 @@ export function MatillionScene(): ReactNode {
                   transition: `opacity 0.4s ease ${i * 0.12}s, transform 0.4s ease ${i * 0.12}s`,
                 }}
               >
-                <span className="flex items-center gap-1.5 text-[#334155]">
+                <span className="flex items-center gap-1.5 text-[var(--prow)]">
                   <span className="h-2 w-2 rounded-full" style={{ backgroundColor: running ? "#e0a400" : "#34A853" }} />
                   Validate
                 </span>
-                <span className="truncate text-[#334155]">Production/{row[0]}</span>
-                <span className="text-[#64748b]">{row[1]}</span>
+                <span className="truncate text-[var(--prow)]">Production/{row[0]}</span>
+                <span className="text-[var(--pmuted)]">{row[1]}</span>
                 <span style={{ color: running ? "#e0a400" : "#2f8f47" }}>{running ? "Running" : row[2]}</span>
               </div>
             );

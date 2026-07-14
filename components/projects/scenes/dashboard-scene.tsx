@@ -13,6 +13,7 @@ import {
 
 import { ToolCursor } from "@/components/projects/scenes/tool-cursor";
 import { useAutoScale } from "@/components/projects/scenes/use-auto-scale";
+import { useIsDark } from "@/components/projects/scenes/use-is-dark";
 
 // TEMP(testing): force motion + loop for recording in reduced-motion browsers.
 const FORCE_MOTION = false;
@@ -128,19 +129,23 @@ const START: [number, number] = [1200, 560];
 
 function Card({ children, title }: { children: ReactNode; title: string }): ReactNode {
   return (
-    <div className="flex h-full flex-col rounded-xl border border-black/8 bg-white p-4 shadow-sm">
-      <div className="text-[13px] font-semibold text-[#2A3138]">{title}</div>
+    <div className="flex h-full flex-col rounded-xl border border-[var(--line)] bg-[var(--card)] p-4 shadow-sm">
+      <div className="text-[13px] font-semibold text-[var(--ink)]">{title}</div>
       <div className="relative mt-2 flex-1">{children}</div>
     </div>
   );
 }
 function Skeleton(): ReactNode {
-  return <div className="absolute inset-0 rounded-lg bg-black/[0.05]" />;
+  return <div className="absolute inset-0 rounded-lg bg-[var(--skel)]" />;
 }
 
 export function DashboardScene(): ReactNode {
   const prefersReduce = useReducedMotion() ?? false;
   const reduce = FORCE_MOTION ? false : prefersReduce;
+  const dark = useIsDark();
+  const S = dark
+    ? { page: "#14161b", card: "#1e1f24", ink: "#e2e6ec", muted: "#8b909a", line: "rgba(255,255,255,0.09)", zebra: "#202127", skel: "rgba(255,255,255,0.06)", grid: "rgba(255,255,255,0.10)", rail: "#1b1c20" }
+    : { page: "#eef2f0", card: "#ffffff", ink: "#2A3138", muted: "#7A8891", line: "rgba(0,0,0,0.08)", zebra: "var(--zebra)", skel: "rgba(0,0,0,0.05)", grid: "rgba(0,0,0,0.06)", rail: "" };
   const ref = useRef<HTMLDivElement | null>(null);
   const lineRef = useRef<SVGPathElement | null>(null);
   const scale = useAutoScale(ref, W);
@@ -256,18 +261,18 @@ export function DashboardScene(): ReactNode {
   return (
     <div
       ref={ref}
-      className="relative mx-auto w-full overflow-hidden rounded-2xl border border-black/10 shadow-md"
-      style={{ height: H * scale, backgroundColor: "#eef2f0" }}
+      className="relative mx-auto w-full overflow-hidden rounded-2xl border shadow-md"
+      style={{ height: H * scale, backgroundColor: S.page, borderColor: S.line, ["--card"]: S.card, ["--ink"]: S.ink, ["--muted"]: S.muted, ["--line"]: S.line, ["--zebra"]: S.zebra, ["--skel"]: S.skel, ["--grid"]: S.grid } as CSSProperties}
     >
       <div style={{ width: W, height: H, transform: `scale(${scale})`, transformOrigin: "top left", position: "absolute", top: 0, left: 0 }}>
         {/* Top tab strip */}
-        <div className="absolute inset-x-0 top-0 flex items-center justify-between bg-white px-4" style={{ height: 34 }}>
+        <div className="absolute inset-x-0 top-0 flex items-center justify-between bg-[var(--card)] px-4" style={{ height: 34 }}>
           <div className="flex items-center gap-2">
             <span className="rounded-md px-3 py-1 text-[11px] font-semibold text-white" style={{ backgroundColor: T.acc, transition: RECOLOR }}>Transaction</span>
             <span className="rounded-md px-3 py-1 text-[11px] font-semibold" style={{ backgroundColor: T.lite, color: T.acc, transition: RECOLOR }}>Enterprise</span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-[10px] font-medium text-[#9AA5AD]">Theme</span>
+            <span className="text-[10px] font-medium text-[var(--muted)]">Theme</span>
             {THEME_KEYS.map((k) => (
               <span
                 key={k}
@@ -276,9 +281,9 @@ export function DashboardScene(): ReactNode {
               />
             ))}
             <span className="mx-1 h-4 w-px bg-black/10" />
-            <LayoutGrid className="h-4 w-4 text-[#9AA5AD]" aria-hidden="true" />
-            <Bookmark className="h-4 w-4 text-[#9AA5AD]" aria-hidden="true" />
-            <Eye className="h-4 w-4 text-[#9AA5AD]" aria-hidden="true" />
+            <LayoutGrid className="h-4 w-4 text-[var(--muted)]" aria-hidden="true" />
+            <Bookmark className="h-4 w-4 text-[var(--muted)]" aria-hidden="true" />
+            <Eye className="h-4 w-4 text-[var(--muted)]" aria-hidden="true" />
           </div>
         </div>
 
@@ -290,14 +295,14 @@ export function DashboardScene(): ReactNode {
           </div>
           <div className="text-[22px] font-semibold" style={{ color: T.title, transition: RECOLOR }}>Transaction analysis</div>
           <div className="flex items-center gap-2">
-            <span className="rounded-lg border border-black/10 bg-white px-3 py-1.5 text-[12px] text-[#8A93A0]">Start date</span>
-            <span className="text-[#8A93A0]">→</span>
-            <span className="rounded-lg border border-black/10 bg-white px-3 py-1.5 text-[12px] text-[#8A93A0]">End date</span>
+            <span className="rounded-lg border border-[var(--line)] bg-[var(--card)] px-3 py-1.5 text-[12px] text-[var(--muted)]">Start date</span>
+            <span className="text-[var(--muted)]">→</span>
+            <span className="rounded-lg border border-[var(--line)] bg-[var(--card)] px-3 py-1.5 text-[12px] text-[var(--muted)]">End date</span>
           </div>
         </div>
 
         {/* Left filter rail */}
-        <div className="absolute rounded-2xl" style={{ left: 16, top: 108, width: 160, bottom: 16, backgroundColor: T.lite, transition: RECOLOR }}>
+        <div className="absolute rounded-2xl" style={{ left: 16, top: 108, width: 160, bottom: 16, backgroundColor: dark ? S.rail : T.lite, transition: RECOLOR }}>
           <div className="flex flex-col gap-3 p-3">
             {FILTERS.map((f) => (
               <div key={f} className="flex items-center justify-between rounded-lg px-3 py-2.5 text-[12px] font-medium text-white" style={{ backgroundColor: T.dark, transition: RECOLOR }}>
@@ -311,14 +316,14 @@ export function DashboardScene(): ReactNode {
         {/* Panel 0 — KPI row */}
         <div style={panelStyle(0)}>
           <div className="flex h-full items-stretch gap-3">
-            <div className="flex w-[128px] shrink-0 items-center text-[11px] font-medium leading-tight text-[#7A8891]" style={reveal(built(0), 0)}>
-              This year <span className="mx-1 text-[#2A3138]">vs</span> last year
+            <div className="flex w-[128px] shrink-0 items-center text-[11px] font-medium leading-tight text-[var(--muted)]" style={reveal(built(0), 0)}>
+              This year <span className="mx-1 text-[var(--ink)]">vs</span> last year
             </div>
             {KPIS.map((k, i) => (
-              <div key={k[0]} className="relative flex-1 rounded-xl border border-black/8 bg-white px-3 py-2 shadow-sm">
-                {skel(0) && <span className="absolute inset-2.5 rounded bg-black/[0.05]" />}
+              <div key={k[0]} className="relative flex-1 rounded-xl border border-[var(--line)] bg-[var(--card)] px-3 py-2 shadow-sm">
+                {skel(0) && <span className="absolute inset-2.5 rounded bg-[var(--skel)]" />}
                 <div style={reveal(built(0), 0.05 * i)}>
-                  <div className="text-[11px] font-medium text-[#7A8891]">{k[0]}</div>
+                  <div className="text-[11px] font-medium text-[var(--muted)]">{k[0]}</div>
                   <div className="mt-0.5 text-[18px] font-semibold" style={{ color: T.acc, transition: RECOLOR }}>{k[1]}</div>
                   <div className="mt-0.5 flex items-center justify-between">
                     <span className="text-[10px] font-semibold" style={{ color: k[3] === "up" ? T.mid : RED, transition: RECOLOR }}>{k[2]}</span>
@@ -337,17 +342,17 @@ export function DashboardScene(): ReactNode {
           <Card title="Revenue by date">
             {skel(1) && <Skeleton />}
             <div className="flex h-full" style={reveal(built(1), 0)}>
-              <div className="flex w-8 shrink-0 flex-col justify-between py-1 text-[8px] text-[#9AA5AD]">
+              <div className="flex w-8 shrink-0 flex-col justify-between py-1 text-[8px] text-[var(--muted)]">
                 <span>$100k</span><span>$50k</span><span>$0</span>
               </div>
               <div className="flex flex-1 flex-col">
                 <svg viewBox={`0 0 ${CW} ${CH}`} preserveAspectRatio="none" className="w-full flex-1" aria-hidden="true">
-                  {[PT, (PT + PB) / 2, PB].map((y) => <line key={y} x1={PL} y1={y} x2={PR} y2={y} stroke="#000" strokeOpacity={0.06} strokeWidth={1} />)}
+                  {[PT, (PT + PB) / 2, PB].map((y) => <line key={y} x1={PL} y1={y} x2={PR} y2={y} stroke={S.grid} strokeOpacity={1} strokeWidth={1} />)}
                   <path d={AREA} fill={T.mid} style={{ opacity: built(1) ? 0.14 : 0, transition: `opacity 0.7s ease 0.3s, fill 0.5s ease` }} />
                   <line x1={PL} y1={TARGET_Y} x2={PR} y2={TARGET_Y} stroke={T.mid} strokeWidth={1} strokeDasharray="5 4" opacity={0.75} style={{ transition: RECOLOR }} />
                   <path ref={lineRef} d={LINE} fill="none" stroke={T.dark} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" style={{ transition: "stroke-dashoffset 1.2s ease 0.2s, stroke 0.5s ease" }} />
                 </svg>
-                <div className="flex justify-between px-1 text-[9px] text-[#9AA5AD]">
+                <div className="flex justify-between px-1 text-[9px] text-[var(--muted)]">
                   {["Apr", "Jun", "Aug", "Oct", "Dec", "Feb"].map((m) => <span key={m}>{m}</span>)}
                 </div>
               </div>
@@ -357,16 +362,16 @@ export function DashboardScene(): ReactNode {
 
         {/* Panel 2 — details table */}
         <div style={panelStyle(2)}>
-          <div className="relative flex h-full flex-col overflow-hidden rounded-xl border border-black/8 bg-white shadow-sm">
-            <div className="px-4 py-3 text-[13px] font-semibold text-[#2A3138]">Transaction details</div>
-            {skel(2) && <span className="absolute inset-x-3 bottom-3 top-12 rounded-lg bg-black/[0.05]" />}
+          <div className="relative flex h-full flex-col overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--card)] shadow-sm">
+            <div className="px-4 py-3 text-[13px] font-semibold text-[var(--ink)]">Transaction details</div>
+            {skel(2) && <span className="absolute inset-x-3 bottom-3 top-12 rounded-lg bg-[var(--skel)]" />}
             <div className="grid grid-cols-[1fr_120px_120px_130px] gap-2 px-4 py-2 text-[11px] font-semibold text-white" style={{ backgroundColor: T.dark, transition: RECOLOR, ...reveal(built(2), 0) }}>
               <span>Category</span><span>Transactions</span><span>Clients</span><span>Revenue</span>
             </div>
             {TABLE.map((r, i) => (
-              <div key={r[0]} className="grid grid-cols-[1fr_120px_120px_130px] items-center gap-2 px-4 text-[12.5px]" style={{ height: 27, backgroundColor: i % 2 ? "#f5f8f6" : "transparent", ...reveal(built(2), 0.1 + i * 0.06) }}>
+              <div key={r[0]} className="grid grid-cols-[1fr_120px_120px_130px] items-center gap-2 px-4 text-[12.5px]" style={{ height: 27, backgroundColor: i % 2 ? "var(--zebra)" : "transparent", ...reveal(built(2), 0.1 + i * 0.06) }}>
                 <span className="flex items-center gap-1.5" style={{ fontWeight: r[4] ? 600 : 400, color: "#2A3138" }}>
-                  {!r[4] && <span className="text-[#9AA5AD]">＋</span>}
+                  {!r[4] && <span className="text-[var(--muted)]">＋</span>}
                   {r[0]}
                 </span>
                 <span className="text-[#3C4450]">{r[1]}</span>
@@ -406,14 +411,14 @@ export function DashboardScene(): ReactNode {
             <div style={reveal(built(4), 0)}>
               <div className="mb-2 flex items-center justify-end gap-3">
                 {["15:00", "19:00", "20:00"].map((t, i) => (
-                  <span key={t} className="flex items-center gap-1 text-[10px] text-[#7A8891]">
+                  <span key={t} className="flex items-center gap-1 text-[10px] text-[var(--muted)]">
                     <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: T.bars[i], transition: RECOLOR }} />
                     {t}
                   </span>
                 ))}
               </div>
-              <div className="relative flex h-[150px] items-end justify-between border-b border-black/10 px-2">
-                {[0.5, 1].map((f) => <div key={f} className="absolute left-2 right-2 h-px bg-black/[0.06]" style={{ bottom: f * 150 }} />)}
+              <div className="relative flex h-[150px] items-end justify-between border-b border-[var(--line)] px-2">
+                {[0.5, 1].map((f) => <div key={f} className="absolute left-2 right-2 h-px bg-[var(--grid)]" style={{ bottom: f * 150 }} />)}
                 <div className="absolute left-2 right-2" style={{ bottom: (BAR_TARGET / BAR_MAX) * 150 }}>
                   <div className="h-px w-full" style={{ backgroundColor: RED, opacity: 0.8 }} />
                 </div>
@@ -425,7 +430,7 @@ export function DashboardScene(): ReactNode {
                   </div>
                 ))}
               </div>
-              <div className="mt-1.5 flex justify-between px-2 text-[10px] text-[#9AA5AD]">
+              <div className="mt-1.5 flex justify-between px-2 text-[10px] text-[var(--muted)]">
                 {BAR_MONTHS.map((m) => <span key={m}>{m}</span>)}
               </div>
             </div>
