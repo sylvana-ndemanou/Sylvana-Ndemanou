@@ -7,7 +7,7 @@ import { FadeIn, ScaleUnblur } from "@/components/ui/motion-primitives";
 import { PortraitMorph } from "./portrait-morph";
 
 const PORTRAIT_SRC = "/sylvana-portrait.png";
-const PORTRAIT_HOVER_SRC = "/sylvana-portrait-wave.png";
+const PORTRAIT_HOVER_SRC = "/sylvana-portrait-hover.png";
 
 export function Hero(): ReactNode {
   const t = useTranslations("Hero");
