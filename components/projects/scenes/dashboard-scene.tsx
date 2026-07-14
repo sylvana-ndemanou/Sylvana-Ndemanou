@@ -104,7 +104,7 @@ export function DashboardScene(): ReactNode {
     };
   }, [inView, reduce]);
 
-  const EASE = "cubic-bezier(0.4, 0, 0.2, 1)";
+  const EASE = "cubic-bezier(0.33, 0, 0.15, 1)";
 
   return (
     <div

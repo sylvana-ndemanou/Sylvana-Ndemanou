@@ -98,7 +98,7 @@ export function AppliedAiScene(): ReactNode {
     };
   }, [inView, reduce]);
 
-  const EASE = "cubic-bezier(0.4, 0, 0.2, 1)";
+  const EASE = "cubic-bezier(0.33, 0, 0.15, 1)";
   const typed = Q_WORDS.slice(0, qN).join(" ");
   const answer = A_WORDS.slice(0, aN).join(" ");
 

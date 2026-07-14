@@ -89,7 +89,7 @@ export function SnowflakeScene(): ReactNode {
     };
   }, [inView, reduce]);
 
-  const EASE = "cubic-bezier(0.4, 0, 0.2, 1)";
+  const EASE = "cubic-bezier(0.33, 0, 0.15, 1)";
   const kw = { color: "#2D7FF9" };
   const str = { color: "#C2410C" };
   const txt = { color: "#1F2937" };

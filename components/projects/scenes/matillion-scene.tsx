@@ -10,7 +10,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useInView, useReducedMotion } from "motion/react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 import { ToolCursor } from "@/components/projects/scenes/tool-cursor";
 import { useAutoScale } from "@/components/projects/scenes/use-auto-scale";
@@ -85,12 +85,14 @@ export function MatillionScene(): ReactNode {
   const prefersReduce = useReducedMotion() ?? false;
   const reduce = FORCE_MOTION ? false : prefersReduce;
   const ref = useRef<HTMLDivElement | null>(null);
+  const svgRef = useRef<SVGSVGElement | null>(null);
   const scale = useAutoScale(ref, W);
   const inView = useInView(ref, { once: !DEMO_LOOP, amount: 0.35 });
 
   const [cursor, setCursor] = useState<{ x: number; y: number }>({ x: START[0], y: START[1] });
   const [cursorOn, setCursorOn] = useState(false);
   const [placed, setPlaced] = useState(reduce ? NODES.length : 0);
+  const [carry, setCarry] = useState<number | null>(null);
   const [drawn, setDrawn] = useState(reduce ? CONNS.length : 0);
   const [pressed, setPressed] = useState(false);
   const [success, setSuccess] = useState(reduce);
@@ -100,8 +102,41 @@ export function MatillionScene(): ReactNode {
     let alive = true;
     const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
+    // Fetch a component with the cursor and drop it on the canvas.
+    const place = async (i: number): Promise<boolean> => {
+      const t = NODES[i]!;
+      setCursor({ x: t.cx - 168, y: t.cy - 78 });
+      await sleep(760);
+      if (!alive) return false;
+      setCarry(i);
+      await sleep(360);
+      if (!alive) return false;
+      setCursor({ x: t.cx, y: t.cy });
+      await sleep(900);
+      if (!alive) return false;
+      setPlaced((p) => Math.max(p, i + 1));
+      setCarry(null);
+      await sleep(420);
+      return alive;
+    };
+
+    // Drag a connector from the source's output port to the target's input.
+    const draw = async (ci: number): Promise<boolean> => {
+      const c = CONNS[ci]!;
+      const [sx, sy] = port(NODES[c.s]!, "out");
+      const [tx, ty] = port(NODES[c.t]!, "in");
+      setCursor({ x: sx, y: sy });
+      await sleep(560);
+      if (!alive) return false;
+      setCursor({ x: tx, y: ty });
+      setDrawn((d) => Math.max(d, ci + 1));
+      await sleep(960);
+      return alive;
+    };
+
     const runOnce = async (): Promise<void> => {
       setPlaced(0);
+      setCarry(null);
       setDrawn(0);
       setSuccess(false);
       setPressed(false);
@@ -110,31 +145,21 @@ export function MatillionScene(): ReactNode {
       await sleep(700);
       if (!alive) return;
       setCursorOn(true);
-      await sleep(500);
+      await sleep(450);
 
-      for (let i = 0; i < NODES.length; i++) {
-        if (!alive) return;
-        setCursor({ x: NODES[i]!.cx, y: NODES[i]!.cy });
-        await sleep(900);
-        if (!alive) return;
-        setPlaced(i + 1);
-        await sleep(520);
-      }
+      // Build the pipeline incrementally: fetch a component, wire it, repeat.
+      if (!(await place(0))) return; // Extract · SAP
+      if (!(await place(1))) return; // Extract · CRM
+      if (!(await place(2))) return; // Transform
+      if (!(await draw(0))) return; // SAP → Transform
+      if (!(await draw(1))) return; // CRM → Transform
+      if (!(await place(3))) return; // Quality gate
+      if (!(await draw(2))) return; // Transform → Quality
+      if (!(await place(4))) return; // Validate
+      if (!(await draw(3))) return; // Quality → Validate
+      if (!(await place(5))) return; // Load
+      if (!(await draw(4))) return; // Validate → Load
 
-      for (let i = 0; i < CONNS.length; i++) {
-        if (!alive) return;
-        const c = CONNS[i]!;
-        const [sx, sy] = port(NODES[c.s]!, "out");
-        const [tx, ty] = port(NODES[c.t]!, "in");
-        setCursor({ x: sx, y: sy });
-        await sleep(620);
-        if (!alive) return;
-        setCursor({ x: tx, y: ty });
-        setDrawn(i + 1);
-        await sleep(1000);
-      }
-
-      if (!alive) return;
       setCursor({ x: RUN_BTN[0], y: RUN_BTN[1] });
       await sleep(950);
       if (!alive) return;
@@ -160,8 +185,19 @@ export function MatillionScene(): ReactNode {
     };
   }, [inView, reduce]);
 
-  const EASE = "cubic-bezier(0.4, 0, 0.2, 1)";
-  const MOVE = "0.85s";
+  // Draw connectors using their real length so the stroke reveals smoothly.
+  useLayoutEffect(() => {
+    const paths = svgRef.current?.querySelectorAll<SVGPathElement>("path.mtl-conn");
+    if (!paths) return;
+    paths.forEach((el, i) => {
+      const L = el.getTotalLength();
+      el.style.strokeDasharray = `${L}`;
+      el.style.strokeDashoffset = reduce || i < drawn ? "0" : `${L}`;
+    });
+  }, [drawn, reduce]);
+
+  const EASE = "cubic-bezier(0.33, 0, 0.15, 1)";
+  const MOVE = "0.9s";
   const canvasTop = APPBAR + TABBAR;
 
   return (
@@ -245,17 +281,17 @@ export function MatillionScene(): ReactNode {
         </div>
 
         {/* Connectors */}
-        <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="absolute inset-0" aria-hidden="true">
+        <svg ref={svgRef} width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="absolute inset-0" aria-hidden="true">
           {CONNS.map((c, i) => (
             <path
               key={i}
+              className="mtl-conn"
               d={connPath(c)}
               fill="none"
               stroke="#3FA45B"
               strokeWidth={2.5}
               strokeLinecap="round"
-              pathLength={1}
-              style={{ strokeDasharray: 1, strokeDashoffset: i < drawn ? 0 : 1, transition: "stroke-dashoffset 1s ease-in-out" }}
+              style={{ transition: "stroke-dashoffset 1s ease-in-out" }}
             />
           ))}
         </svg>
@@ -263,18 +299,31 @@ export function MatillionScene(): ReactNode {
         {/* Nodes */}
         {NODES.map((n, i) => {
           const Icon = n.icon;
-          const on = i < placed;
+          const placedNode = i < placed;
+          const carried = i === carry;
+          const on = placedNode || carried;
+          const left = placedNode
+            ? n.cx - NODE_W / 2
+            : carried
+              ? cursor.x - NODE_W / 2
+              : n.cx - 168 - NODE_W / 2; // parked at the fetch/staging point
+          const top = placedNode
+            ? n.cy - ICON / 2
+            : carried
+              ? cursor.y - ICON / 2
+              : n.cy - 78 - ICON / 2;
           return (
             <div
               key={i}
               className="absolute flex flex-col items-center"
               style={{
-                left: n.cx - NODE_W / 2,
-                top: n.cy - ICON / 2,
+                left,
+                top,
                 width: NODE_W,
                 opacity: on ? 1 : 0,
-                transform: on ? "translateY(0) scale(1)" : "translateY(-16px) scale(0.9)",
-                transition: `opacity 0.4s ease, transform 0.5s cubic-bezier(0.34,1.4,0.64,1)`,
+                transform: carried ? "scale(1.06)" : "scale(1)",
+                zIndex: carried ? 22 : 1,
+                transition: `left ${MOVE} ${EASE}, top ${MOVE} ${EASE}, opacity 0.4s ease, transform 0.28s ease`,
               }}
             >
               <div className="relative">
@@ -283,13 +332,19 @@ export function MatillionScene(): ReactNode {
                   style={{
                     inset: -6,
                     opacity: success ? 1 : 0,
-                    transform: success ? "scale(1)" : "scale(0.8)",
+                    transform: success ? "scale(1)" : "scale(0.85)",
                     transition: "opacity 0.5s ease, transform 0.5s ease",
                   }}
                 />
                 <span
                   className="flex items-center justify-center rounded-xl"
-                  style={{ width: ICON, height: ICON, backgroundColor: n.color, boxShadow: "0 2px 6px rgba(0,0,0,0.18)" }}
+                  style={{
+                    width: ICON,
+                    height: ICON,
+                    backgroundColor: n.color,
+                    boxShadow: carried ? "0 14px 28px -6px rgba(0,0,0,0.35)" : "0 2px 6px rgba(0,0,0,0.18)",
+                    transition: "box-shadow 0.28s ease",
+                  }}
                 >
                   <Icon className="h-6 w-6 text-white" strokeWidth={2.2} aria-hidden="true" />
                 </span>
