@@ -270,42 +270,10 @@
     "aboutTitle": "À propos",
     "aboutDescription": "Sylvana Ndemanou — consultante BI & Data et ingénieure de données : parcours, expérience et stack.",
     "signalTitle": "Signal",
-    "signalDescription": "Signal — le produit BI de Sylvana : templates SQL prêts pour la production, profiling de données en mémoire, et outillage pensé confidentialité d’abord pour Snowflake et BigQuery."
+    "signalDescription": "Signal — mini-jeux BI interactifs sur le grain, les schémas en étoile, SCD2 et les pièges de jointure."
   },
   "Signal": {
-    "kicker": "Produit",
-    "title": "Signal",
-    "tagline": "Des couches de données, construites pour vous.",
-    "intro": "Mon produit BI — templates SQL éprouvés sur le terrain, un profiler en mémoire, et des outils pensés confidentialité d’abord, pour les analystes et ingénieurs qui livrent sur Snowflake et BigQuery.",
-    "cta": "Ouvrir Signal",
-    "liveLabel": "En ligne",
-    "featuresTitle": "Ce qu’il fait",
-    "features": {
-      "templates": {
-        "title": "Moteur de templates SQL",
-        "body": "Templates prêts pour la production sur Snowflake et BigQuery — dédup, audit, staging, merge, SCD2, mart. Syntaxe adaptée à votre stack."
-      },
-      "profiler": {
-        "title": "Data Profiler",
-        "body": "Diagnostic qualité en mémoire, en quelques minutes. Export PDF, Excel et CSV. Rien n’est conservé après la session."
-      },
-      "privacy": {
-        "title": "Confidentialité dès la conception",
-        "body": "Connexions warehouse éphémères. Les identifiants ne sont jamais stockés. Vos données restent dans votre périmètre."
-      },
-      "field": {
-        "title": "Patterns issus du terrain",
-        "body": "Né du travail de consulting réel — les pièges (nulls, compute, staging, grain) sont déjà intégrés."
-      }
-    },
-    "stackTitle": "Compatible avec votre stack",
-    "stack": ["Snowflake", "BigQuery", "dbt", "Astrato"],
-    "note": "Conçu par une consultante BI, pour les data engineers et analystes qui livrent plus vite.",
-    "layers": {
-      "raw": "Brut",
-      "staging": "Staging",
-      "mart": "Mart"
-    }
+    "iframeTitle": "Mini-jeux BI Signal"
   },
   "Story": {
     "metaTitle": "D’où je viens",

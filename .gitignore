@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# Signal mini-games are sourced from /signal and copied here on build
+/public/signal-app/
+
 # vercel
 .vercel
 

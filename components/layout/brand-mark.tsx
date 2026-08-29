@@ -10,6 +10,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 export function BrandMark(): ReactNode {
   const pathname = usePathname();
   if (pathname === "/story" || pathname.startsWith("/story/")) return null;
+  if (pathname === "/signal" || pathname.startsWith("/signal/")) return null;
 
   return (
     <Link

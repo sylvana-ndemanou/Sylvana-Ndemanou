@@ -270,42 +270,10 @@
     "aboutTitle": "About",
     "aboutDescription": "Sylvana Ndemanou — BI & Data Consultant and Data Engineer, background, experience, and stack.",
     "signalTitle": "Signal",
-    "signalDescription": "Signal — Sylvana's BI product: production-ready SQL templates, in-memory data profiling, and privacy-first tooling for Snowflake and BigQuery."
+    "signalDescription": "Signal — interactive BI mini-games on grain, star schemas, SCD2, and join traps."
   },
   "Signal": {
-    "kicker": "Product",
-    "title": "Signal",
-    "tagline": "Layers of data, built for you.",
-    "intro": "My BI product — field-tested SQL templates, an in-memory data profiler, and privacy-first tooling for analysts and engineers who ship on Snowflake and BigQuery.",
-    "cta": "Open Signal",
-    "liveLabel": "Live",
-    "featuresTitle": "What it does",
-    "features": {
-      "templates": {
-        "title": "SQL Template Engine",
-        "body": "Production-ready templates for Snowflake and BigQuery — dedup, audit, staging, merge, SCD2, mart. Syntax adapted to your stack."
-      },
-      "profiler": {
-        "title": "Data Profiler",
-        "body": "In-memory quality diagnostics in minutes. PDF, Excel, and CSV export. Nothing retained after the session."
-      },
-      "privacy": {
-        "title": "Privacy by design",
-        "body": "Ephemeral warehouse connections. Credentials are never stored. Your data stays within your walls."
-      },
-      "field": {
-        "title": "Field-tested patterns",
-        "body": "Born from real consulting work — the traps (nulls, compute, staging, grain) are already built in."
-      }
-    },
-    "stackTitle": "Compatible with your stack",
-    "stack": ["Snowflake", "BigQuery", "dbt", "Astrato"],
-    "note": "Built by a BI consultant, for data engineers and analysts who ship faster.",
-    "layers": {
-      "raw": "Raw",
-      "staging": "Staging",
-      "mart": "Mart"
-    }
+    "iframeTitle": "Signal BI mini-games"
   },
   "Story": {
     "metaTitle": "Where I come from",

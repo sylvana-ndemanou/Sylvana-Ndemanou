@@ -1,4 +1,4 @@
-import { SignalPage } from "@/components/signal/signal-page";
+import { SignalFrame } from "@/components/signal/signal-frame";
 import { routing } from "@/i18n/routing";
 import { createMetadata } from "@/lib/metadata";
 import type { Metadata } from "next";
@@ -32,6 +32,7 @@ export default async function SignalRoute({
 }): Promise<ReactNode> {
   const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations("Signal");
 
-  return <SignalPage />;
+  return <SignalFrame title={t("iframeTitle")} />;
 }

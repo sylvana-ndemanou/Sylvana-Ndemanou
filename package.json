@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "npm run build:signal && next dev",
+    "build": "npm run build:signal && next build",
+    "build:signal": "mkdir -p public/signal-app && cp signal/index.html signal/styles.css signal/app.js public/signal-app/",
     "start": "next start",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx,.mjs",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx,.mjs --fix",
