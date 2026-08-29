@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
       { source: "/", destination: "/en", permanent: false },
       { source: "/projects", destination: "/en/projects", permanent: false },
       { source: "/about", destination: "/en/about", permanent: false },
+      { source: "/signal", destination: "/en/signal", permanent: false },
       {
         source: "/projects/:slug",
         destination: "/en/projects/:slug",

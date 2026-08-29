@@ -19,4 +19,9 @@ export const siteLinks = {
    * event types, or "username/event-slug" to open a specific one.
    */
   calLink: "sylvana-ndemanou",
+  /**
+   * Live URL for Signal (Sylvana's BI product). The public site currently
+   * lives at vynio.io; the portfolio tab is labeled Signal (the brand mark).
+   */
+  signal: "https://vynio.io",
 } as const;
