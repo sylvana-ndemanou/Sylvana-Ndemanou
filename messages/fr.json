@@ -3,6 +3,7 @@
     "home": "Accueil",
     "projects": "Projets",
     "about": "À propos",
+    "signal": "Signal",
     "toggleTheme": "Changer de thème",
     "switchToLight": "Passer au thème clair",
     "switchToDark": "Passer au thème sombre",
@@ -51,7 +52,12 @@
         "solution": "Migration de plus de 800 tables de pipelines couvrant des systèmes source SAP, des intégrations CRM et un entrepôt cible Snowflake. Identification et documentation de 17 différences comportementales au niveau plateforme entre les moteurs d’orchestration hérité et moderne (gestion des types de données, limites de lots d’API, portée des identifiants, performance des itérations).",
         "outcome": "Un taux de correspondance automatisé élevé entre les sorties des pipelines hérité et moderne avant la bascule. Le processus de validation a aussi révélé un risque critique d’intégrité des données pendant les tests — avant qu’il n’atteigne la production.",
         "tools": ["Matillion", "Snowflake", "SQL", "API REST / OData"],
-        "flow": ["Sources SAP / CRM", "Orchestration Matillion", "Validation & score", "Entrepôt Snowflake"]
+        "flow": [
+          "Sources SAP / CRM",
+          "Orchestration Matillion",
+          "Validation & score",
+          "Entrepôt Snowflake"
+        ]
       },
       "bi-architecture": {
         "tag": "Architecture de données",
@@ -65,7 +71,13 @@
         "solution": "Consolidation de multiples intégrations de plateformes publicitaires en modèles dimensionnels standardisés (campagnes, groupes d’annonces, comptes, performance) dans Snowflake, et migration de la couche de diffusion des tableaux de bord pour améliorer l’autonomie des parties prenantes.",
         "outcome": "Les nouvelles sources peuvent être intégrées avec le même patron standardisé, réduisant le travail de mise en place pour chaque plateforme supplémentaire par rapport à des pipelines uniques.",
         "tools": ["Matillion", "Snowflake", "Astrato", "Power BI", "API REST"],
-        "flow": ["Plateformes publicitaires", "Ingestion brute", "Staging", "Modèle dimensionnel", "Tableaux de bord"]
+        "flow": [
+          "Plateformes publicitaires",
+          "Ingestion brute",
+          "Staging",
+          "Modèle dimensionnel",
+          "Tableaux de bord"
+        ]
       },
       "reporting-automation": {
         "tag": "Automatisation de processus",
@@ -78,7 +90,12 @@
         "solution": "Pipeline d’automatisation (Make) reliant stockage de fichiers cloud → extraction PDF/texte → catégorisation par IA via l’API Claude → base de données structurée (Notion), entièrement automatisé du dépôt jusqu’à l’entrée catégorisée.",
         "outcome": "Projet personnel/produit, toujours en développement actif — illustre une conception d’automatisation bout-en-bout au-delà du travail BI client.",
         "tools": ["Make", "API Claude", "Notion", "Outils d’extraction PDF"],
-        "flow": ["Dépôt de fichier", "Extraction PDF / texte", "Catégorisation API Claude", "Base Notion"]
+        "flow": [
+          "Dépôt de fichier",
+          "Extraction PDF / texte",
+          "Catégorisation API Claude",
+          "Base Notion"
+        ]
       },
       "applied-ai-exploration": {
         "tag": "IA appliquée (LLM / RAG)",
@@ -91,7 +108,12 @@
         "solution": "Prototypes explorant la catégorisation de données assistée par LLM et les interfaces en langage naturel sur des données structurées.",
         "outcome": "Exploration en cours — présentée en toute transparence comme un apprentissage actif, pas un livrable client finalisé.",
         "tools": ["API Claude", "Python / JS"],
-        "flow": ["Question d’affaires", "LLM (RAG)", "Données structurées", "Réponse en langage clair"]
+        "flow": [
+          "Question d’affaires",
+          "LLM (RAG)",
+          "Données structurées",
+          "Réponse en langage clair"
+        ]
       },
       "executive-reporting-automation": {
         "tag": "Automatisation de processus",
@@ -105,8 +127,20 @@
         ],
         "solution": "ETL en modèle étoile avec gestion d’historique SCD2, une couche de tableau de bord avec vues matérialisées pour la performance des requêtes, et des contrôles de qualité et de cohérence entièrement automatisés, exécutés avant chaque génération et diffusion du rapport — sans aucune intervention manuelle.",
         "outcome": "La dépendance à une seule personne a été entièrement éliminée. Un rapport qui exigeait autrefois de se lever à 6 h pour le lancer à la main se génère et se diffuse désormais tout seul chaque semaine, avec une validation qualité intégrée avant d’atteindre les décideurs.",
-        "tools": ["Matillion", "Snowflake", "Astrato", "SQL (SCD2)", "Vues matérialisées"],
-        "flow": ["Données source", "ETL modèle étoile (SCD2)", "Contrôles qualité", "Vues matérialisées", "Diffusion automatisée"]
+        "tools": [
+          "Matillion",
+          "Snowflake",
+          "Astrato",
+          "SQL (SCD2)",
+          "Vues matérialisées"
+        ],
+        "flow": [
+          "Données source",
+          "ETL modèle étoile (SCD2)",
+          "Contrôles qualité",
+          "Vues matérialisées",
+          "Diffusion automatisée"
+        ]
       },
       "dashboard-poc": {
         "tag": "Conception de tableaux de bord",
@@ -120,7 +154,12 @@
         "solution": "Un tableau de bord construit sur des sources d’entrepôt de données cloud en direct, conçu pour correspondre visuellement et fonctionnellement au cahier des charges de design du client.",
         "outcome": "Le processus a révélé un véritable problème interne de qualité des données côté client — suffisamment important pour que la PoC soit mise en pause. Malgré cela, la réalisation du tableau de bord a reçu des retours très positifs sur la qualité d’exécution — un cas où le processus qui fonctionne (révéler un vrai problème) comptait plus que d’aboutir à un produit fini.",
         "tools": ["Snowflake", "Astrato", "Figma (référence design)", "Scrum"],
-        "flow": ["Maquette Figma", "Données d’entrepôt live", "Construction (Scrum)", "Revue des parties prenantes"]
+        "flow": [
+          "Maquette Figma",
+          "Données d’entrepôt live",
+          "Construction (Scrum)",
+          "Revue des parties prenantes"
+        ]
       }
     }
   },
@@ -229,7 +268,14 @@
     "projectsTitle": "Projets",
     "projectsDescription": "Études de cas anonymisées en BI, ingénierie de données et IA appliquée.",
     "aboutTitle": "À propos",
-    "aboutDescription": "Sylvana Ndemanou — consultante BI & Data et ingénieure de données : parcours, expérience et stack."
+    "aboutDescription": "Sylvana Ndemanou — consultante BI & Data et ingénieure de données : parcours, expérience et stack.",
+    "signalTitle": "Signal",
+    "signalDescription": "Mini-jeux d’intelligence d’affaires, d’ingénierie des données et de Snowflake — un projet personnel de Sylvana Ndemanou."
+  },
+  "Signal": {
+    "loading": "Chargement de Signal…",
+    "openInTab": "Ouvrir Signal dans un nouvel onglet",
+    "unavailable": "Signal ne s’est pas chargé. Ouvre-le dans un nouvel onglet pour jouer."
   },
   "Story": {
     "metaTitle": "D’où je viens",

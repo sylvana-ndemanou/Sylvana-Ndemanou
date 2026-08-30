@@ -9,11 +9,20 @@ const nextConfig: NextConfig = {
       { source: "/", destination: "/en", permanent: false },
       { source: "/projects", destination: "/en/projects", permanent: false },
       { source: "/about", destination: "/en/about", permanent: false },
+      { source: "/signal", destination: "/en/signal", permanent: false },
       {
         source: "/projects/:slug",
         destination: "/en/projects/:slug",
         permanent: false,
       },
+    ];
+  },
+  async rewrites() {
+    const origin = process.env.SIGNAL_INTERNAL_URL?.replace(/\/$/, "");
+    if (!origin) return [];
+    return [
+      { source: "/__signal", destination: `${origin}/__signal` },
+      { source: "/__signal/:path*", destination: `${origin}/__signal/:path*` },
     ];
   },
   images: {
