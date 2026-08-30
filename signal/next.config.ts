@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
           {
             key: "Content-Security-Policy",
             value:
-              "frame-ancestors 'self' https://sylvanandemanou.vercel.app https://*.vercel.app http://127.0.0.1:4570 http://localhost:4570",
+              "frame-ancestors 'self' https://sylvanandemanou.vercel.app https://*.vercel.app http://127.0.0.1:4570 http://localhost:4570 http://127.0.0.1:3000 http://localhost:3000",
           },
         ],
       },

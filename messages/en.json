@@ -3,6 +3,7 @@
     "home": "Home",
     "projects": "Projects",
     "about": "About",
+    "signal": "Signal",
     "toggleTheme": "Toggle theme",
     "switchToLight": "Switch to light theme",
     "switchToDark": "Switch to dark theme",
@@ -51,7 +52,12 @@
         "solution": "Migrated 800+ pipeline tables across SAP source systems, CRM integrations, and a Snowflake target warehouse. Identified and documented 17 platform-level behavioral differences between the legacy and modern orchestration engines (data type handling, API batch limits, credential scoping, iteration performance).",
         "outcome": "Reached a high automated match rate between legacy and modern pipeline outputs prior to cutover. The validation process also caught a critical data-integrity risk during testing — before it could affect production.",
         "tools": ["Matillion", "Snowflake", "SQL", "REST / OData APIs"],
-        "flow": ["SAP / CRM sources", "Matillion orchestration", "Validation & scoring", "Snowflake warehouse"]
+        "flow": [
+          "SAP / CRM sources",
+          "Matillion orchestration",
+          "Validation & scoring",
+          "Snowflake warehouse"
+        ]
       },
       "bi-architecture": {
         "tag": "Data Architecture",
@@ -65,7 +71,13 @@
         "solution": "Consolidated multiple advertising-platform integrations into standardized dimensional models (campaigns, ad groups, accounts, performance) in Snowflake, and migrated the dashboard delivery layer to improve stakeholder self-service.",
         "outcome": "New data sources can be onboarded using the same standardized pattern, cutting the setup work needed for each additional platform compared to building one-off pipelines.",
         "tools": ["Matillion", "Snowflake", "Astrato", "Power BI", "REST APIs"],
-        "flow": ["Ad platforms", "Raw ingestion", "Staging", "Dimensional model", "Dashboards"]
+        "flow": [
+          "Ad platforms",
+          "Raw ingestion",
+          "Staging",
+          "Dimensional model",
+          "Dashboards"
+        ]
       },
       "reporting-automation": {
         "tag": "Process Automation",
@@ -78,7 +90,12 @@
         "solution": "Automation pipeline (Make) connecting cloud file storage → PDF/text extraction → AI-powered categorization via the Claude API → structured database (Notion), fully automated from upload to categorized entry.",
         "outcome": "Personal/product project, still in active development — demonstrates end-to-end automation design beyond client BI work.",
         "tools": ["Make", "Claude API", "Notion", "PDF extraction tooling"],
-        "flow": ["File upload", "PDF / text extraction", "Claude API categorization", "Notion database"]
+        "flow": [
+          "File upload",
+          "PDF / text extraction",
+          "Claude API categorization",
+          "Notion database"
+        ]
       },
       "applied-ai-exploration": {
         "tag": "Applied AI (LLM / RAG)",
@@ -91,7 +108,12 @@
         "solution": "Prototypes exploring LLM-assisted data categorization and natural-language interfaces over structured data.",
         "outcome": "Ongoing exploration — framed transparently as active learning, not a finished client deliverable.",
         "tools": ["Claude API", "Python / JS"],
-        "flow": ["Business question", "LLM (RAG)", "Structured data", "Plain-language answer"]
+        "flow": [
+          "Business question",
+          "LLM (RAG)",
+          "Structured data",
+          "Plain-language answer"
+        ]
       },
       "executive-reporting-automation": {
         "tag": "Process Automation",
@@ -105,8 +127,20 @@
         ],
         "solution": "Star-schema ETL with SCD2 history management, a dashboard layer with materialized views for query performance, and fully automated data-quality and consistency checks running before each report generation and delivery — no manual intervention required.",
         "outcome": "Eliminated the single-person dependency entirely. A report that once required someone to wake up at 6am to run it by hand now generates and delivers itself automatically every week, with built-in quality validation before it reaches decision-makers.",
-        "tools": ["Matillion", "Snowflake", "Astrato", "SQL (SCD2)", "Materialized views"],
-        "flow": ["Source data", "Star-schema ETL (SCD2)", "Quality checks", "Materialized views", "Automated delivery"]
+        "tools": [
+          "Matillion",
+          "Snowflake",
+          "Astrato",
+          "SQL (SCD2)",
+          "Materialized views"
+        ],
+        "flow": [
+          "Source data",
+          "Star-schema ETL (SCD2)",
+          "Quality checks",
+          "Materialized views",
+          "Automated delivery"
+        ]
       },
       "dashboard-poc": {
         "tag": "Dashboard Design",
@@ -120,7 +154,12 @@
         "solution": "A dashboard built against live cloud data-warehouse sources, engineered to visually and functionally match the client's design specification.",
         "outcome": "The process surfaced a genuine internal data-quality issue on the client's side — significant enough that the PoC was paused as a result. Even so, the dashboard build itself drew strong positive feedback on execution quality — a case where the process working correctly (surfacing a real problem) mattered more than reaching a finished product.",
         "tools": ["Snowflake", "Astrato", "Figma (design reference)", "Scrum"],
-        "flow": ["Figma mockup", "Live warehouse data", "Dashboard build (Scrum)", "Stakeholder review"]
+        "flow": [
+          "Figma mockup",
+          "Live warehouse data",
+          "Dashboard build (Scrum)",
+          "Stakeholder review"
+        ]
       }
     }
   },
@@ -229,7 +268,14 @@
     "projectsTitle": "Projects",
     "projectsDescription": "Anonymized case studies from BI, data engineering, and applied-AI projects.",
     "aboutTitle": "About",
-    "aboutDescription": "Sylvana Ndemanou — BI & Data Consultant and Data Engineer, background, experience, and stack."
+    "aboutDescription": "Sylvana Ndemanou — BI & Data Consultant and Data Engineer, background, experience, and stack.",
+    "signalTitle": "Signal",
+    "signalDescription": "Mini-games for business intelligence, data engineering, and Snowflake — a personal project by Sylvana Ndemanou."
+  },
+  "Signal": {
+    "loading": "Loading Signal…",
+    "openInTab": "Open Signal in a new tab",
+    "unavailable": "Signal didn’t load. Open it in a new tab to play."
   },
   "Story": {
     "metaTitle": "Where I come from",

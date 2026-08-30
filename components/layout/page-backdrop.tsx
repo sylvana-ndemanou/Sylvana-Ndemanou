@@ -1,8 +1,16 @@
+"use client";
+
+import { usePathname } from "@/i18n/navigation";
 import type { ReactNode } from "react";
 
 import { ShaderFlow } from "../shaders/shader-flow";
 
 export function PageBackdrop(): ReactNode {
+  const pathname = usePathname();
+  if (pathname === "/signal" || pathname.startsWith("/signal/")) {
+    return null;
+  }
+
   return (
     <div
       aria-hidden="true"

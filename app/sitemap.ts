@@ -15,6 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/",
     "/projects",
     "/about",
+    "/signal",
     ...PROJECT_SLUGS.map((slug) => `/projects/${slug}`),
   ];
 
