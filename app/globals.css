@@ -102,6 +102,12 @@ html.dark {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+
+  /* Motion can skip the template entrance and leave opacity: 0 inline. */
+  [data-page-template] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 body {
