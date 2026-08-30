@@ -1,0 +1,277 @@
+diff --git a/app/[locale]/signal/page.tsx b/app/[locale]/signal/page.tsx
+new file mode 100644
+index 0000000..6796b06
+--- /dev/null
++++ b/app/[locale]/signal/page.tsx
+@@ -0,0 +1,34 @@
++import { SignalFrame } from "@/components/signal/signal-frame";
++import { createMetadata } from "@/lib/metadata";
++import type { Metadata } from "next";
++import { getTranslations, setRequestLocale } from "next-intl/server";
++import type { ReactNode } from "react";
++
++export async function generateMetadata({
++  params,
++}: {
++  params: Promise<{ locale: string }>;
++}): Promise<Metadata> {
++  const { locale } = await params;
++  const t = await getTranslations({ locale, namespace: "Metadata" });
++  return createMetadata({
++    title: t("signalTitle"),
++    description: t("signalDescription"),
++    path: `/${locale}/signal`,
++  });
++}
++
++export default async function SignalPage({
++  params,
++}: {
++  params: Promise<{ locale: string }>;
++}): Promise<ReactNode> {
++  const { locale } = await params;
++  setRequestLocale(locale);
++
++  return (
++    <main id="main-content" className="relative flex flex-1 flex-col pt-[5.75rem]">
++      <SignalFrame />
++    </main>
++  );
++}
+diff --git a/app/sitemap.ts b/app/sitemap.ts
+index 977f97c..d63864e 100644
+--- a/app/sitemap.ts
++++ b/app/sitemap.ts
+@@ -15,6 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
+     "/",
+     "/projects",
+     "/about",
++    "/signal",
+     ...PROJECT_SLUGS.map((slug) => `/projects/${slug}`),
+   ];
+ 
+diff --git a/components/layout/nav.tsx b/components/layout/nav.tsx
+index 76f673f..b3b1666 100644
+--- a/components/layout/nav.tsx
++++ b/components/layout/nav.tsx
+@@ -17,14 +17,15 @@ import {
+ import { Link, usePathname, useRouter } from "@/i18n/navigation";
+ 
+ type NavItem = {
+-  key: "home" | "projects" | "about";
+-  href: "/" | "/projects" | "/about";
++  key: "home" | "projects" | "about" | "signal";
++  href: "/" | "/projects" | "/about" | "/signal";
+ };
+ 
+ const NAV_ITEMS: readonly NavItem[] = [
+   { key: "home", href: "/" },
+   { key: "projects", href: "/projects" },
+   { key: "about", href: "/about" },
++  { key: "signal", href: "/signal" },
+ ];
+ 
+ function useIsMounted(): boolean {
+@@ -220,7 +221,7 @@ export function Nav(): ReactNode {
+                 <Link
+                   href={item.href}
+                   aria-current={isActive ? "page" : undefined}
+-                  className="focus-ring relative inline-flex cursor-pointer items-center justify-center rounded-full px-4 py-1.5 text-sm font-medium transition-colors duration-300"
++                  className="focus-ring relative inline-flex cursor-pointer items-center justify-center rounded-full px-2.5 py-1.5 text-[13px] font-medium transition-colors duration-300 sm:px-4 sm:text-sm"
+                 >
+                   <span
+                     className={
+diff --git a/components/layout/page-backdrop.tsx b/components/layout/page-backdrop.tsx
+index 3b7b7ab..38abaeb 100644
+--- a/components/layout/page-backdrop.tsx
++++ b/components/layout/page-backdrop.tsx
+@@ -1,8 +1,16 @@
++"use client";
++
++import { usePathname } from "@/i18n/navigation";
+ import type { ReactNode } from "react";
+ 
+ import { ShaderFlow } from "../shaders/shader-flow";
+ 
+ export function PageBackdrop(): ReactNode {
++  const pathname = usePathname();
++  if (pathname === "/signal" || pathname.startsWith("/signal/")) {
++    return null;
++  }
++
+   return (
+     <div
+       aria-hidden="true"
+diff --git a/components/signal/signal-frame.tsx b/components/signal/signal-frame.tsx
+new file mode 100644
+index 0000000..d9a07a3
+--- /dev/null
++++ b/components/signal/signal-frame.tsx
+@@ -0,0 +1,58 @@
++"use client";
++
++import { SIGNAL_EMBED_URL, SIGNAL_ORIGIN } from "@/lib/signal";
++import { useTranslations } from "next-intl";
++import { useEffect, useState, type ReactNode } from "react";
++
++const LOAD_TIMEOUT_MS = 12_000;
++
++export function SignalFrame(): ReactNode {
++  const t = useTranslations("Signal");
++  const [ready, setReady] = useState(false);
++  const [failed, setFailed] = useState(false);
++
++  useEffect(() => {
++    if (ready) return;
++    const id = window.setTimeout(() => setFailed(true), LOAD_TIMEOUT_MS);
++    return () => window.clearTimeout(id);
++  }, [ready]);
++
++  return (
++    <div className="relative min-h-[calc(100svh-5.75rem)]">
++      {!ready && !failed ? (
++        <div className="absolute inset-0 z-10 flex items-center justify-center bg-background">
++          <p className="text-sm font-medium tracking-tight text-foreground/55">
++            {t("loading")}
++          </p>
++        </div>
++      ) : null}
++
++      {failed && !ready ? (
++        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-background px-6 text-center">
++          <p className="max-w-[36ch] text-sm leading-relaxed text-foreground/70">
++            {t("unavailable")}
++          </p>
++          <a
++            href={SIGNAL_ORIGIN}
++            target="_blank"
++            rel="noreferrer"
++            className="focus-ring inline-flex items-center rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background"
++          >
++            {t("openInTab")}
++          </a>
++        </div>
++      ) : null}
++
++      <iframe
++        title="Signal"
++        src={SIGNAL_EMBED_URL}
++        className="absolute inset-0 h-full w-full border-0 bg-background"
++        allow="autoplay"
++        onLoad={() => {
++          setReady(true);
++          setFailed(false);
++        }}
++      />
++    </div>
++  );
++}
+diff --git a/lib/signal.ts b/lib/signal.ts
+new file mode 100644
+index 0000000..f15a936
+--- /dev/null
++++ b/lib/signal.ts
+@@ -0,0 +1,6 @@
++export const SIGNAL_ORIGIN =
++  process.env.NEXT_PUBLIC_SIGNAL_URL ?? "https://signal-games.vercel.app";
++
++export const SIGNAL_EMBED_URL =
++  process.env.NEXT_PUBLIC_SIGNAL_EMBED_PATH ??
++  `${SIGNAL_ORIGIN.replace(/\/$/, "")}/`;
+diff --git a/messages/en.json b/messages/en.json
+index 90b04f6..f77ca0f 100644
+--- a/messages/en.json
++++ b/messages/en.json
+@@ -3,6 +3,7 @@
+     "home": "Home",
+     "projects": "Projects",
+     "about": "About",
++    "signal": "Signal",
+     "toggleTheme": "Toggle theme",
+     "switchToLight": "Switch to light theme",
+     "switchToDark": "Switch to dark theme",
+@@ -10,6 +11,11 @@
+     "switchToEnglish": "Switch to English",
+     "switchToFrench": "Passer en français"
+   },
++  "Signal": {
++    "loading": "Loading Signal…",
++    "openInTab": "Open Signal in a new tab",
++    "unavailable": "Signal didn’t load. Open it in a new tab to play."
++  },
+   "Hero": {
+     "greeting": "Hi, I’m Sylvana",
+     "title1": "BI & Data Consultant",
+@@ -229,7 +235,9 @@
+     "projectsTitle": "Projects",
+     "projectsDescription": "Anonymized case studies from BI, data engineering, and applied-AI projects.",
+     "aboutTitle": "About",
+-    "aboutDescription": "Sylvana Ndemanou — BI & Data Consultant and Data Engineer, background, experience, and stack."
++    "aboutDescription": "Sylvana Ndemanou — BI & Data Consultant and Data Engineer, background, experience, and stack.",
++    "signalTitle": "Signal",
++    "signalDescription": "Mini-games for business intelligence, data engineering, and Snowflake — a personal project by Sylvana Ndemanou."
+   },
+   "Story": {
+     "metaTitle": "Where I come from",
+diff --git a/messages/fr.json b/messages/fr.json
+index e824a09..7b59a19 100644
+--- a/messages/fr.json
++++ b/messages/fr.json
+@@ -3,6 +3,7 @@
+     "home": "Accueil",
+     "projects": "Projets",
+     "about": "À propos",
++    "signal": "Signal",
+     "toggleTheme": "Changer de thème",
+     "switchToLight": "Passer au thème clair",
+     "switchToDark": "Passer au thème sombre",
+@@ -10,6 +11,11 @@
+     "switchToEnglish": "Switch to English",
+     "switchToFrench": "Passer en français"
+   },
++  "Signal": {
++    "loading": "Chargement de Signal…",
++    "openInTab": "Ouvrir Signal dans un nouvel onglet",
++    "unavailable": "Signal ne s’est pas chargé. Ouvre-le dans un nouvel onglet pour jouer."
++  },
+   "Hero": {
+     "greeting": "Bonjour, je suis Sylvana",
+     "title1": "Consultante BI & Data",
+@@ -229,7 +235,9 @@
+     "projectsTitle": "Projets",
+     "projectsDescription": "Études de cas anonymisées en BI, ingénierie de données et IA appliquée.",
+     "aboutTitle": "À propos",
+-    "aboutDescription": "Sylvana Ndemanou — consultante BI & Data et ingénieure de données : parcours, expérience et stack."
++    "aboutDescription": "Sylvana Ndemanou — consultante BI & Data et ingénieure de données : parcours, expérience et stack.",
++    "signalTitle": "Signal",
++    "signalDescription": "Mini-jeux d’intelligence d’affaires, d’ingénierie des données et de Snowflake — un projet personnel de Sylvana Ndemanou."
+   },
+   "Story": {
+     "metaTitle": "D’où je viens",
+diff --git a/next.config.ts b/next.config.ts
+index b8abf9d..f22f179 100644
+--- a/next.config.ts
++++ b/next.config.ts
+@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
+       { source: "/", destination: "/en", permanent: false },
+       { source: "/projects", destination: "/en/projects", permanent: false },
+       { source: "/about", destination: "/en/about", permanent: false },
++      { source: "/signal", destination: "/en/signal", permanent: false },
+       {
+         source: "/projects/:slug",
+         destination: "/en/projects/:slug",
+@@ -28,6 +29,14 @@ const nextConfig: NextConfig = {
+       },
+     ],
+   },
++  async rewrites() {
++    const origin = process.env.SIGNAL_INTERNAL_URL?.replace(/\/$/, "");
++    if (!origin) return [];
++    return [
++      { source: "/__signal", destination: `${origin}/__signal` },
++      { source: "/__signal/:path*", destination: `${origin}/__signal/:path*` },
++    ];
++  },
+ };
+ 
+ const withNextIntl = createNextIntlPlugin();

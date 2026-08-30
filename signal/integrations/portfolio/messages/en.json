@@ -1,0 +1,312 @@
+{
+  "Nav": {
+    "home": "Home",
+    "projects": "Projects",
+    "about": "About",
+    "signal": "Signal",
+    "toggleTheme": "Toggle theme",
+    "switchToLight": "Switch to light theme",
+    "switchToDark": "Switch to dark theme",
+    "language": "Language",
+    "switchToEnglish": "Switch to English",
+    "switchToFrench": "Passer en français"
+  },
+  "Signal": {
+    "loading": "Loading Signal…",
+    "openInTab": "Open Signal in a new tab",
+    "unavailable": "Signal didn’t load. Open it in a new tab to play."
+  },
+  "Hero": {
+    "greeting": "Hi, I’m Sylvana",
+    "title1": "BI & Data Consultant",
+    "title2": "Data Engineer",
+    "subtitle": "BI & Data Consultant with a Data Engineering core — building reliable pipelines, migrations, and dashboards. Currently exploring applied AI: LLMs, RAG, and AI agents.",
+    "portraitAlt": "Sylvana Ndemanou",
+    "ctaWork": "View my work"
+  },
+  "Projects": {
+    "homeHeadline": "Selected work",
+    "homeIntro": "Case studies from BI, data engineering, and applied-AI work — the outcomes I’m proud to have shipped.",
+    "listTitle": "Selected work",
+    "listIntro": "Anonymized case studies from BI, data engineering, and applied-AI projects.",
+    "viewAll": "View all projects",
+    "viewCaseStudy": "Read case study",
+    "personalBadge": "Personal project"
+  },
+  "CaseStudy": {
+    "backToProjects": "All projects",
+    "sections": {
+      "context": "Context / Challenge",
+      "approach": "Approach",
+      "solution": "Technical solution",
+      "outcome": "Outcome",
+      "tools": "Tools used"
+    },
+    "diagramCaption": "Simplified data flow — illustrative, not a client system.",
+    "items": {
+      "etl-modernization": {
+        "tag": "ETL Migration",
+        "title": "Legacy ETL to Modern Orchestration",
+        "summary": "Migrating a legacy ETL orchestration to a modern cloud-native platform without disrupting nightly production pipelines.",
+        "context": "A large enterprise running SAP-integrated data operations needed to migrate legacy ETL orchestration to a modern cloud-native platform — without disrupting nightly production pipelines feeding inventory, logistics, and sales reporting.",
+        "approach": [
+          "Ran a two-week parallel observation phase with the legacy and modern systems running side by side.",
+          "Built automated daily comparison scoring to catch discrepancies early.",
+          "Conducted a systematic configuration audit to catch environment-scoping risks before go-live."
+        ],
+        "solution": "Migrated 800+ pipeline tables across SAP source systems, CRM integrations, and a Snowflake target warehouse. Identified and documented 17 platform-level behavioral differences between the legacy and modern orchestration engines (data type handling, API batch limits, credential scoping, iteration performance).",
+        "outcome": "Reached a high automated match rate between legacy and modern pipeline outputs prior to cutover. The validation process also caught a critical data-integrity risk during testing — before it could affect production.",
+        "tools": ["Matillion", "Snowflake", "SQL", "REST / OData APIs"],
+        "flow": ["SAP / CRM sources", "Matillion orchestration", "Validation & scoring", "Snowflake warehouse"]
+      },
+      "bi-architecture": {
+        "tag": "Data Architecture",
+        "title": "Multi-Source BI Architecture",
+        "summary": "Consolidating scattered advertising data across many platforms into a unified, reusable reporting architecture.",
+        "context": "An agency managing advertising performance data across many clients and multiple ad platforms needed a unified reporting architecture instead of scattered, inconsistent exports.",
+        "approach": [
+          "Designed a layered warehouse architecture (raw ingestion → staging → dimensional model) so each new platform could be onboarded with a reusable pattern rather than a bespoke pipeline.",
+          "Standardized incremental extraction and deduplication logic across all sources."
+        ],
+        "solution": "Consolidated multiple advertising-platform integrations into standardized dimensional models (campaigns, ad groups, accounts, performance) in Snowflake, and migrated the dashboard delivery layer to improve stakeholder self-service.",
+        "outcome": "New data sources can be onboarded using the same standardized pattern, cutting the setup work needed for each additional platform compared to building one-off pipelines.",
+        "tools": ["Matillion", "Snowflake", "Astrato", "Power BI", "REST APIs"],
+        "flow": ["Ad platforms", "Raw ingestion", "Staging", "Dimensional model", "Dashboards"]
+      },
+      "reporting-automation": {
+        "tag": "Process Automation",
+        "title": "Automated Reporting Pipeline",
+        "summary": "An end-to-end automation connecting document upload, AI text extraction, and structured database entry.",
+        "context": "Manual budget tracking and reporting is time-consuming and error-prone for individuals and small businesses managing their own finances.",
+        "approach": [
+          "Built an end-to-end automation pipeline connecting document upload, AI-powered text extraction, and structured database entry — removing manual data entry entirely."
+        ],
+        "solution": "Automation pipeline (Make) connecting cloud file storage → PDF/text extraction → AI-powered categorization via the Claude API → structured database (Notion), fully automated from upload to categorized entry.",
+        "outcome": "Personal/product project, still in active development — demonstrates end-to-end automation design beyond client BI work.",
+        "tools": ["Make", "Claude API", "Notion", "PDF extraction tooling"],
+        "flow": ["File upload", "PDF / text extraction", "Claude API categorization", "Notion database"]
+      },
+      "applied-ai-exploration": {
+        "tag": "Applied AI (LLM / RAG)",
+        "title": "Applied AI Exploration",
+        "summary": "A personal exploration of how LLMs can make BI tooling more accessible without compromising data security.",
+        "context": "Personal exploration of how large language models can make BI tooling more accessible to non-technical users without compromising data security — a gap I see consistently in client work.",
+        "approach": [
+          "Hands-on experimentation building with the Claude API — testing how LLMs can interpret, categorize, and summarize business data in ways non-technical stakeholders can use directly."
+        ],
+        "solution": "Prototypes exploring LLM-assisted data categorization and natural-language interfaces over structured data.",
+        "outcome": "Ongoing exploration — framed transparently as active learning, not a finished client deliverable.",
+        "tools": ["Claude API", "Python / JS"],
+        "flow": ["Business question", "LLM (RAG)", "Structured data", "Plain-language answer"]
+      },
+      "executive-reporting-automation": {
+        "tag": "Process Automation",
+        "title": "Automated Executive Reporting",
+        "summary": "Removing a critical single-person dependency from a weekly executive report — now fully automated with built-in quality checks.",
+        "context": "A client's most business-critical weekly report — feeding senior leadership decisions every Monday morning — depended entirely on one person manually preparing and running a complex Python script at 6am each week. Any absence put a critical report at risk.",
+        "approach": [
+          "Rather than patching the fragile script, rebuilt the pipeline from the ground up.",
+          "Designed a star-schema data model with SCD2 history tracking to preserve accurate point-in-time reporting.",
+          "Layered a dashboard on top, optimized for heavy, repetitive queries."
+        ],
+        "solution": "Star-schema ETL with SCD2 history management, a dashboard layer with materialized views for query performance, and fully automated data-quality and consistency checks running before each report generation and delivery — no manual intervention required.",
+        "outcome": "Eliminated the single-person dependency entirely. A report that once required someone to wake up at 6am to run it by hand now generates and delivers itself automatically every week, with built-in quality validation before it reaches decision-makers.",
+        "tools": ["Matillion", "Snowflake", "Astrato", "SQL (SCD2)", "Materialized views"],
+        "flow": ["Source data", "Star-schema ETL (SCD2)", "Quality checks", "Materialized views", "Automated delivery"]
+      },
+      "dashboard-poc": {
+        "tag": "Dashboard Design",
+        "title": "Dashboard Proof-of-Concept",
+        "summary": "Rebuilding a dashboard from a Figma mockup against live warehouse data, in Scrum — where surfacing a real problem mattered more than a finished product.",
+        "context": "A prospective client wanted to evaluate consulting capabilities through a proof-of-concept: rebuild a dashboard from their own Figma mockup, fully connected to live warehouse data, matching their intended design as closely as possible.",
+        "approach": [
+          "Worked in Scrum with daily standups to track progress and adjust scope as the PoC evolved.",
+          "Built the real, data-connected version of the mockup rather than a static prototype."
+        ],
+        "solution": "A dashboard built against live cloud data-warehouse sources, engineered to visually and functionally match the client's design specification.",
+        "outcome": "The process surfaced a genuine internal data-quality issue on the client's side — significant enough that the PoC was paused as a result. Even so, the dashboard build itself drew strong positive feedback on execution quality — a case where the process working correctly (surfacing a real problem) mattered more than reaching a finished product.",
+        "tools": ["Snowflake", "Astrato", "Figma (design reference)", "Scrum"],
+        "flow": ["Figma mockup", "Live warehouse data", "Dashboard build (Scrum)", "Stakeholder review"]
+      }
+    }
+  },
+  "About": {
+    "kicker": "About",
+    "helloPrefix": "Hello! I’m ",
+    "name": "Sylvana Ndemanou",
+    "bio1": "A <b>BI & Data Consultant</b> with a <b>Data Engineering</b> core, based in Sherbrooke, QC. I build reliable data pipelines, lead ETL/ELT migrations, and design multi-source architectures that turn scattered data into dependable reporting.",
+    "bio2": "At <b>Codex Consulting</b> I work across cloud data platforms — modernizing orchestration, consolidating sources, and automating reporting so teams can trust the numbers they act on.",
+    "bio3": "I’m also actively exploring <b>applied AI</b> — LLMs, RAG, and AI agents — to make BI tooling more accessible to non-technical users without compromising data security.",
+    "experienceTitle": "Experience",
+    "educationTitle": "Education",
+    "skillsTitle": "What I do",
+    "stackTitle": "Stack",
+    "linkedinCtaText": "Let's stay in touch — I share what I'm learning and building in BI, data, and applied AI.",
+    "linkedinCtaButton": "Connect on LinkedIn",
+    "showMore": "Show {count} more",
+    "showLess": "Show less",
+    "experience": [
+      {
+        "company": "Codex Consulting",
+        "role": "BI Analyst, Cloud Technology",
+        "period": "September 2025 – Present"
+      },
+      {
+        "company": "Codex Consulting",
+        "role": "Data Engineer",
+        "period": "July 2025 – August 2025"
+      }
+    ],
+    "education": [
+      {
+        "school": "Université de Sherbrooke",
+        "degree": "M.Sc., Business Intelligence Strategy",
+        "period": "2024 – 2025"
+      },
+      {
+        "school": "ECEMA",
+        "degree": "Master 1, Management (Business Strategy & Development)",
+        "period": "2022 – 2023"
+      },
+      {
+        "school": "ECEMA",
+        "degree": "Bachelor’s, Management (Operational Unit Management)",
+        "period": "2021 – 2022"
+      }
+    ],
+    "skills": [
+      "Data Engineering",
+      "BI & Analytics",
+      "ETL/ELT Migration",
+      "Data Warehousing",
+      "Dashboard Design",
+      "Applied AI (LLM/RAG)",
+      "Process Automation",
+      "Data Architecture"
+    ],
+    "stack": [
+      "Snowflake",
+      "Matillion",
+      "BigQuery",
+      "Astrato",
+      "Power BI",
+      "SQL",
+      "Notion",
+      "Make",
+      "Python"
+    ]
+  },
+  "Contact": {
+    "heading": "Let’s connect",
+    "blurb": "Open to BI, data engineering, and applied-AI opportunities. Send a message, email me directly, or book a 30-minute intro call.",
+    "bookCall": "Book a 30-min call",
+    "seeProjects": "See projects",
+    "showEmail": "Show email",
+    "copyEmailLabel": "Copy {email}",
+    "emailCopied": "Email copied",
+    "contact": "Contact",
+    "socialEmail": "Email",
+    "socialLinkedin": "LinkedIn",
+    "socialGithub": "GitHub",
+    "socialNotion": "Notion",
+    "socialUpwork": "Upwork",
+    "form": {
+      "title": "Send a message",
+      "name": "Name",
+      "namePlaceholder": "Your name",
+      "email": "Email",
+      "emailPlaceholder": "name@email.com",
+      "message": "Message",
+      "messagePlaceholder": "Tell me a bit about your project or question…",
+      "send": "Send message",
+      "sending": "Sending…",
+      "success": "Thanks! Your message has been sent.",
+      "error": "Something went wrong. Please email me directly.",
+      "invalid": "Please fill in all fields with a valid email."
+    },
+    "bookTitle": "Book an intro call",
+    "footerBuilt": "© {year} Sylvana Ndemanou"
+  },
+  "Metadata": {
+    "siteName": "Sylvana Ndemanou",
+    "siteDescription": "BI & Data Consultant and Data Engineer in Sherbrooke, QC — reliable pipelines, migrations, and dashboards, with active exploration of applied AI (LLMs, RAG, agents).",
+    "homeTitle": "Home",
+    "homeDescription": "BI & Data Consultant and Data Engineer building reliable pipelines, migrations, and dashboards, with active exploration of applied AI.",
+    "projectsTitle": "Projects",
+    "projectsDescription": "Anonymized case studies from BI, data engineering, and applied-AI projects.",
+    "aboutTitle": "About",
+    "aboutDescription": "Sylvana Ndemanou — BI & Data Consultant and Data Engineer, background, experience, and stack.",
+    "signalTitle": "Signal",
+    "signalDescription": "Mini-games for business intelligence, data engineering, and Snowflake — a personal project by Sylvana Ndemanou."
+  },
+  "Story": {
+    "metaTitle": "Where I come from",
+    "metaDescription": "A more personal chapter — Sylvana Ndemanou's roots, journey, and what drives her.",
+    "entryLabel": "A more personal story",
+    "openHint": "Scroll to open the book",
+    "backHome": "Back to the site",
+    "audioPlay": "Play the soundtrack",
+    "audioPause": "Pause the soundtrack",
+    "audioTitle": "Story soundtrack",
+    "cover": {
+      "kicker": "The story behind the work",
+      "title": "Where I come from",
+      "subtitle": "A more personal chapter — my roots, my journey, and what keeps me moving."
+    },
+    "chapters": [
+      {
+        "scene": "roots",
+        "title": "It started in Cameroon",
+        "body": [
+          "I was born and raised in Cameroon — that warm, vibrant place is the root of who I am. It taught me to be curious, patient, and stubbornly hopeful.",
+          "I earned my baccalauréat in Mathematics and Life & Earth Sciences. Numbers and living systems fascinated me early — a quiet hint of the data path to come."
+        ]
+      },
+      {
+        "scene": "france",
+        "title": "A leap to France",
+        "body": [
+          "In late 2020, in the middle of the pandemic, I moved to Lyon to study Management at ECEMA. Everything was new at once: a culture, the codes of the professional world, friendships to rebuild from scratch.",
+          "It took time. I adapted, I stumbled, I kept going — and earned my bachelor's in Management. That season taught me how to feel like a stranger and turn it into strength."
+        ]
+      },
+      {
+        "scene": "piano",
+        "title": "Falling for the piano",
+        "body": [
+          "With my very first paycheck, I bought myself a piano. I had played a little as a child before life made me stop — but I never forgot the feeling.",
+          "Music became a second language for me: when words fall short, I compose. (I also speak English, by the way — haha.)"
+        ]
+      },
+      {
+        "scene": "canada",
+        "title": "North, to Canada",
+        "body": [
+          "In the summer of 2023 I flew to Canada — with my piano, of course — to rejoin my family. That winter I began my master's in Business Intelligence at the Université de Sherbrooke.",
+          "The culture shock was gentler this time: it wasn't my first, and my family was right there to help me land. I met people who made me grow in ways no diploma could."
+        ]
+      },
+      {
+        "scene": "life",
+        "title": "What keeps me whole",
+        "body": [
+          "Away from the screen, you'll find me at the gym, at the piano composing, or chasing new flavours in the kitchen — when I'm motivated, I get very hands-on.",
+          "I'm a hard worker in my own way, and I love to travel. The world has far too much to offer to turn my back on it."
+        ]
+      },
+      {
+        "scene": "now",
+        "title": "Where I'm headed",
+        "body": [
+          "Today I build reliable data systems, and I'm exploring how AI can make them genuinely useful to people — not just to machines.",
+          "I want to keep bridging the technical and the human: rigorous with data, warm with people, and always learning."
+        ]
+      }
+    ],
+    "closing": {
+      "title": "To be continued",
+      "body": "There's one more page waiting to be written.",
+      "testimonialSoon": "A short video message from me — coming soon."
+    }
+  }
+}
