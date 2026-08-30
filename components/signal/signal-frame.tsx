@@ -1,13 +1,37 @@
 "use client";
 
 import { SIGNAL_EMBED_URL, SIGNAL_ORIGIN } from "@/lib/signal";
+import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
-import { useEffect, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 
 const LOAD_TIMEOUT_MS = 12_000;
 
+function useIsMounted(): boolean {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+}
+
+function embedSrc(theme: "light" | "dark"): string {
+  const url = new URL(SIGNAL_EMBED_URL);
+  url.searchParams.set("theme", theme);
+  return url.toString();
+}
+
 export function SignalFrame(): ReactNode {
   const t = useTranslations("Signal");
+  const mounted = useIsMounted();
+  const { resolvedTheme } = useTheme();
+  const theme = mounted && resolvedTheme === "light" ? "light" : "dark";
+  const src = mounted && SIGNAL_EMBED_URL ? embedSrc(theme) : null;
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(!SIGNAL_EMBED_URL);
 
@@ -43,10 +67,10 @@ export function SignalFrame(): ReactNode {
         </div>
       ) : null}
 
-      {SIGNAL_EMBED_URL ? (
+      {src ? (
         <iframe
           title="Signal"
-          src={SIGNAL_EMBED_URL}
+          src={src}
           className="bg-background absolute inset-0 h-full w-full border-0"
           allow="autoplay"
           onLoad={() => {

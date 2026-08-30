@@ -7,6 +7,7 @@ import { LocaleRoot } from "@/lib/i18n";
 import { LOCALE_BOOT } from "@/lib/locale";
 import { AUTHOR_NAME, PORTFOLIO_URL } from "@/lib/site";
 import { EMBED_BOOT } from "@/lib/embed";
+import { ThemeBridge } from "@/components/theme-bridge";
 import { THEME_BOOT } from "@/lib/theme";
 import "./globals.css";
 
@@ -43,11 +44,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <head>
         <script
-          dangerouslySetInnerHTML={{ __html: THEME_BOOT + LOCALE_BOOT + EMBED_BOOT }}
+          dangerouslySetInnerHTML={{
+            __html: THEME_BOOT + LOCALE_BOOT + EMBED_BOOT,
+          }}
         />
       </head>
-      <body className="min-h-full flex flex-col overflow-x-hidden">
+      <body className="flex min-h-full flex-col overflow-x-hidden">
         <AudioRoot />
+        <ThemeBridge />
         <LocaleRoot />
         <PlayHoverRoot>
           <AppChrome>{children}</AppChrome>

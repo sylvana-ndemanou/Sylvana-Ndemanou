@@ -35,4 +35,4 @@ export function toggleTheme() {
   applyTheme(readTheme() === "dark" ? "light" : "dark");
 }
 
-export const THEME_BOOT = `(function(){try{var t=localStorage.getItem("${THEME_KEY}");document.documentElement.classList.toggle("dark",t==="dark");}catch(e){}})();`;
+export const THEME_BOOT = `(function(){try{var q=new URLSearchParams(location.search).get("theme");var t=(q==="dark"||q==="light")?q:localStorage.getItem("${THEME_KEY}");document.documentElement.classList.toggle("dark",t==="dark");}catch(e){}})();`;
