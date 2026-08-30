@@ -9,14 +9,10 @@ const LOAD_TIMEOUT_MS = 12_000;
 export function SignalFrame(): ReactNode {
   const t = useTranslations("Signal");
   const [ready, setReady] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const [failed, setFailed] = useState(!SIGNAL_EMBED_URL);
 
   useEffect(() => {
-    if (ready) return;
-    if (!SIGNAL_EMBED_URL) {
-      setFailed(true);
-      return;
-    }
+    if (ready || !SIGNAL_EMBED_URL) return;
     const id = window.setTimeout(() => setFailed(true), LOAD_TIMEOUT_MS);
     return () => window.clearTimeout(id);
   }, [ready]);
