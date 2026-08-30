@@ -17,6 +17,17 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async headers() {
+    // Never allow the portfolio to iframe itself (that stacked the nav bars).
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+        ],
+      },
+    ];
+  },
   async rewrites() {
     const origin = process.env.SIGNAL_INTERNAL_URL?.replace(/\/$/, "");
     if (!origin) return [];
