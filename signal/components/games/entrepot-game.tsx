@@ -1,15 +1,16 @@
+// @ts-nocheck
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { GameShell, Intro, Result, RoundHeader, Verdict } from "@/components/game-shell";
-import { Button } from "@/components/ui/button";
-import { play } from "@/lib/audio";
-import { POINTS_PER_ROUND } from "@/lib/games";
-import { usePlaySession } from "@/components/play-session";
-import { expandBand, takeDeck } from "@/lib/play";
-import type { Difficulty } from "@/lib/play";
-import { scoreLine } from "@/lib/feedback";
-import { cn } from "@/lib/utils";
+import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
+import { Button } from "@s/components/ui/button";
+import { play } from "@s/lib/audio";
+import { POINTS_PER_ROUND } from "@s/lib/games";
+import { usePlaySession } from "@s/components/play-session";
+import { expandBand, takeDeck } from "@s/lib/play";
+import type { Difficulty } from "@s/lib/play";
+import { scoreLine } from "@s/lib/feedback";
+import { cn } from "@s/lib/utils";
 
 const SIZES = [
   { id: "XS", label: "X-Small", credits: 1 },

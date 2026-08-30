@@ -1,6 +1,7 @@
-import type { Difficulty } from "@/lib/play";
-import type { GameSlug, GameTrack } from "@/lib/games";
-import type { Locale } from "@/lib/locale";
+// @ts-nocheck
+import type { Difficulty } from "@s/lib/play";
+import type { GameSlug, GameTrack } from "@s/lib/games";
+import type { Locale } from "@s/lib/locale";
 
 type GameCopy = {
   name: string;

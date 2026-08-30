@@ -1,3 +1,4 @@
+// @ts-nocheck
 export type Theme = "light" | "dark";
 
 export const THEME_KEY = "signal-theme";

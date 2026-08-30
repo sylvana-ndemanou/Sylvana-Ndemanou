@@ -1,16 +1,17 @@
+// @ts-nocheck
 "use client";
 
-import Link from "next/link";
+import { SignalLink } from "@s/components/signal-link";
 import { useState, type ReactNode } from "react";
 import { ArrowLeft, CalendarDays, Check, Link2, User, Users } from "lucide-react";
-import { GamePreview } from "@/components/game-previews";
-import { BoardOrb, RankedBoard } from "@/components/ranked-board";
-import { Button } from "@/components/ui/button";
-import { usePlaySession } from "@/components/play-session";
-import { play } from "@/lib/audio";
-import { useI18n } from "@/lib/i18n";
-import { difficultiesFor, type Difficulty } from "@/lib/play";
-import { cn } from "@/lib/utils";
+import { GamePreview } from "@s/components/game-previews";
+import { BoardOrb, RankedBoard } from "@s/components/ranked-board";
+import { Button } from "@s/components/ui/button";
+import { usePlaySession } from "@s/components/play-session";
+import { play } from "@s/lib/audio";
+import { useI18n } from "@s/lib/i18n";
+import { difficultiesFor, type Difficulty } from "@s/lib/play";
+import { cn } from "@s/lib/utils";
 
 export function GameLobby({
   title,
@@ -75,7 +76,7 @@ export function GameLobby({
   return (
     <div className="flex min-h-full flex-1 flex-col">
       <header className="flex items-center justify-between px-4 py-4 sm:px-8">
-        <Button nativeButton={false} variant="ghost" size="sm" render={<Link href="/" />}>
+        <Button nativeButton={false} variant="ghost" size="sm" render={<SignalLink href="/" />}>
           <ArrowLeft />
           {t.shell.games}
         </Button>

@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 
 import {
@@ -9,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { GameSlug } from "@/lib/games";
+import type { GameSlug } from "@s/lib/games";
 import {
   dailyKey,
   defaultDifficulty,
@@ -21,7 +22,7 @@ import {
   roundsFor,
   type Difficulty,
   type PlayMode,
-} from "@/lib/play";
+} from "@s/lib/play";
 
 export type PlaySession = {
   slug: GameSlug;

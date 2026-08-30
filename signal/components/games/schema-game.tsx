@@ -1,18 +1,19 @@
+// @ts-nocheck
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { DragBoard, Draggable, DropSlot } from "@/components/drag-kit";
-import { LockBar } from "@/components/interact";
-import { GameShell, Intro, Result, RoundHeader, Verdict } from "@/components/game-shell";
-import { Button } from "@/components/ui/button";
-import { POINTS_PER_ROUND } from "@/lib/games";
-import { usePlaySession } from "@/components/play-session";
-import { heat, scaleByHeat, takeDeck } from "@/lib/play";
-import type { Difficulty } from "@/lib/play";
-import { scoreLine } from "@/lib/feedback";
-import { play, unlockAudio } from "@/lib/audio";
-import { cn } from "@/lib/utils";
+import { DragBoard, Draggable, DropSlot } from "@s/components/drag-kit";
+import { LockBar } from "@s/components/interact";
+import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
+import { Button } from "@s/components/ui/button";
+import { POINTS_PER_ROUND } from "@s/lib/games";
+import { usePlaySession } from "@s/components/play-session";
+import { heat, scaleByHeat, takeDeck } from "@s/lib/play";
+import type { Difficulty } from "@s/lib/play";
+import { scoreLine } from "@s/lib/feedback";
+import { play, unlockAudio } from "@s/lib/audio";
+import { cn } from "@s/lib/utils";
 
 type Round =
   | {

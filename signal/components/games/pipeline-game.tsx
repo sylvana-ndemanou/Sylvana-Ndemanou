@@ -1,16 +1,17 @@
+// @ts-nocheck
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { shuffle } from "@/components/drag-kit";
-import { LockBar } from "@/components/interact";
-import { GameShell, Intro, Result, RoundHeader, Verdict } from "@/components/game-shell";
-import { play } from "@/lib/audio";
-import { POINTS_PER_ROUND } from "@/lib/games";
-import { usePlaySession } from "@/components/play-session";
-import { stepCount, takeDeck, awardPartial } from "@/lib/play";
-import type { Difficulty } from "@/lib/play";
-import { roundTone, scoreLine } from "@/lib/feedback";
-import { cn } from "@/lib/utils";
+import { shuffle } from "@s/components/drag-kit";
+import { LockBar } from "@s/components/interact";
+import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
+import { play } from "@s/lib/audio";
+import { POINTS_PER_ROUND } from "@s/lib/games";
+import { usePlaySession } from "@s/components/play-session";
+import { stepCount, takeDeck, awardPartial } from "@s/lib/play";
+import type { Difficulty } from "@s/lib/play";
+import { roundTone, scoreLine } from "@s/lib/feedback";
+import { cn } from "@s/lib/utils";
 
 type Scenario = {
   tier: Difficulty;

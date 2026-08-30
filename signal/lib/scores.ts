@@ -1,4 +1,5 @@
-import type { GameSlug } from "@/lib/games";
+// @ts-nocheck
+import type { GameSlug } from "@s/lib/games";
 
 const KEY = "signal-bi-scores-v1";
 

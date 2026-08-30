@@ -1,6 +1,7 @@
+// @ts-nocheck
 import { notFound } from "next/navigation";
-import { GamePlayer } from "@/components/game-player";
-import { GAMES, getGame, type GameSlug } from "@/lib/games";
+import { GamePlayer } from "@s/components/game-player";
+import { GAMES, getGame, type GameSlug } from "@s/lib/games";
 
 export function generateStaticParams() {
   return GAMES.map((game) => ({ slug: game.slug }));

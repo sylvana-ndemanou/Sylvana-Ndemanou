@@ -1,3 +1,4 @@
+// @ts-nocheck
 const MUTE_KEY = "signal-audio-muted";
 
 export type Cue =

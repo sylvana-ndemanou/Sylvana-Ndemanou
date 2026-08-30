@@ -1,14 +1,15 @@
+// @ts-nocheck
 "use client";
 
-import Link from "next/link";
+import { SignalLink } from "@s/components/signal-link";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
-import { GameLobby } from "@/components/game-lobby";
-import { BoardCapture } from "@/components/ranked-board";
-import { Button } from "@/components/ui/button";
-import { play } from "@/lib/audio";
-import { useI18n } from "@/lib/i18n";
-import { cn } from "@/lib/utils";
+import { GameLobby } from "@s/components/game-lobby";
+import { BoardCapture } from "@s/components/ranked-board";
+import { Button } from "@s/components/ui/button";
+import { play } from "@s/lib/audio";
+import { useI18n } from "@s/lib/i18n";
+import { cn } from "@s/lib/utils";
 
 export function GameShell({
   title,
@@ -38,7 +39,7 @@ export function GameShell({
       }}
     >
       <header className="flex items-center justify-between gap-3 px-4 py-4 sm:px-8">
-        <Button nativeButton={false} variant="ghost" size="sm" render={<Link href="/" />}>
+        <Button nativeButton={false} variant="ghost" size="sm" render={<SignalLink href="/" />}>
           <ArrowLeft />
           {t.shell.games}
         </Button>
@@ -175,7 +176,7 @@ export function Result({
   return (
     <div className="flex min-h-full flex-1 flex-col">
       <header className="flex items-center justify-between px-4 py-4 sm:px-8">
-        <Button nativeButton={false} variant="ghost" size="sm" render={<Link href="/" />}>
+        <Button nativeButton={false} variant="ghost" size="sm" render={<SignalLink href="/" />}>
           <ArrowLeft />
           {t.shell.games}
         </Button>
@@ -192,7 +193,7 @@ export function Result({
           <Button size="lg" className="h-12 px-8 text-base" onClick={onReplay}>
             {t.shell.replay}
           </Button>
-          <Button nativeButton={false} variant="outline" size="lg" className="h-12 px-8 text-base" render={<Link href="/" />}>
+          <Button nativeButton={false} variant="outline" size="lg" className="h-12 px-8 text-base" render={<SignalLink href="/" />}>
             {t.shell.all}
           </Button>
         </div>

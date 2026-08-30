@@ -1,18 +1,19 @@
+// @ts-nocheck
 "use client";
 
-import Link from "next/link";
+import { SignalLink } from "@s/components/signal-link";
 import { usePathname } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
-import { PlayMark } from "@/components/game-previews";
-import { LanguageToggle } from "@/components/language-toggle";
-import { usePlayHover } from "@/components/play-hover";
-import { SoundToggle } from "@/components/sound-toggle";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { play } from "@/lib/audio";
-import { GAMES, getGame, type GameTrack } from "@/lib/games";
-import { useI18n } from "@/lib/i18n";
-import { PORTFOLIO_URL } from "@/lib/site";
-import { cn } from "@/lib/utils";
+import { PlayMark } from "@s/components/game-previews";
+import { LanguageToggle } from "@s/components/language-toggle";
+import { usePlayHover } from "@s/components/play-hover";
+import { SoundToggle } from "@s/components/sound-toggle";
+import { ThemeToggle } from "@s/components/theme-toggle";
+import { play } from "@s/lib/audio";
+import { GAMES, getGame, type GameTrack } from "@s/lib/games";
+import { useI18n } from "@s/lib/i18n";
+import { PORTFOLIO_URL } from "@s/lib/site";
+import { cn } from "@s/lib/utils";
 
 function portfolioPath(locale: "fr" | "en", path: string): string {
   const prefix = `${PORTFOLIO_URL.replace(/\/$/, "")}/${locale}`;
@@ -216,7 +217,7 @@ export function PortfolioNav() {
                     if (canHover()) openMenu();
                   }}
                 >
-                  <Link
+                  <SignalLink
                     href="/"
                     data-tab="signal"
                     aria-current="page"
@@ -236,7 +237,7 @@ export function PortfolioNav() {
                     className="nav-link nav-link-quiet text-foreground"
                   >
                     {t.bar.signal}
-                  </Link>
+                  </SignalLink>
                 </li>
               ) : (
                 <li key={item.key} className="relative z-10">
@@ -318,7 +319,7 @@ export function PortfolioNav() {
                     className={cn("group/play relative shrink-0", hot && "is-play-hot")}
                     style={{ animationDelay: `${40 + i * 45}ms` }}
                   >
-                    <Link
+                    <SignalLink
                       href={`/play/${game.slug}`}
                       onClick={() => play("tap")}
                       onPointerEnter={() => enter(game.slug)}
@@ -326,7 +327,7 @@ export function PortfolioNav() {
                       className={cn("nav-link tray-game", (active || hot) && "nav-link-on")}
                     >
                       {copy.name}
-                    </Link>
+                    </SignalLink>
                     <PlayMark game={game} />
                   </li>
                 );

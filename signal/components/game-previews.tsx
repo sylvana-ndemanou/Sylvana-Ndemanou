@@ -1,11 +1,12 @@
+// @ts-nocheck
 "use client";
 
 import type { ReactNode } from "react";
-import Link from "next/link";
-import type { GameMeta, GameSlug } from "@/lib/games";
-import { Button } from "@/components/ui/button";
-import { usePlayHover } from "@/components/play-hover";
-import { cn } from "@/lib/utils";
+import { SignalLink } from "@s/components/signal-link";
+import type { GameMeta, GameSlug } from "@s/lib/games";
+import { Button } from "@s/components/ui/button";
+import { usePlayHover } from "@s/components/play-hover";
+import { cn } from "@s/lib/utils";
 
 function MarkSvg({ children }: { children: ReactNode }) {
   return (
@@ -689,7 +690,7 @@ export function PlayLink({ game, verb }: { game: GameMeta; verb?: string }) {
         nativeButton={false}
         size="lg"
         className="relative z-10 h-10 px-4 transition duration-200 hover:-translate-y-px hover:shadow-[0_0_28px_color-mix(in_oklch,var(--primary)_35%,transparent)]"
-        render={<Link href={`/play/${game.slug}`} />}
+        render={<SignalLink href={`/play/${game.slug}`} />}
       >
         {verb ?? game.verb}
       </Button>

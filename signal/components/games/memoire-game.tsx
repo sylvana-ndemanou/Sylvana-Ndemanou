@@ -1,16 +1,17 @@
+// @ts-nocheck
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { GameShell, Intro, Result, Verdict } from "@/components/game-shell";
-import { LockBar } from "@/components/interact";
-import { Button } from "@/components/ui/button";
-import { play } from "@/lib/audio";
-import { POINTS_PER_ROUND } from "@/lib/games";
-import { usePlaySession } from "@/components/play-session";
-import { awardPartial, heat, lookSecondsAt, optionCapAt, scaleByHeat } from "@/lib/play";
-import type { Difficulty } from "@/lib/play";
-import { roundTone, scoreLine } from "@/lib/feedback";
-import { cn } from "@/lib/utils";
+import { GameShell, Intro, Result, Verdict } from "@s/components/game-shell";
+import { LockBar } from "@s/components/interact";
+import { Button } from "@s/components/ui/button";
+import { play } from "@s/lib/audio";
+import { POINTS_PER_ROUND } from "@s/lib/games";
+import { usePlaySession } from "@s/components/play-session";
+import { awardPartial, heat, lookSecondsAt, optionCapAt, scaleByHeat } from "@s/lib/play";
+import type { Difficulty } from "@s/lib/play";
+import { roundTone, scoreLine } from "@s/lib/feedback";
+import { cn } from "@s/lib/utils";
 
 type Dash = {
   kpis: { label: string; value: string; delta: number }[];

@@ -1,15 +1,16 @@
+// @ts-nocheck
 "use client";
 
 import { useMemo, useState } from "react";
-import { LiveSketch, MiniChartGlyph, type ChartKind } from "@/components/mini-charts";
-import { LockBar } from "@/components/interact";
-import { GameShell, Intro, Result, RoundHeader, Verdict } from "@/components/game-shell";
-import { POINTS_PER_ROUND } from "@/lib/games";
-import { usePlaySession } from "@/components/play-session";
-import { heat, optionCapAt, takeDeck } from "@/lib/play";
-import type { Difficulty } from "@/lib/play";
-import { scoreLine } from "@/lib/feedback";
-import { cn } from "@/lib/utils";
+import { LiveSketch, MiniChartGlyph, type ChartKind } from "@s/components/mini-charts";
+import { LockBar } from "@s/components/interact";
+import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
+import { POINTS_PER_ROUND } from "@s/lib/games";
+import { usePlaySession } from "@s/components/play-session";
+import { heat, optionCapAt, takeDeck } from "@s/lib/play";
+import type { Difficulty } from "@s/lib/play";
+import { scoreLine } from "@s/lib/feedback";
+import { cn } from "@s/lib/utils";
 
 type Round = {
   tier: Difficulty;

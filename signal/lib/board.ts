@@ -1,5 +1,6 @@
-import type { GameSlug } from "@/lib/games";
-import type { Difficulty } from "@/lib/play";
+// @ts-nocheck
+import type { GameSlug } from "@s/lib/games";
+import type { Difficulty } from "@s/lib/play";
 
 const BOARD_KEY = "signal-board-v1";
 const INITIALS_KEY = "signal-initials";

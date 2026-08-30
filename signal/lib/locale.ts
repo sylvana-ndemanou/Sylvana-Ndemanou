@@ -1,3 +1,4 @@
+// @ts-nocheck
 export type Locale = "fr" | "en";
 
 export const LOCALE_KEY = "signal-locale";

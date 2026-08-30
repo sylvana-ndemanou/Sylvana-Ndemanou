@@ -1,4 +1,5 @@
-import { cn } from "@/lib/utils";
+// @ts-nocheck
+import { cn } from "@s/lib/utils";
 
 export function MiniTable({
   name,

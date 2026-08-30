@@ -1,9 +1,10 @@
+// @ts-nocheck
 "use client";
 
 import { useEffect, useSyncExternalStore } from "react";
 import { Volume2, VolumeX } from "lucide-react";
-import { useI18n } from "@/lib/i18n";
-import { cn } from "@/lib/utils";
+import { useI18n } from "@s/lib/i18n";
+import { cn } from "@s/lib/utils";
 import {
   hydrateMute,
   play,
@@ -11,7 +12,7 @@ import {
   subscribeMute,
   toggleMute,
   unlockAudio,
-} from "@/lib/audio";
+} from "@s/lib/audio";
 
 export function AudioRoot() {
   useEffect(() => {

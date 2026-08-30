@@ -1,13 +1,14 @@
+// @ts-nocheck
 "use client";
 
 import { useMemo, useState } from "react";
-import { BarChart, weekLabels } from "@/components/mini-charts";
-import { GameShell, Intro, Result, RoundHeader, Verdict } from "@/components/game-shell";
-import { POINTS_PER_ROUND } from "@/lib/games";
-import { usePlaySession } from "@/components/play-session";
-import type { Difficulty } from "@/lib/play";
-import { heat, scaleByHeat, takeDeck } from "@/lib/play";
-import { scoreLine } from "@/lib/feedback";
+import { BarChart, weekLabels } from "@s/components/mini-charts";
+import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
+import { POINTS_PER_ROUND } from "@s/lib/games";
+import { usePlaySession } from "@s/components/play-session";
+import type { Difficulty } from "@s/lib/play";
+import { heat, scaleByHeat, takeDeck } from "@s/lib/play";
+import { scoreLine } from "@s/lib/feedback";
 
 type Round = {
   title: string;

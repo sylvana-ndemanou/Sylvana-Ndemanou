@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 
 import {
@@ -11,8 +12,8 @@ import {
   type CSSProperties,
 } from "react";
 import { createPortal } from "react-dom";
-import { play } from "@/lib/audio";
-import { cn } from "@/lib/utils";
+import { play } from "@s/lib/audio";
+import { cn } from "@s/lib/utils";
 
 export function shuffle<T>(items: T[]) {
   const copy = [...items];

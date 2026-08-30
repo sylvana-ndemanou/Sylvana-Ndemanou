@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
       { source: "/about", destination: "/en/about", permanent: false },
       { source: "/signal", destination: "/en/signal", permanent: false },
       {
+        source: "/signal/play/:slug",
+        destination: "/en/signal/play/:slug",
+        permanent: false,
+      },
+      {
         source: "/projects/:slug",
         destination: "/en/projects/:slug",
         permanent: false,

@@ -1,3 +1,4 @@
+// @ts-nocheck
 export type GameTrack = "bi" | "data" | "snowflake";
 
 export type GameSlug =

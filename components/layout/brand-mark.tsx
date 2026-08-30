@@ -5,12 +5,10 @@ import type { ReactNode } from "react";
 import { AnimatedLogo } from "@/components/ui/animated-logo";
 import { Link, usePathname } from "@/i18n/navigation";
 
-// Fixed top-left brand mark (links home). Hidden on the immersive story page
-// and the full-viewport Signal iframe, which have their own chrome.
+// Fixed top-left brand mark (links home). Hidden on the immersive story page.
 export function BrandMark(): ReactNode {
   const pathname = usePathname();
   if (pathname === "/story" || pathname.startsWith("/story/")) return null;
-  if (pathname === "/signal" || pathname.startsWith("/signal/")) return null;
 
   return (
     <Link

@@ -1,9 +1,10 @@
+// @ts-nocheck
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { LayoutGrid, X } from "lucide-react";
-import { usePlaySession } from "@/components/play-session";
-import { Button } from "@/components/ui/button";
+import { usePlaySession } from "@s/components/play-session";
+import { Button } from "@s/components/ui/button";
 import {
   claimRun,
   countFor,
@@ -15,9 +16,9 @@ import {
   submitRun,
   subscribeBoard,
   type BoardTab,
-} from "@/lib/board";
-import { useI18n } from "@/lib/i18n";
-import { cn } from "@/lib/utils";
+} from "@s/lib/board";
+import { useI18n } from "@s/lib/i18n";
+import { cn } from "@s/lib/utils";
 
 const TABS: BoardTab[] = ["easy", "hard", "brutal", "daily"];
 

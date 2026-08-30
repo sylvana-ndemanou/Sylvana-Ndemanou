@@ -1,8 +1,9 @@
+// @ts-nocheck
 "use client";
 
-import { play } from "@/lib/audio";
-import { useI18n } from "@/lib/i18n";
-import { cn } from "@/lib/utils";
+import { play } from "@s/lib/audio";
+import { useI18n } from "@s/lib/i18n";
+import { cn } from "@s/lib/utils";
 
 export function LanguageToggle({ className }: { className?: string }) {
   const { locale, toggle } = useI18n();

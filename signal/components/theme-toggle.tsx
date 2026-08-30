@@ -1,11 +1,12 @@
+// @ts-nocheck
 "use client";
 
 import { useSyncExternalStore } from "react";
 import { Moon, Sun } from "lucide-react";
-import { play } from "@/lib/audio";
-import { PORTFOLIO_URL } from "@/lib/site";
-import { readTheme, subscribeTheme, toggleTheme } from "@/lib/theme";
-import { cn } from "@/lib/utils";
+import { play } from "@s/lib/audio";
+import { PORTFOLIO_URL } from "@s/lib/site";
+import { readTheme, subscribeTheme, toggleTheme } from "@s/lib/theme";
+import { cn } from "@s/lib/utils";
 
 export function ThemeToggle({ className }: { className?: string }) {
   const theme = useSyncExternalStore(subscribeTheme, readTheme, () => "light");

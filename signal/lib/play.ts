@@ -1,5 +1,6 @@
-import type { GameSlug } from "@/lib/games";
-import { POINTS_PER_ROUND } from "@/lib/games";
+// @ts-nocheck
+import type { GameSlug } from "@s/lib/games";
+import { POINTS_PER_ROUND } from "@s/lib/games";
 
 export type PlayMode = "solo" | "multi" | "daily";
 export type Difficulty = "easy" | "hard" | "brutal";

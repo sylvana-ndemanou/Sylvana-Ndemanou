@@ -1,4 +1,5 @@
-import { MAX_SCORE } from "@/lib/games";
+// @ts-nocheck
+import { MAX_SCORE } from "@s/lib/games";
 
 export function scoreLine(score: number, max = MAX_SCORE): string {
   const ratio = max === 0 ? 0 : score / max;

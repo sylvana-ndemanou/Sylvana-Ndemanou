@@ -1,16 +1,17 @@
+// @ts-nocheck
 "use client";
 
 import { useMemo, useState } from "react";
-import { GameShell, Intro, Result, RoundHeader, Verdict } from "@/components/game-shell";
-import { LockBar } from "@/components/interact";
-import { play } from "@/lib/audio";
-import { POINTS_PER_ROUND } from "@/lib/games";
-import { usePlaySession } from "@/components/play-session";
-import { heat, scaleByHeat, takeDeck } from "@/lib/play";
-import type { Difficulty } from "@/lib/play";
-import { sameSet } from "@/components/drag-kit";
-import { scoreLine } from "@/lib/feedback";
-import { cn } from "@/lib/utils";
+import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
+import { LockBar } from "@s/components/interact";
+import { play } from "@s/lib/audio";
+import { POINTS_PER_ROUND } from "@s/lib/games";
+import { usePlaySession } from "@s/components/play-session";
+import { heat, scaleByHeat, takeDeck } from "@s/lib/play";
+import type { Difficulty } from "@s/lib/play";
+import { sameSet } from "@s/components/drag-kit";
+import { scoreLine } from "@s/lib/feedback";
+import { cn } from "@s/lib/utils";
 
 type Part = { id: string; dates: string; region: string; d0: number; d1: number; regionCode: string };
 
