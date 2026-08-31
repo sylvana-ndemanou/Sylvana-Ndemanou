@@ -3,6 +3,7 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
   productionBrowserSourceMaps: false,
+  allowedDevOrigins: ["127.0.0.1"],
   async redirects() {
     // No i18n middleware, so redirect the bare root to the default locale.
     return [

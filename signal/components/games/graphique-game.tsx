@@ -2,7 +2,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { LiveSketch, MiniChartGlyph, type ChartKind } from "@s/components/mini-charts";
+import { LiveSketch, MiniChartGlyph, RawSeries, type ChartKind } from "@s/components/mini-charts";
 import { LockBar } from "@s/components/interact";
 import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
 import { POINTS_PER_ROUND } from "@s/lib/games";
@@ -292,6 +292,7 @@ export function GraphiqueGame({ onFinish }: { onFinish: (score: number) => void 
       <div className="relative mt-5 overflow-hidden rounded-2xl border border-border bg-card p-3">
         {tool ? (
           <LiveSketch
+            key={`${index}-${tool}`}
             kind={tool}
             values={round.values}
             labels={round.labels}
@@ -299,10 +300,7 @@ export function GraphiqueGame({ onFinish }: { onFinish: (score: number) => void 
             points={round.points}
           />
         ) : (
-          <div className="relative flex h-40 items-center justify-center overflow-hidden rounded-xl bg-muted/20">
-            <span className="chart-grid pointer-events-none absolute inset-3 opacity-50" />
-            <p className="relative text-sm text-muted-foreground">Choisis un outil. La série se redessine.</p>
-          </div>
+          <RawSeries values={round.values} labels={round.labels} />
         )}
       </div>
       <div className={cn("scene-opts mt-4 grid gap-2", tools.length <= 2 ? "grid-cols-2" : "grid-cols-4")}>

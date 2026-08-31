@@ -251,6 +251,19 @@ const ROUNDS_DATA: Round[] = [
   },
 ];
 
+function crushIndices(headers: string[], rows: string[][], keys: string[]) {
+  if (!keys.length) return [];
+  const idx = keys.map((k) => headers.indexOf(k)).filter((i) => i >= 0);
+  const seen = new Set<string>();
+  const crush: number[] = [];
+  rows.forEach((row, r) => {
+    const k = idx.map((i) => row[i]).join("|");
+    if (seen.has(k)) crush.push(r);
+    else seen.add(k);
+  });
+  return crush;
+}
+
 function foldByKeys(headers: string[], rows: string[][], keys: string[]) {
   if (keys.length === 0) {
     return { groups: rows.map((row) => [row]), unique: rows.length, crushed: 0 };
@@ -366,6 +379,7 @@ export function GrainGame({ onFinish }: { onFinish: (score: number) => void }) {
           onToggleCol={toggle}
           disabled={locked}
           selectTone={round.poison ? "yank" : "key"}
+          crushRows={round.poison ? [] : crushIndices(headers, round.table.rows, picked)}
         />
       </div>
       {round.poison ? (

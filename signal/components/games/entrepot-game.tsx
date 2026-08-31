@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
+import { LockBar } from "@s/components/interact";
 import { Button } from "@s/components/ui/button";
 import { play } from "@s/lib/audio";
 import { POINTS_PER_ROUND } from "@s/lib/games";
@@ -373,7 +374,12 @@ export function EntrepotGame({ onFinish }: { onFinish: (score: number) => void }
           <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Virtual warehouse</p>
           <p className="font-heading mt-1 text-4xl">{size.label}</p>
           <p className="mt-1 font-mono text-sm text-signal">{size.credits} crédit{size.credits > 1 ? "s" : ""} / heure</p>
-          <p className="mt-4 font-mono text-xs text-muted-foreground">
+          <div className="wh-cluster mt-4" data-run={running ? "" : undefined}>
+            {Array.from({ length: size.credits }).map((_, i) => (
+              <span key={i} className="wh-node" style={{ animationDelay: `${i * 55}ms` }} />
+            ))}
+          </div>
+          <p className={cn("mt-4 font-mono text-xs", running ? "kpi-flash text-signal" : "text-muted-foreground")}>
             Crédits simulés · {credits.toFixed(3)}
             {running ? " · RUNNING" : " · SUSPENDED"}
           </p>
@@ -428,18 +434,15 @@ export function EntrepotGame({ onFinish }: { onFinish: (score: number) => void }
           nextLabel={index + 1 >= total ? "Voir le score" : "Manche suivante"}
         />
       ) : (
-        <Button
-          size="lg"
-          className="mt-6 h-11 w-full text-base"
+        <LockBar
           disabled={isMinBill && !guess60.trim()}
-          onClick={() => {
+          label="Sceller la taille"
+          onLock={() => {
             setLocked(true);
             setRunning(false);
             setScore((s) => s + (correct ? POINTS_PER_ROUND : 0));
           }}
-        >
-          Sceller la taille
-        </Button>
+        />
       )}
     </GameShell>
   );

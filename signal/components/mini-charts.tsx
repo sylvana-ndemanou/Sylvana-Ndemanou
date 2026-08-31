@@ -72,7 +72,7 @@ export function BarChart({
               )}
             >
               {showValues ? (
-                <span className="pointer-events-none absolute top-0 z-[2] font-mono text-[9px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 sm:text-[10px]">
+                <span className="bar-value pointer-events-none z-[2] font-mono text-[9px] tabular-nums text-foreground/80 sm:text-[10px]">
                   {value}
                   {unit ? ` ${unit}` : ""}
                 </span>
@@ -80,8 +80,8 @@ export function BarChart({
               <span className="relative flex min-h-0 w-full flex-1 items-end">
                 <span
                   className={cn(
-                    "bar-grow w-full min-h-3 rounded-t-md transition-[filter,box-shadow,opacity] duration-200",
-                    interactive && "group-hover:brightness-125 group-hover:translate-y-[-2px]",
+                    "bar-grow bar-body w-full min-h-3 rounded-t-md transition-[filter,box-shadow,opacity,transform] duration-200",
+                    interactive && "group-hover:brightness-125 group-hover:-translate-y-0.5",
                     isSelected && revealed === null && "ring-2 ring-primary ring-offset-2 ring-offset-background",
                     isReveal && kind === "dip" && "bg-chart-2",
                     isReveal && kind === "break" && "bg-chart-5",
@@ -591,6 +591,36 @@ export function FunnelShape({
           </div>
         );
       })}
+    </div>
+  );
+}
+
+export function RawSeries({
+  values,
+  labels,
+}: {
+  values: number[];
+  labels?: string[];
+}) {
+  const max = Math.max(...values, 1);
+  return (
+    <div className="raw-series relative flex h-40 items-end gap-1 overflow-hidden rounded-xl bg-muted/20 px-3 pb-8 pt-4">
+      <span className="chart-grid pointer-events-none absolute inset-3 opacity-40" />
+      {values.map((value, i) => (
+        <div key={`${i}-${value}`} className="relative z-[1] flex min-w-0 flex-1 flex-col items-center gap-1">
+          <span className="font-mono text-[10px] tabular-nums text-foreground/80">{value}</span>
+          <span
+            className="raw-dot block w-full max-w-8 rounded-full bg-primary/55"
+            style={{ height: `${Math.max(8, (value / max) * 72)}px`, animationDelay: `${i * 40}ms` }}
+          />
+          <span className="absolute -bottom-5 font-mono text-[10px] text-muted-foreground">
+            {labels?.[i] ?? i + 1}
+          </span>
+        </div>
+      ))}
+      <p className="pointer-events-none absolute inset-x-0 top-2 text-center font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+        données brutes · choisis un outil
+      </p>
     </div>
   );
 }

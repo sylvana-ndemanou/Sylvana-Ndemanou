@@ -297,6 +297,12 @@ export function ElagageGame({ onFinish }: { onFinish: (score: number) => void })
         {round.parts.map((p, i) => {
           const on = scan.includes(p.id);
           const should = round.scan.includes(p.id);
+          const span = round.parts.reduce(
+            (acc, part) => ({ min: Math.min(acc.min, part.d0), max: Math.max(acc.max, part.d1) }),
+            { min: p.d0, max: p.d1 }
+          );
+          const width = Math.max(8, ((p.d1 - p.d0) / Math.max(1, span.max - span.min)) * 100);
+          const left = ((p.d0 - span.min) / Math.max(1, span.max - span.min)) * 100;
           return (
             <button
               key={p.id}
@@ -315,6 +321,9 @@ export function ElagageGame({ onFinish }: { onFinish: (score: number) => void })
               <p className="font-mono text-[10px] text-muted-foreground">μ-part {i + 1}</p>
               <p className="mt-1 font-mono text-sm">{p.dates}</p>
               <p className="text-xs text-muted-foreground">{p.region}</p>
+              <span className="part-range mt-2 block">
+                <span className="part-range-fill" style={{ left: `${left}%`, width: `${width}%` }} />
+              </span>
               {locked ? (
                 <p className={cn("mt-1 font-mono text-[10px] uppercase", should ? "text-ok" : "text-muted-foreground")}>
                   {should ? "scan" : "pruned"}
@@ -325,7 +334,8 @@ export function ElagageGame({ onFinish }: { onFinish: (score: number) => void })
         })}
       </div>
       <p className="mt-3 text-center text-xs text-muted-foreground">
-        {scan.length}/{round.parts.length} scannée{scan.length > 1 ? "s" : ""} · le silence, c’est du pruning
+        {scan.length} scan · {round.parts.length - scan.length} pruned ·{" "}
+        {Math.round(((round.parts.length - scan.length) / Math.max(1, round.parts.length)) * 100)}% silence
       </p>
       {locked ? (
         <Verdict

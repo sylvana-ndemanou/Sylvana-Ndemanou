@@ -374,6 +374,12 @@ const ROUNDS_DATA: Round[] = [
   },
 ];
 
+function rowInView(row: string[], viewRows: string[][]): boolean {
+  const tokens = row.filter((cell) => cell && cell !== "?");
+  if (!tokens.length) return false;
+  return viewRows.some((viewRow) => tokens.every((token) => viewRow.includes(token)));
+}
+
 function lensesFor(
   difficulty: Difficulty,
   roundIndex: number,
@@ -402,6 +408,12 @@ export function JointureGame({ onFinish }: { onFinish: (score: number) => void }
   const lenses = round ? lensesFor(difficulty, index, total, round.answer) : LENSES;
   const correct = lens === round?.answer;
   const view = lens ? round.views[lens] : null;
+  const leftDim = view
+    ? round.left.rows.flatMap((row, i) => (rowInView(row, view.rows) ? [] : [i]))
+    : [];
+  const rightDim = view
+    ? round.right.rows.flatMap((row, i) => (rowInView(row, view.rows) ? [] : [i]))
+    : [];
 
   function next() {
     if (index + 1 >= total) {
@@ -446,8 +458,18 @@ export function JointureGame({ onFinish }: { onFinish: (score: number) => void }
     <GameShell title="Jointure" round={index} total={total} score={score} maxScore={maxScore}>
       <RoundHeader context={round.context} question={round.question} />
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <MiniTable name={round.left.name} headers={round.left.headers} rows={round.left.rows} />
-        <MiniTable name={round.right.name} headers={round.right.headers} rows={round.right.rows} />
+        <MiniTable
+          name={round.left.name}
+          headers={round.left.headers}
+          rows={round.left.rows}
+          dimRows={leftDim}
+        />
+        <MiniTable
+          name={round.right.name}
+          headers={round.right.headers}
+          rows={round.right.rows}
+          dimRows={rightDim}
+        />
       </div>
       <div className="mt-4 rounded-2xl border border-border bg-card/60 px-3 py-3">
         <JoinVenn
@@ -476,7 +498,13 @@ export function JointureGame({ onFinish }: { onFinish: (score: number) => void }
       </div>
       <div className="mt-4 min-h-24">
         {view ? (
-          <MiniTable name={`résultat · ${view.name} · ${view.rows.length} ligne${view.rows.length > 1 ? "s" : ""}`} headers={view.headers} rows={view.rows} />
+          <div key={lens} className="table-in">
+            <MiniTable
+              name={`résultat · ${view.name} · ${view.rows.length} ligne${view.rows.length > 1 ? "s" : ""}`}
+              headers={view.headers}
+              rows={view.rows}
+            />
+          </div>
         ) : (
           <p className="rounded-2xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
             Pose une lentille. Les lignes survivent — ou pas.

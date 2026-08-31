@@ -11,6 +11,8 @@ export function MiniTable({
   onToggleCol,
   disabled,
   selectTone = "key",
+  dimRows,
+  crushRows,
 }: {
   name: string;
   headers: string[];
@@ -21,9 +23,13 @@ export function MiniTable({
   onToggleCol?: (header: string) => void;
   disabled?: boolean;
   selectTone?: "key" | "yank";
+  dimRows?: number[];
+  crushRows?: number[];
 }) {
   const marked = new Set(highlightRows ?? []);
   const picked = new Set(selectedCols ?? []);
+  const dimmed = new Set(dimRows ?? []);
+  const crushed = new Set(crushRows ?? []);
   const interactive = Boolean(onToggleCol) && !disabled;
   return (
     <div className="min-w-0 overflow-x-auto rounded-xl border border-border bg-card">
@@ -64,7 +70,11 @@ export function MiniTable({
           {rows.map((row, r) => (
             <tr
               key={`${r}-${row.join("-")}`}
-              className={cn(marked.has(r) && "bg-anomaly/20 text-anomaly")}
+              className={cn(
+                marked.has(r) && "bg-anomaly/20 text-anomaly",
+                dimmed.has(r) && "row-ghost",
+                crushed.has(r) && "row-crush"
+              )}
             >
               {row.map((cell, c) => (
                 <td
