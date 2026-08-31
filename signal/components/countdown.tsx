@@ -84,7 +84,11 @@ export function CountdownOverlay({
       role="status"
       aria-live="assertive"
       data-signal-countdown
-      className={cn("countdown-veil", beat === "go" && "countdown-go", `countdown-${beat}`)}
+      className={cn(
+        "signal-root countdown-veil",
+        beat === "go" && "countdown-go",
+        `countdown-${beat}`
+      )}
       onClick={beat === "go" ? onGo : undefined}
     >
       <span className="countdown-kicker">{beat === "go" ? t.lobby.start : t.lobby.ready}</span>

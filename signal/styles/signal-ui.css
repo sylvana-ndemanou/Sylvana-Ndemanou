@@ -1182,8 +1182,7 @@
 }
 
 .row-ghost {
-  opacity: 0.28;
-  text-decoration: line-through;
+  opacity: 0.55;
   transition: opacity 0.35s ease;
 }
 
@@ -1535,7 +1534,7 @@
 .countdown-veil {
   position: fixed;
   inset: 0;
-  z-index: 120;
+  z-index: 200;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1543,9 +1542,8 @@
   gap: 0.4rem;
   border: 0;
   cursor: default;
-  background: color-mix(in oklch, var(--background) 78%, transparent);
-  backdrop-filter: blur(18px) saturate(1.4);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  overflow: hidden;
+  background-color: var(--background);
 }
 
 .countdown-go {
@@ -1685,15 +1683,65 @@
   fill: transparent;
 }
 
+.join-arena {
+  width: 100%;
+}
+
+.join-venn-labels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: min(100%, 18rem);
+  margin-inline: auto;
+  padding: 0 0.35rem;
+}
+
+.join-venn-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.join-venn-label-left {
+  color: var(--chart-2);
+  text-align: left;
+}
+
+.join-venn-label-right {
+  color: var(--primary);
+  text-align: right;
+}
+
+.join-venn-svg {
+  display: block;
+  width: min(100%, 20rem);
+  height: 8.25rem;
+  margin-inline: auto;
+}
+
+.join-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: center;
+  gap: 0.4rem;
+  min-height: 2rem;
+  width: 100%;
+  max-width: 22rem;
+  margin-inline: auto;
+}
+
 .join-chip {
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
   background: color-mix(in oklch, var(--ok) 22%, var(--card));
   border: 1px solid color-mix(in oklch, var(--ok) 45%, transparent);
-  padding: 0.15rem 0.55rem;
+  color: var(--foreground);
+  padding: 0.2rem 0.65rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.65rem;
+  font-size: 0.7rem;
+  font-weight: 600;
   animation: join-fly 0.5s cubic-bezier(0.22, 1.2, 0.36, 1) both;
 }
 
@@ -1709,8 +1757,12 @@
 }
 
 .row-live {
-  background: color-mix(in oklch, var(--ok) 16%, transparent);
+  background: color-mix(in oklch, var(--ok) 10%, transparent);
   animation: join-fly 0.45s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+}
+
+.row-live td:first-child {
+  box-shadow: inset 3px 0 0 var(--ok);
 }
 
 .catch-orb {
@@ -1743,7 +1795,7 @@
 }
 
 .join-drop {
-  min-height: 11rem;
+  min-height: 0;
 }
 
 .preview-join-chip {

@@ -73,7 +73,11 @@ export function GameLobby({
   }
 
   return (
-    <div className="flex min-h-full flex-1 flex-col">
+    <>
+      <div
+        className={cn("flex min-h-full flex-1 flex-col", beat && "invisible pointer-events-none")}
+        aria-hidden={beat ? true : undefined}
+      >
       <header className="flex items-center justify-between px-4 py-4 sm:px-8">
         <Button nativeButton={false} variant="ghost" size="sm" render={<SignalLink href="/" />}>
           <ArrowLeft />
@@ -198,8 +202,9 @@ export function GameLobby({
         </div>
       </div>
       <RankedBoard open={boardOpen} onClose={() => setBoardOpen(false)} />
+      </div>
       <CountdownOverlay beat={beat} onGo={fire} />
-    </div>
+    </>
   );
 }
 

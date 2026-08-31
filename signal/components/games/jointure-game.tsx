@@ -376,9 +376,10 @@ const ROUNDS_DATA: Round[] = [
 ];
 
 function rowInView(row: string[], viewRows: string[][]): boolean {
-  const tokens = row.filter((cell) => cell && cell !== "?");
+  const skip = new Set(["", "?", "∅", "oui"]);
+  const tokens = row.filter((cell) => cell && !skip.has(cell));
   if (!tokens.length) return false;
-  return viewRows.some((viewRow) => tokens.every((token) => viewRow.includes(token)));
+  return viewRows.some((viewRow) => tokens.some((token) => viewRow.includes(token)));
 }
 
 function lensesFor(
@@ -512,7 +513,7 @@ export function JointureGame({ onFinish }: { onFinish: (score: number) => void }
             liveRows={rightLive}
           />
         </div>
-        <DropSlot id="join" className="join-drop mt-4 rounded-[1.6rem] border border-dashed border-primary/35 bg-card/70 px-3 py-4">
+        <DropSlot id="join" className="join-drop mt-4 rounded-[1.4rem] border border-dashed border-foreground/12 bg-card/80 px-3 py-3">
           <JoinVenn
             mode={lens}
             leftLabel={round.left.name}
@@ -541,21 +542,15 @@ export function JointureGame({ onFinish }: { onFinish: (score: number) => void }
           ))}
         </div>
       </DragBoard>
-      <div className="mt-4 min-h-24">
-        {view ? (
-          <div key={lens} className="table-in">
-            <MiniTable
-              name={`résultat · ${view.name} · ${view.rows.length} ligne${view.rows.length > 1 ? "s" : ""}`}
-              headers={view.headers}
-              rows={view.rows}
-            />
-          </div>
-        ) : (
-          <p className="rounded-2xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
-            Glisse une lentille sur le Venn — ou tape-la.
-          </p>
-        )}
-      </div>
+      {view ? (
+        <div key={lens} className="table-in mt-4">
+          <MiniTable
+            name={`résultat · ${view.name} · ${view.rows.length} ligne${view.rows.length > 1 ? "s" : ""}`}
+            headers={view.headers}
+            rows={view.rows}
+          />
+        </div>
+      ) : null}
       {locked ? (
         <Verdict
           tone={correct ? "ok" : "miss"}

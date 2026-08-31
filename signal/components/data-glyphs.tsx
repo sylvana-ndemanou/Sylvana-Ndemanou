@@ -41,7 +41,7 @@ export function MiniTable({
       </p>
       <table className="w-full text-left font-mono text-[11px] sm:text-xs">
         <thead>
-          <tr className="border-b border-border text-muted-foreground">
+          <tr className="border-b border-border text-foreground/70">
             {headers.map((h, i) => {
               const on = picked.has(h) || (!interactive && i < keyCols);
               return (
@@ -60,7 +60,7 @@ export function MiniTable({
                       {on ? (selectTone === "yank" ? `☠️ ${h}` : `🔑 ${h}`) : h}
                     </button>
                   ) : (
-                    <span className={cn("block px-2 py-1.5", on && "text-signal")}>
+                    <span className={cn("block px-3 py-2", on && "text-signal")}>
                       {on ? `🔑 ${h}` : h}
                     </span>
                   )}
@@ -84,7 +84,7 @@ export function MiniTable({
                 <td
                   key={`${r}-${c}`}
                   className={cn(
-                    "whitespace-nowrap px-2 py-1",
+                    "whitespace-nowrap px-3 py-2 text-foreground",
                     picked.has(headers[c]) && selectTone === "key" && "bg-primary/10",
                     picked.has(headers[c]) && selectTone === "yank" && "bg-anomaly/10 line-through"
                   )}
@@ -171,27 +171,23 @@ export function JoinVenn({
   chips?: string[];
 }) {
   return (
-    <div className={cn("join-arena relative flex flex-col items-center gap-2", mode && `join-mode-${mode}`)}>
-      <svg viewBox="0 0 260 140" className="h-[9.5rem] w-full max-w-md" aria-hidden>
+    <div className={cn("join-arena flex flex-col items-center gap-2", mode && `join-mode-${mode}`)}>
+      <div className="join-venn-labels">
+        <span className="join-venn-label join-venn-label-left">{leftLabel}</span>
+        <span className="join-venn-label join-venn-label-right">{rightLabel}</span>
+      </div>
+      <svg viewBox="0 0 260 140" className="join-venn-svg" aria-hidden>
         <circle className="join-l" cx="92" cy="70" r="54" stroke="var(--chart-2)" strokeWidth="2.4" />
         <circle className="join-r" cx="168" cy="70" r="54" stroke="var(--primary)" strokeWidth="2.4" />
         <ellipse className="join-m" cx="130" cy="70" rx="26" ry="46" />
-        <text x="68" y="74" textAnchor="middle" fontSize="11" className="fill-muted-foreground">
-          {leftLabel}
-        </text>
-        <text x="192" y="74" textAnchor="middle" fontSize="11" className="fill-muted-foreground">
-          {rightLabel}
-        </text>
       </svg>
-      {chips?.length ? (
-        <div className="join-chips pointer-events-none absolute inset-x-[18%] top-[28%] flex flex-wrap items-center justify-center gap-1.5">
-          {chips.map((chip, i) => (
-            <span key={`${chip}-${i}`} className="join-chip" style={{ animationDelay: `${i * 70}ms` }}>
-              {chip}
-            </span>
-          ))}
-        </div>
-      ) : null}
+      <div className="join-chips" aria-live="polite">
+        {chips?.map((chip, i) => (
+          <span key={`${chip}-${i}`} className="join-chip" style={{ animationDelay: `${i * 70}ms` }}>
+            {chip}
+          </span>
+        ))}
+      </div>
       <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
         {leftCount} + {rightCount}
         {typeof outCount === "number" ? ` → ${outCount} ligne${outCount > 1 ? "s" : ""}` : " · glisse une lentille"}
