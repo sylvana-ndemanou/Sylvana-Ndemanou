@@ -262,7 +262,7 @@ export function FluxGame({ onFinish }: { onFinish: (score: number) => void }) {
     return (
       <Intro
         title="Flux"
-        how="Un stream est un bookmark dans l’historique de versions d’une table. La task donne le tempo. Tu n’avances l’offset que par un DML, et seulement s’il y a du CDC."
+        how="Attrape les paquets sur le beat — tape l’orbe. Un stream vide, tu ne tends pas la main."
         onStart={() => setPhase("play")}
       />
     );
@@ -289,20 +289,34 @@ export function FluxGame({ onFinish }: { onFinish: (score: number) => void }) {
     <GameShell title="Flux" round={index} total={total} score={score} maxScore={maxScore}>
       <RoundHeader context={round.context} question={round.question} />
       <div className="mt-6 flex flex-col items-center">
-        <div className="relative flex size-32 items-center justify-center">
+        <button
+          type="button"
+          disabled={locked}
+          onClick={() => {
+            if (dots > 0) tap("dml");
+            else hold();
+          }}
+          className={cn(
+            "catch-orb relative flex size-36 items-center justify-center rounded-full border-4 transition",
+            pulse ? "scale-110 border-primary bg-primary/30" : "border-border bg-card",
+            dots > 0 && "shadow-[0_0_40px_color-mix(in_oklch,var(--primary)_35%,transparent)]"
+          )}
+        >
           <span
             className="beat-ring pointer-events-none absolute inset-0 rounded-full border-2 border-primary/50"
             style={{ ["--beat" as string]: `${interval}ms` }}
           />
-          <div
-            className={cn(
-              "flex size-28 items-center justify-center rounded-full border-4 transition",
-              pulse ? "scale-110 border-primary bg-primary/30" : "border-border bg-card"
-            )}
-          >
-            <span className="font-heading text-3xl tabular-nums">{round.bpm}</span>
-          </div>
-        </div>
+          {dots > 0
+            ? Array.from({ length: Math.min(dots, 3) }).map((_, i) => (
+                <span
+                  key={i}
+                  className="catch-packet pointer-events-none"
+                  style={{ animationDelay: `${i * 220}ms` }}
+                />
+              ))
+            : null}
+          <span className="relative font-heading text-3xl tabular-nums">{round.bpm}</span>
+        </button>
         <p className="mt-2 font-mono text-xs text-muted-foreground">
           BPM task · {childGo ? "enfant prêt" : "parent"} · fenêtre {beatWindowMsAt(difficulty, index, total)} ms
         </p>

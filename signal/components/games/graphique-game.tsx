@@ -1,8 +1,9 @@
 // @ts-nocheck
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { LiveSketch, MiniChartGlyph, RawSeries, type ChartKind } from "@s/components/mini-charts";
+import { DragBoard, Draggable, DropSlot } from "@s/components/drag-kit";
 import { LockBar } from "@s/components/interact";
 import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
 import { POINTS_PER_ROUND } from "@s/lib/games";
@@ -242,10 +243,27 @@ export function GraphiqueGame({ onFinish }: { onFinish: (score: number) => void 
   const [score, setScore] = useState(0);
   const [tool, setTool] = useState<ChartKind | null>(null);
   const [locked, setLocked] = useState(false);
+  const sealed = useRef(false);
 
   const round = deck[index];
   const tools = round ? toolsFor(round, difficulty, index, total) : [];
   const correct = tool === round?.answer;
+
+  function pickTool(kind: ChartKind) {
+    if (locked) return;
+    if (tool === kind) {
+      lockIn();
+      return;
+    }
+    setTool(kind);
+  }
+
+  function lockIn() {
+    if (sealed.current || !tool) return;
+    sealed.current = true;
+    setLocked(true);
+    setScore((s) => s + (tool === round.answer ? POINTS_PER_ROUND : 0));
+  }
 
   function next() {
     if (index + 1 >= total) {
@@ -256,13 +274,14 @@ export function GraphiqueGame({ onFinish }: { onFinish: (score: number) => void 
     setIndex((v) => v + 1);
     setTool(null);
     setLocked(false);
+    sealed.current = false;
   }
 
   if (phase === "intro") {
     return (
       <Intro
         title="Graphique"
-        how="Les mêmes chiffres, quatre dessins. Tourne-les. Quand c’est lisible, tu valides. Le camembert de 12 mois se dénonce tout seul."
+        how="Glisse un dessin sur les chiffres. Quand c’est lisible, retape pour valider. Le camembert de 12 mois se dénonce tout seul."
         onStart={() => setPhase("play")}
       />
     );
@@ -281,6 +300,7 @@ export function GraphiqueGame({ onFinish }: { onFinish: (score: number) => void 
           setScore(0);
           setTool(null);
           setLocked(false);
+          sealed.current = false;
         }}
       />
     );
@@ -289,40 +309,52 @@ export function GraphiqueGame({ onFinish }: { onFinish: (score: number) => void 
   return (
     <GameShell title="Graphique" round={index} total={total} score={score} maxScore={maxScore}>
       <RoundHeader context={round.context} question={round.question} />
-      <div className="relative mt-5 overflow-hidden rounded-2xl border border-border bg-card p-3">
-        {tool ? (
-          <LiveSketch
-            key={`${index}-${tool}`}
-            kind={tool}
-            values={round.values}
-            labels={round.labels}
-            stacks={round.stacks}
-            points={round.points}
-          />
-        ) : (
-          <RawSeries values={round.values} labels={round.labels} />
-        )}
-      </div>
-      <div className={cn("scene-opts mt-4 grid gap-2", tools.length <= 2 ? "grid-cols-2" : "grid-cols-4")}>
-        {tools.map((kind) => (
-          <button
-            key={kind}
-            type="button"
-            disabled={locked}
-            onClick={() => setTool(kind)}
-            className={cn(
-              "flex flex-col items-center gap-1 rounded-2xl border px-1 py-3 transition duration-200",
-              tool === kind && "border-primary bg-primary/15 shadow-[0_0_18px_color-mix(in_oklch,var(--primary)_22%,transparent)]",
-              tool !== kind && "border-border bg-card hover:border-primary/40",
-              locked && kind === round.answer && "border-ok bg-ok/15",
-              locked && tool === kind && kind !== round.answer && "border-anomaly bg-anomaly/10"
-            )}
-          >
-            <MiniChartGlyph kind={kind} active={tool === kind} />
-            <span className="text-[11px]">{NAMES[kind]}</span>
-          </button>
-        ))}
-      </div>
+      <DragBoard
+        disabled={locked}
+        className="mt-5"
+        onDrop={(piece, zone) => {
+          if (zone === "canvas" && tools.includes(piece as ChartKind)) pickTool(piece as ChartKind);
+        }}
+        onTap={(piece) => {
+          if (tools.includes(piece as ChartKind)) pickTool(piece as ChartKind);
+        }}
+      >
+        <DropSlot id="canvas" className="relative overflow-hidden rounded-2xl border border-dashed border-primary/35 bg-card p-3">
+          {tool ? (
+            <LiveSketch
+              key={`${index}-${tool}`}
+              kind={tool}
+              values={round.values}
+              labels={round.labels}
+              stacks={round.stacks}
+              points={round.points}
+            />
+          ) : (
+            <RawSeries values={round.values} labels={round.labels} />
+          )}
+        </DropSlot>
+        <div className={cn("scene-opts mt-4 grid gap-2", tools.length <= 2 ? "grid-cols-2" : "grid-cols-4")}>
+          {tools.map((kind) => (
+            <Draggable key={kind} id={kind} label={NAMES[kind]} disabled={locked}>
+              <button
+                type="button"
+                disabled={locked}
+                onClick={() => pickTool(kind)}
+                className={cn(
+                  "flex w-full flex-col items-center gap-1 rounded-2xl border px-1 py-3 transition duration-200",
+                  tool === kind && "border-primary bg-primary/15 shadow-[0_0_18px_color-mix(in_oklch,var(--primary)_22%,transparent)]",
+                  tool !== kind && "border-border bg-card hover:border-primary/40",
+                  locked && kind === round.answer && "border-ok bg-ok/15",
+                  locked && tool === kind && kind !== round.answer && "border-anomaly bg-anomaly/10"
+                )}
+              >
+                <MiniChartGlyph kind={kind} active={tool === kind} />
+                <span className="text-[11px]">{NAMES[kind]}</span>
+              </button>
+            </Draggable>
+          ))}
+        </div>
+      </DragBoard>
       {locked ? (
         <Verdict
           tone={correct ? "ok" : "miss"}
@@ -332,14 +364,7 @@ export function GraphiqueGame({ onFinish }: { onFinish: (score: number) => void 
           nextLabel={index + 1 >= total ? "Voir le score" : "Manche suivante"}
         />
       ) : (
-        <LockBar
-          disabled={!tool}
-          label="C’est lisible"
-          onLock={() => {
-            setLocked(true);
-            setScore((s) => s + (tool === round.answer ? POINTS_PER_ROUND : 0));
-          }}
-        />
+        <LockBar disabled={!tool} label="C’est lisible" onLock={lockIn} />
       )}
     </GameShell>
   );

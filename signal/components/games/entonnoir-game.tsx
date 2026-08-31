@@ -2,7 +2,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { shuffle } from "@s/components/drag-kit";
+import { DragBoard, Draggable, DropSlot, shuffle } from "@s/components/drag-kit";
 import { FunnelShape } from "@s/components/mini-charts";
 import { LockBar } from "@s/components/interact";
 import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
@@ -171,7 +171,7 @@ export function EntonnoirGame({ onFinish }: { onFinish: (score: number) => void 
   );
 
   function pushStep(step: string) {
-    if (locked || stack.length >= n) return;
+    if (locked || stack.length >= n || stack.includes(step)) return;
     play("drop");
     setStack((prev) => [...prev, step]);
   }
@@ -208,7 +208,7 @@ export function EntonnoirGame({ onFinish }: { onFinish: (score: number) => void 
     return (
       <Intro
         title="Entonnoir"
-        how="Tape les étapes : elles s’empilent, du plus large au plus étroit. Un étage faux, tu le démontes d’un tap. Ensuite on verse — et on voit où ça fuit."
+        how="Glisse les étapes dans l’entonnoir, du plus large au plus étroit. Un étage faux, tu le démontes. Ensuite on verse."
         onStart={() => {
           startRound(0);
           setPhase("play");
@@ -262,55 +262,62 @@ export function EntonnoirGame({ onFinish }: { onFinish: (score: number) => void 
             : null}
         </div>
       ) : (
-        <div className="mt-6">
-          <div className="mx-auto flex max-w-md flex-col items-center gap-2">
+        <DragBoard
+          disabled={locked}
+          className="mt-6"
+          onDrop={(piece, zone) => {
+            if (zone === "funnel" || zone.startsWith("shelf-")) pushStep(piece);
+          }}
+          onTap={(piece) => {
+            const at = stack.indexOf(piece);
+            if (at >= 0) popShelf(at);
+            else pushStep(piece);
+          }}
+        >
+          <DropSlot id="funnel" className="mx-auto flex max-w-md flex-col items-center gap-2 border-0 bg-transparent p-0">
             {Array.from({ length: n }).map((_, si) => {
               const width = 94 - si * (42 / Math.max(n - 1, 1));
               const id = stack[si];
               return (
-                <button
+                <DropSlot
                   key={si}
-                  type="button"
-                  disabled={!id}
-                  onClick={() => id && popShelf(si)}
+                  id={`shelf-${si}`}
                   className={cn(
-                    "flex h-12 items-center justify-center rounded-2xl border-2 border-dashed px-3 text-sm transition",
+                    "flex h-12 items-center justify-center rounded-2xl border-2 border-dashed px-3 text-sm",
                     id ? "border-solid border-border bg-card" : "border-border/70 bg-muted/30",
                     si === stack.length && idle.length > 0 && "border-primary/50"
                   )}
                   style={{ width: `${width}%` }}
                 >
                   {id ? (
-                    <span className="magnet-snap">{id}</span>
+                    <Draggable id={id} disabled={locked} className="w-full text-center">
+                      <span className="magnet-snap">{id}</span>
+                    </Draggable>
                   ) : (
                     <span className="font-mono text-[11px] text-muted-foreground">
-                      {si === stack.length ? "prochain étage" : `étage ${si + 1}`}
+                      {si === stack.length ? "dépose ici" : `étage ${si + 1}`}
                     </span>
                   )}
-                </button>
+                </DropSlot>
               );
             })}
-          </div>
+          </DropSlot>
           <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
             Étapes en vrac
           </p>
           <div className="mt-2 flex min-h-[4.2rem] flex-wrap gap-2 rounded-2xl border border-dashed border-border bg-muted/40 p-3">
             {idle.map((step) => (
-              <button
-                key={step}
-                type="button"
-                disabled={stack.length >= n}
-                onClick={() => pushStep(step)}
-                className="rounded-xl border border-border bg-card px-3 py-2 text-sm transition hover:border-primary/50"
-              >
-                {step}
-              </button>
+              <Draggable key={step} id={step} disabled={locked || stack.length >= n}>
+                <div className="rounded-xl border border-border bg-card px-3 py-2 text-sm transition hover:border-primary/50">
+                  {step}
+                </div>
+              </Draggable>
             ))}
             {idle.length === 0 ? (
               <span className="font-mono text-xs text-muted-foreground">Entonnoir plein — verse.</span>
             ) : null}
           </div>
-        </div>
+        </DragBoard>
       )}
       {locked ? (
         <Verdict

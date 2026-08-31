@@ -1,8 +1,10 @@
 // @ts-nocheck
 "use client";
 
-import type { ReactNode } from "react";
-import { buttonVariants } from "@s/components/ui/button";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+import { play } from "@s/lib/audio";
+import { useI18n } from "@s/lib/i18n";
 import { cn } from "@s/lib/utils";
 
 export function Chip({
@@ -44,6 +46,7 @@ export function ChoiceTile({
   isAnswer,
   isWrong,
   onClick,
+  onConfirm,
   disabled,
   children,
 }: {
@@ -54,6 +57,7 @@ export function ChoiceTile({
   isAnswer?: boolean;
   isWrong?: boolean;
   onClick?: () => void;
+  onConfirm?: () => void;
   disabled?: boolean;
   children?: ReactNode;
 }) {
@@ -61,7 +65,10 @@ export function ChoiceTile({
     <button
       type="button"
       disabled={disabled}
-      onClick={onClick}
+      onClick={() => {
+        if (selected && onConfirm) onConfirm();
+        else onClick?.();
+      }}
       className={cn(
         "rounded-2xl border px-3 py-3 text-left transition duration-200",
         "hover:-translate-y-0.5 hover:border-primary/40",
@@ -117,24 +124,69 @@ export function Slot({
 export function LockBar({
   disabled,
   onLock,
-  label = "Valider",
+  label,
 }: {
   disabled?: boolean;
   onLock: () => void;
   label?: string;
 }) {
+  const { t } = useI18n();
+  const [mounted, setMounted] = useState(false);
+  const [shake, setShake] = useState(false);
+  const lockRef = useRef(onLock);
+  lockRef.current = onLock;
+  const ready = !disabled;
+
+  useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (!ready) return;
+    function onKey(event: KeyboardEvent) {
+      if (event.key !== "Enter" || event.repeat) return;
+      const target = event.target;
+      if (target instanceof HTMLElement && target.closest("input, textarea, [contenteditable]")) return;
+      event.preventDefault();
+      lockRef.current();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [ready]);
+
+  function tap() {
+    if (!ready) {
+      play("miss");
+      setShake(true);
+      window.setTimeout(() => setShake(false), 420);
+      return;
+    }
+    onLock();
+  }
+
+  const bar = (
+    <div className="lock-dock pointer-events-none fixed inset-x-0 bottom-0 z-[90] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-10">
+      <button
+        type="button"
+        data-signal-lock
+        onClick={tap}
+        className={cn(
+          "pointer-events-auto relative mx-auto flex h-16 w-full max-w-3xl items-center justify-center rounded-[1.35rem] font-heading text-2xl tracking-tight transition outline-none",
+          "shadow-[0_-12px_40px_color-mix(in_oklch,var(--background)_80%,transparent)] focus-visible:ring-3 focus-visible:ring-ring/50",
+          ready
+            ? "lock-ready bg-primary text-primary-foreground hover:scale-[1.01]"
+            : "border border-border bg-card/95 text-muted-foreground backdrop-blur",
+          shake && "lock-shake"
+        )}
+      >
+        {ready ? (label ?? t.shell.lock) : t.shell.lockIdle}
+      </button>
+    </div>
+  );
+
   return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={onLock}
-      className={cn(
-        buttonVariants({ variant: "default", size: "lg" }),
-        "relative z-10 mt-6 h-11 w-full text-base",
-        !disabled && "lock-ready"
-      )}
-    >
-      {label}
-    </button>
+    <>
+      <div className="h-24 shrink-0" aria-hidden />
+      <p className="sr-only">{t.shell.lockHint}</p>
+      {mounted ? createPortal(bar, document.body) : bar}
+    </>
   );
 }

@@ -1,8 +1,9 @@
 // @ts-nocheck
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Sparkline } from "@s/components/mini-charts";
+import { DragBoard, Draggable, DropSlot } from "@s/components/drag-kit";
 import { ChoiceTile, LockBar } from "@s/components/interact";
 import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
 import { POINTS_PER_ROUND } from "@s/lib/games";
@@ -203,10 +204,27 @@ export function BruitGame({ onFinish }: { onFinish: (score: number) => void }) {
   const [score, setScore] = useState(0);
   const [stamp, setStamp] = useState<Label | null>(null);
   const [locked, setLocked] = useState(false);
+  const sealed = useRef(false);
 
   const round = deck[index];
   const labels = round ? stampsFor(round.answer, difficulty, index, total) : [];
   const correct = stamp === round?.answer;
+
+  function pickStamp(id: Label) {
+    if (locked) return;
+    if (stamp === id) {
+      lockIn();
+      return;
+    }
+    setStamp(id);
+  }
+
+  function lockIn() {
+    if (sealed.current || !stamp) return;
+    sealed.current = true;
+    setLocked(true);
+    setScore((s) => s + (stamp === round.answer ? POINTS_PER_ROUND : 0));
+  }
 
   function next() {
     if (index + 1 >= total) {
@@ -217,13 +235,14 @@ export function BruitGame({ onFinish }: { onFinish: (score: number) => void }) {
     setIndex((v) => v + 1);
     setStamp(null);
     setLocked(false);
+    sealed.current = false;
   }
 
   if (phase === "intro") {
     return (
       <Intro
         title="Bruit"
-        how="Pose un calque sur la zone : tendance, saison, rupture, bruit. La série te répond. Puis tu scelles ta lecture."
+        how="Glisse un calque sur la courbe. Tendance, saison, rupture, ou une dent. Retape pour sceller."
         onStart={() => setPhase("play")}
       />
     );
@@ -242,6 +261,7 @@ export function BruitGame({ onFinish }: { onFinish: (score: number) => void }) {
           setScore(0);
           setStamp(null);
           setLocked(false);
+          sealed.current = false;
         }}
       />
     );
@@ -249,41 +269,54 @@ export function BruitGame({ onFinish }: { onFinish: (score: number) => void }) {
 
   return (
     <GameShell title="Bruit" round={index} total={total} score={score} maxScore={maxScore}>
-      <RoundHeader context={round.title} question="Pose un calque. Qu’est-ce que c’est, la zone marquée ?" />
-      <div className="relative mt-6 overflow-hidden rounded-2xl border border-border bg-card p-4">
-        <span className="chart-grid pointer-events-none absolute inset-3 opacity-40" />
-        <Sparkline
-          values={round.values}
-          highlightFrom={round.from}
-          highlightTo={round.to}
-          overlay={stamp}
-          showRange={difficulty !== "brutal"}
-        />
-        {stamp ? (
-          <p className="mt-2 text-center font-mono text-[10px] uppercase tracking-[0.16em] text-signal">
-            calque · {labels.find((l) => l.id === stamp)?.name}
-          </p>
-        ) : (
-          <p className="mt-2 text-center font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-            zone marquée · {round.to - round.from + 1} points
-          </p>
-        )}
-      </div>
-      <div className={cn("scene-opts mt-4 grid gap-2", labels.length <= 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4")}>
-        {labels.map((lab) => (
-          <ChoiceTile
-            key={lab.id}
-            title={lab.name}
-            hint={lab.hint}
-            selected={stamp === lab.id}
-            locked={locked}
-            isAnswer={lab.id === round.answer}
-            isWrong={stamp === lab.id && lab.id !== round.answer}
-            disabled={locked}
-            onClick={() => setStamp(lab.id)}
+      <RoundHeader context={round.title} question="Glisse un calque. Qu’est-ce que c’est, la zone marquée ?" />
+      <DragBoard
+        disabled={locked}
+        className="mt-6"
+        onDrop={(piece, zone) => {
+          if (zone === "series" && LABELS.some((l) => l.id === piece)) pickStamp(piece as Label);
+        }}
+        onTap={(piece) => {
+          if (LABELS.some((l) => l.id === piece)) pickStamp(piece as Label);
+        }}
+      >
+        <DropSlot id="series" className="relative overflow-hidden rounded-2xl border border-dashed border-primary/35 bg-card p-4">
+          <span className="chart-grid pointer-events-none absolute inset-3 opacity-40" />
+          <Sparkline
+            values={round.values}
+            highlightFrom={round.from}
+            highlightTo={round.to}
+            overlay={stamp}
+            showRange={difficulty !== "brutal"}
           />
-        ))}
-      </div>
+          {stamp ? (
+            <p className="mt-2 text-center font-mono text-[10px] uppercase tracking-[0.16em] text-signal">
+              calque · {labels.find((l) => l.id === stamp)?.name}
+            </p>
+          ) : (
+            <p className="mt-2 text-center font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+              glisse un calque · {round.to - round.from + 1} points
+            </p>
+          )}
+        </DropSlot>
+        <div className={cn("scene-opts mt-4 grid gap-2", labels.length <= 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4")}>
+          {labels.map((lab) => (
+            <Draggable key={lab.id} id={lab.id} label={lab.name} disabled={locked}>
+              <ChoiceTile
+                title={lab.name}
+                hint={lab.hint}
+                selected={stamp === lab.id}
+                locked={locked}
+                isAnswer={lab.id === round.answer}
+                isWrong={stamp === lab.id && lab.id !== round.answer}
+                disabled={locked}
+                onClick={() => pickStamp(lab.id)}
+                onConfirm={lockIn}
+              />
+            </Draggable>
+          ))}
+        </div>
+      </DragBoard>
       {locked ? (
         <Verdict
           tone={correct ? "ok" : "miss"}
@@ -293,14 +326,7 @@ export function BruitGame({ onFinish }: { onFinish: (score: number) => void }) {
           nextLabel={index + 1 >= total ? "Voir le score" : "Manche suivante"}
         />
       ) : (
-        <LockBar
-          disabled={!stamp}
-          label="Sceller cette lecture"
-          onLock={() => {
-            setLocked(true);
-            setScore((s) => s + (stamp === round.answer ? POINTS_PER_ROUND : 0));
-          }}
-        />
+        <LockBar disabled={!stamp} label="Sceller cette lecture" onLock={lockIn} />
       )}
     </GameShell>
   );

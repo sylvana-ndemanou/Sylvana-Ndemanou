@@ -1532,6 +1532,228 @@
   opacity: 0.45;
 }
 
+.countdown-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 0;
+  cursor: pointer;
+  background: color-mix(in oklch, var(--background) 78%, transparent);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+}
+
+.countdown-kicker {
+  font-family: var(--font-instrument), ui-serif, Georgia, serif;
+  font-size: 1.15rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.countdown-num {
+  font-family: var(--font-instrument), ui-serif, Georgia, serif;
+  font-size: clamp(7rem, 28vw, 14rem);
+  line-height: 0.82;
+  letter-spacing: -0.06em;
+  animation: countdown-pop 0.55s cubic-bezier(0.22, 1.35, 0.36, 1) both;
+}
+
+.countdown-3 .countdown-num {
+  color: var(--foreground);
+}
+
+.countdown-2 .countdown-num {
+  color: var(--signal, var(--primary));
+}
+
+.countdown-1 .countdown-num {
+  color: var(--primary);
+  text-shadow: 0 0 48px color-mix(in oklch, var(--primary) 45%, transparent);
+}
+
+.countdown-go .countdown-num {
+  color: var(--ok, var(--primary));
+  text-shadow: 0 0 64px color-mix(in oklch, var(--ok, var(--primary)) 55%, transparent);
+}
+
+@keyframes countdown-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.62) rotate(-6deg);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    filter: blur(0);
+  }
+}
+
+.lock-dock {
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    color-mix(in oklch, var(--background) 88%, transparent) 42%,
+    var(--background) 100%
+  );
+}
+
+@keyframes lock-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-7px);
+  }
+  75% {
+    transform: translateX(7px);
+  }
+}
+
+.lock-shake {
+  animation: lock-shake 0.38s ease;
+}
+
+.join-l,
+.join-r,
+.join-m {
+  transition: fill 0.45s ease, opacity 0.35s ease;
+}
+
+.join-l {
+  fill: color-mix(in oklch, var(--chart-2) 12%, transparent);
+}
+
+.join-r {
+  fill: color-mix(in oklch, var(--primary) 10%, transparent);
+}
+
+.join-m {
+  fill: color-mix(in oklch, var(--foreground) 6%, transparent);
+}
+
+.join-mode-inner .join-l,
+.join-mode-inner .join-r {
+  fill: transparent;
+}
+
+.join-mode-inner .join-m {
+  fill: color-mix(in oklch, var(--ok) 42%, transparent);
+}
+
+.join-mode-left .join-l {
+  fill: color-mix(in oklch, var(--chart-2) 38%, transparent);
+}
+
+.join-mode-left .join-m {
+  fill: color-mix(in oklch, var(--ok) 40%, transparent);
+}
+
+.join-mode-left .join-r {
+  fill: transparent;
+}
+
+.join-mode-full .join-l {
+  fill: color-mix(in oklch, var(--chart-2) 34%, transparent);
+}
+
+.join-mode-full .join-r {
+  fill: color-mix(in oklch, var(--primary) 30%, transparent);
+}
+
+.join-mode-full .join-m {
+  fill: color-mix(in oklch, var(--ok) 42%, transparent);
+}
+
+.join-mode-anti .join-l {
+  fill: color-mix(in oklch, var(--anomaly) 38%, transparent);
+}
+
+.join-mode-anti .join-m,
+.join-mode-anti .join-r {
+  fill: transparent;
+}
+
+.join-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--ok) 22%, var(--card));
+  border: 1px solid color-mix(in oklch, var(--ok) 45%, transparent);
+  padding: 0.15rem 0.55rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.65rem;
+  animation: join-fly 0.5s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+}
+
+@keyframes join-fly {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.row-live {
+  background: color-mix(in oklch, var(--ok) 16%, transparent);
+  animation: join-fly 0.45s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+}
+
+.catch-orb {
+  position: relative;
+  isolation: isolate;
+}
+
+.catch-packet {
+  position: absolute;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: var(--primary);
+  box-shadow: 0 0 14px var(--primary);
+  animation: catch-in 1.05s ease-in infinite;
+}
+
+@keyframes catch-in {
+  from {
+    transform: translate(-7.5rem, 0) scale(0.4);
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  to {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.15;
+  }
+}
+
+.join-drop {
+  min-height: 11rem;
+}
+
+.preview-join-chip {
+  animation: join-fly 0.7s cubic-bezier(0.22, 1.2, 0.36, 1) both;
+}
+
+.group\/card:hover .preview-join-l {
+  animation: mark-join-l 1.2s ease-in-out infinite;
+}
+
+.group\/card:hover .preview-join-r {
+  animation: mark-join-r 1.2s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .bar-grow,
   .bar-miss,
@@ -1551,7 +1773,12 @@
   .raw-dot,
   .table-in,
   .row-crush,
-  .wh-cluster[data-run] .wh-node {
+  .wh-cluster[data-run] .wh-node,
+  .countdown-num,
+  .join-chip,
+  .catch-packet,
+  .row-live,
+  .lock-shake {
     animation: none;
   }
 }

@@ -1,8 +1,9 @@
 // @ts-nocheck
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { JoinVenn, MiniTable } from "@s/components/data-glyphs";
+import { DragBoard, Draggable, DropSlot } from "@s/components/drag-kit";
 import { ChoiceTile, LockBar } from "@s/components/interact";
 import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
 import { POINTS_PER_ROUND } from "@s/lib/games";
@@ -403,17 +404,43 @@ export function JointureGame({ onFinish }: { onFinish: (score: number) => void }
   const [score, setScore] = useState(0);
   const [lens, setLens] = useState<JoinKind | null>(null);
   const [locked, setLocked] = useState(false);
+  const sealed = useRef(false);
 
   const round = deck[index];
   const lenses = round ? lensesFor(difficulty, index, total, round.answer) : LENSES;
   const correct = lens === round?.answer;
   const view = lens ? round.views[lens] : null;
+  const leftLive = view
+    ? round.left.rows.flatMap((row, i) => (rowInView(row, view.rows) ? [i] : []))
+    : [];
+  const rightLive = view
+    ? round.right.rows.flatMap((row, i) => (rowInView(row, view.rows) ? [i] : []))
+    : [];
+  const chips = view
+    ? view.rows.map((row) => row.filter((cell) => cell && cell !== "∅" && cell !== "?").slice(0, 2).join(" · ") || row[0])
+    : [];
   const leftDim = view
     ? round.left.rows.flatMap((row, i) => (rowInView(row, view.rows) ? [] : [i]))
     : [];
   const rightDim = view
     ? round.right.rows.flatMap((row, i) => (rowInView(row, view.rows) ? [] : [i]))
     : [];
+
+  function pickLens(id: JoinKind) {
+    if (locked) return;
+    if (lens === id) {
+      lockIn();
+      return;
+    }
+    setLens(id);
+  }
+
+  function lockIn() {
+    if (sealed.current || !lens) return;
+    sealed.current = true;
+    setLocked(true);
+    setScore((s) => s + (lens === round.answer ? POINTS_PER_ROUND : 0));
+  }
 
   function next() {
     if (index + 1 >= total) {
@@ -424,13 +451,14 @@ export function JointureGame({ onFinish }: { onFinish: (score: number) => void }
     setIndex((v) => v + 1);
     setLens(null);
     setLocked(false);
+    sealed.current = false;
   }
 
   if (phase === "intro") {
     return (
       <Intro
         title="Jointure"
-        how="Deux tables, quatre lentilles. Chaque lentille fait vivre ou mourir des lignes. Tu regardes, tu comprends, tu valides."
+        how="Glisse une lentille sur le Venn. Les lignes volent dans l’intersection — ou meurent. Retape pour valider."
         onStart={() => setPhase("play")}
       />
     );
@@ -449,6 +477,7 @@ export function JointureGame({ onFinish }: { onFinish: (score: number) => void }
           setScore(0);
           setLens(null);
           setLocked(false);
+          sealed.current = false;
         }}
       />
     );
@@ -457,45 +486,61 @@ export function JointureGame({ onFinish }: { onFinish: (score: number) => void }
   return (
     <GameShell title="Jointure" round={index} total={total} score={score} maxScore={maxScore}>
       <RoundHeader context={round.context} question={round.question} />
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <MiniTable
-          name={round.left.name}
-          headers={round.left.headers}
-          rows={round.left.rows}
-          dimRows={leftDim}
-        />
-        <MiniTable
-          name={round.right.name}
-          headers={round.right.headers}
-          rows={round.right.rows}
-          dimRows={rightDim}
-        />
-      </div>
-      <div className="mt-4 rounded-2xl border border-border bg-card/60 px-3 py-3">
-        <JoinVenn
-          mode={lens}
-          leftLabel={round.left.name}
-          rightLabel={round.right.name}
-          leftCount={round.left.rows.length}
-          rightCount={round.right.rows.length}
-          outCount={view?.rows.length}
-        />
-      </div>
-      <div className={cn("scene-opts mt-4 grid gap-2", lenses.length <= 2 ? "grid-cols-2" : "grid-cols-4")}>
-        {lenses.map((l) => (
-          <ChoiceTile
-            key={l.id}
-            title={l.label}
-            hint={l.hint}
-            selected={lens === l.id}
-            locked={locked}
-            isAnswer={l.id === round.answer}
-            isWrong={lens === l.id && l.id !== round.answer}
-            disabled={locked}
-            onClick={() => setLens(l.id)}
+      <DragBoard
+        disabled={locked}
+        className="mt-5"
+        onDrop={(piece, zone) => {
+          if (zone === "join" && LENSES.some((l) => l.id === piece)) pickLens(piece as JoinKind);
+        }}
+        onTap={(piece) => {
+          if (LENSES.some((l) => l.id === piece)) pickLens(piece as JoinKind);
+        }}
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <MiniTable
+            name={round.left.name}
+            headers={round.left.headers}
+            rows={round.left.rows}
+            dimRows={leftDim}
+            liveRows={leftLive}
           />
-        ))}
-      </div>
+          <MiniTable
+            name={round.right.name}
+            headers={round.right.headers}
+            rows={round.right.rows}
+            dimRows={rightDim}
+            liveRows={rightLive}
+          />
+        </div>
+        <DropSlot id="join" className="join-drop mt-4 rounded-[1.6rem] border border-dashed border-primary/35 bg-card/70 px-3 py-4">
+          <JoinVenn
+            mode={lens}
+            leftLabel={round.left.name}
+            rightLabel={round.right.name}
+            leftCount={round.left.rows.length}
+            rightCount={round.right.rows.length}
+            outCount={view?.rows.length}
+            chips={chips}
+          />
+        </DropSlot>
+        <div className={cn("scene-opts mt-4 grid gap-2", lenses.length <= 2 ? "grid-cols-2" : "grid-cols-4")}>
+          {lenses.map((l) => (
+            <Draggable key={l.id} id={l.id} label={l.label} disabled={locked}>
+              <ChoiceTile
+                title={l.label}
+                hint={l.hint}
+                selected={lens === l.id}
+                locked={locked}
+                isAnswer={l.id === round.answer}
+                isWrong={lens === l.id && l.id !== round.answer}
+                disabled={locked}
+                onClick={() => pickLens(l.id)}
+                onConfirm={lockIn}
+              />
+            </Draggable>
+          ))}
+        </div>
+      </DragBoard>
       <div className="mt-4 min-h-24">
         {view ? (
           <div key={lens} className="table-in">
@@ -507,7 +552,7 @@ export function JointureGame({ onFinish }: { onFinish: (score: number) => void }
           </div>
         ) : (
           <p className="rounded-2xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
-            Pose une lentille. Les lignes survivent — ou pas.
+            Glisse une lentille sur le Venn — ou tape-la.
           </p>
         )}
       </div>
@@ -520,14 +565,7 @@ export function JointureGame({ onFinish }: { onFinish: (score: number) => void }
           nextLabel={index + 1 >= total ? "Voir le score" : "Manche suivante"}
         />
       ) : (
-        <LockBar
-          disabled={!lens}
-          label="Garder cette lentille"
-          onLock={() => {
-            setLocked(true);
-            setScore((s) => s + (lens === round.answer ? POINTS_PER_ROUND : 0));
-          }}
-        />
+        <LockBar disabled={!lens} label="Garder cette lentille" onLock={lockIn} />
       )}
     </GameShell>
   );

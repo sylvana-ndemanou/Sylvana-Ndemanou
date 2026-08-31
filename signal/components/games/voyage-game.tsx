@@ -1,7 +1,7 @@
 // @ts-nocheck
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
 import { ChoiceTile, LockBar } from "@s/components/interact";
 import { play } from "@s/lib/audio";
@@ -239,6 +239,7 @@ export function VoyageGame({ onFinish }: { onFinish: (score: number) => void }) 
   const [head, setHead] = useState(0);
   const [act, setAct] = useState<Action | null>(null);
   const [locked, setLocked] = useState(false);
+  const sealed = useRef(false);
 
   const round = deck[index];
   const actions = round ? actionsFor(difficulty, index, total, round.answer) : ACTIONS;
@@ -246,6 +247,13 @@ export function VoyageGame({ onFinish }: { onFinish: (score: number) => void }) 
   const headOk = head === needHead;
   const headRequired = difficulty === "brutal" || round?.answer === "at";
   const correct = act === round?.answer && (!headRequired || headOk);
+
+  function lockAct() {
+    if (sealed.current || !act) return;
+    sealed.current = true;
+    setLocked(true);
+    setScore((s) => s + (act === round.answer && (!headRequired || head === round.head) ? POINTS_PER_ROUND : 0));
+  }
 
   function next() {
     if (index + 1 >= total) {
@@ -258,6 +266,7 @@ export function VoyageGame({ onFinish }: { onFinish: (score: number) => void }) 
     setHead(deck[n].events.length - 1);
     setAct(null);
     setLocked(false);
+    sealed.current = false;
   }
 
   if (phase === "intro") {
@@ -284,6 +293,9 @@ export function VoyageGame({ onFinish }: { onFinish: (score: number) => void }) 
           setPhase("intro");
           setIndex(0);
           setScore(0);
+          setAct(null);
+          setLocked(false);
+          sealed.current = false;
         }}
       />
     );
@@ -364,6 +376,7 @@ export function VoyageGame({ onFinish }: { onFinish: (score: number) => void }) 
             isWrong={act === a.id && a.id !== round.answer}
             disabled={locked}
             onClick={() => setAct(a.id)}
+            onConfirm={lockAct}
           />
         ))}
       </div>
@@ -376,14 +389,7 @@ export function VoyageGame({ onFinish }: { onFinish: (score: number) => void }) 
           nextLabel={index + 1 >= total ? "Voir le score" : "Manche suivante"}
         />
       ) : (
-        <LockBar
-          disabled={!act}
-          label="Exécuter"
-          onLock={() => {
-            setLocked(true);
-            setScore((s) => s + (correct ? POINTS_PER_ROUND : 0));
-          }}
-        />
+        <LockBar disabled={!act} label="Exécuter" onLock={lockAct} />
       )}
     </GameShell>
   );

@@ -50,6 +50,9 @@ export type Messages = {
     situation: string;
     pressure: string;
     touchBar: string;
+    lock: string;
+    lockIdle: string;
+    lockHint: string;
   };
   lobby: {
     solo: string;
@@ -66,6 +69,8 @@ export type Messages = {
     diffRounds: Record<Difficulty, string>;
     play: string;
     start: string;
+    ready: string;
+    go: string;
     mode: string;
     copyLink: string;
     copied: string;
@@ -127,6 +132,9 @@ export const MESSAGES: Record<Locale, Messages> = {
       situation: "Situation",
       pressure: "Pression",
       touchBar: "Touche une barre.",
+      lock: "Valider",
+      lockIdle: "Choisis d’abord",
+      lockHint: "Retape ta réponse, ou le bouton en bas.",
     },
     lobby: {
       solo: "Solo",
@@ -151,6 +159,8 @@ export const MESSAGES: Record<Locale, Messages> = {
       },
       play: "Jouer",
       start: "Lancer la partie",
+      ready: "Prêt",
+      go: "GO",
       mode: "Mode",
       copyLink: "Copier le lien",
       copied: "Lien copié",
@@ -208,7 +218,7 @@ export const MESSAGES: Record<Locale, Messages> = {
         name: "Entonnoir",
         verb: "Jouer entonnoir",
         tagline: "Empile le parcours. Le leak se montre tout seul.",
-        how: "Tape les étapes : elles s’empilent, du plus large au plus étroit. Ensuite on verse — et on voit où ça fuit.",
+        how: "Glisse les étapes dans l’entonnoir, du plus large au plus étroit. Un étage faux, tu le démontes. Ensuite on verse.",
       },
       memoire: {
         name: "Mémoire",
@@ -220,7 +230,7 @@ export const MESSAGES: Record<Locale, Messages> = {
         name: "Bruit",
         verb: "Jouer bruit",
         tagline: "Le chiffre a bougé. Est-ce que ça veut dire quelque chose ?",
-        how: "Une série, une zone marquée. Tendance, saison, rupture ou simple bruit ? L'œil BI, c'est ça.",
+        how: "Glisse un calque sur la courbe. Tendance, saison, rupture, ou une dent. Retape pour sceller.",
       },
       schema: {
         name: "Schéma",
@@ -232,13 +242,13 @@ export const MESSAGES: Record<Locale, Messages> = {
         name: "Pipeline",
         verb: "Jouer pipeline",
         tagline: "Remets les jobs dans l'ordre. Sinon le mart ment.",
-        how: "Tape un job, puis un quai — il s’aimante. Un quai menteur, ça explose.",
+        how: "Glisse un job sur un quai. Tu peux aussi taper. Un quai menteur, ça explose.",
       },
       jointure: {
         name: "Jointure",
         verb: "Jouer jointure",
         tagline: "INNER, LEFT, FULL, ANTI. La question décide, pas l'habitude.",
-        how: "Deux tables, une question métier. Choisis la jointure. Tu verras quelles lignes survivent.",
+        how: "Glisse une lentille sur le Venn. Les lignes volent, ou meurent. Retape pour valider.",
       },
       grain: {
         name: "Grain",
@@ -274,7 +284,7 @@ export const MESSAGES: Record<Locale, Messages> = {
         name: "Flux",
         verb: "Jouer flux",
         tagline: "Un stream est un signet. La task tape la mesure. Le SELECT ne consomme rien.",
-        how: "Le métronome de la task. Tu n’avances l’offset que par un DML.",
+        how: "Attrape les paquets sur le beat. Un stream vide, tu ne tends pas la main.",
       },
     },
   },
@@ -314,6 +324,9 @@ export const MESSAGES: Record<Locale, Messages> = {
       situation: "Situation",
       pressure: "Pressure",
       touchBar: "Tap a bar.",
+      lock: "Lock in",
+      lockIdle: "Pick first",
+      lockHint: "Tap your answer again, or the bar at the bottom.",
     },
     lobby: {
       solo: "Solo",
@@ -338,6 +351,8 @@ export const MESSAGES: Record<Locale, Messages> = {
       },
       play: "Play",
       start: "Start the run",
+      ready: "Ready",
+      go: "GO",
       mode: "Mode",
       copyLink: "Copy link",
       copied: "Link copied",
@@ -394,19 +409,19 @@ export const MESSAGES: Record<Locale, Messages> = {
         name: "Funnel",
         verb: "Play funnel",
         tagline: "Stack the journey. The leak shows itself.",
-        how: "Tap the steps: they stack, wide to narrow. Then pour — and watch where it leaks.",
+        how: "Drag the steps into the funnel, wide to narrow. A wrong shelf, tap to pull it off. Then pour.",
       },
       memoire: {
         name: "Memory",
         verb: "Play memory",
         tagline: "A dashboard, a few seconds. Then nothing.",
-        how: "Memorize the KPIs, the colors, the filter. Easy asks one question. Brutal empties the slide: you rebuild it tile by tile.",
+        how: "Memorize the KPIs, the colors, the filter. Easy asks one question. Brutal empties the slide: rebuild it tile by tile.",
       },
       bruit: {
         name: "Noise",
         verb: "Play noise",
         tagline: "The number moved. Does it mean anything?",
-        how: "A series, a marked window. Trend, season, break, or just a twitch? That’s the BI eye.",
+        how: "Drag an overlay onto the series. Trend, season, break, or a twitch. Tap again to seal.",
       },
       schema: {
         name: "Schema",
@@ -418,13 +433,13 @@ export const MESSAGES: Record<Locale, Messages> = {
         name: "Pipeline",
         verb: "Play pipeline",
         tagline: "Put the jobs in order. Or the mart lies.",
-        how: "Tap a job, then a dock — it magnets on. A lying dock explodes.",
+        how: "Drag a job onto a dock. Tapping still works. A lying dock explodes.",
       },
       jointure: {
         name: "Join",
         verb: "Play join",
         tagline: "INNER, LEFT, FULL, ANTI. The question decides, not habit.",
-        how: "Two tables, one business question. Pick the join. You’ll see which rows survive.",
+        how: "Drag a lens onto the Venn. Rows fly or die. Tap again to lock.",
       },
       grain: {
         name: "Grain",
@@ -460,7 +475,7 @@ export const MESSAGES: Record<Locale, Messages> = {
         name: "Stream",
         verb: "Play stream",
         tagline: "A stream is a bookmark. The task hits the measure. SELECT consumes nothing.",
-        how: "The task metronome. The offset only moves with a DML.",
+        how: "Catch the packets on the beat. An empty stream: don’t reach.",
       },
     },
   },

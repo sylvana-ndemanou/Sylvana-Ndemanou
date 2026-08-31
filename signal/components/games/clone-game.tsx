@@ -159,8 +159,18 @@ export function CloneGame({ onFinish }: { onFinish: (score: number) => void }) {
 
   useEffect(() => () => clearHold(), []);
 
+  function seal() {
+    if (locked || !zone) return;
+    setLocked(true);
+    setScore((s) => s + (zone === round.answer ? POINTS_PER_ROUND : 0));
+  }
+
   function chooseClone() {
     if (locked) return;
+    if (zone === "clone") {
+      seal();
+      return;
+    }
     clearHold();
     unlockAudio();
     play("ok");
@@ -200,6 +210,10 @@ export function CloneGame({ onFinish }: { onFinish: (score: number) => void }) {
 
   function punchDml() {
     if (locked) return;
+    if (zone === "dml") {
+      seal();
+      return;
+    }
     clearHold();
     unlockAudio();
     play("grain");
@@ -298,7 +312,7 @@ export function CloneGame({ onFinish }: { onFinish: (score: number) => void }) {
             )}
           >
             <span className="font-mono text-sm">CLONE</span>
-            <span className="mt-1 text-center text-[11px] text-muted-foreground">tap · zéro copie</span>
+            <span className="mt-1 text-center text-[11px] text-muted-foreground">tap · zéro copie · retape pour valider</span>
           </button>
           <button
             type="button"
@@ -346,13 +360,7 @@ export function CloneGame({ onFinish }: { onFinish: (score: number) => void }) {
           nextLabel={index + 1 >= total ? "Voir le score" : "Manche suivante"}
         />
       ) : (
-        <LockBar
-          disabled={!zone}
-          onLock={() => {
-            setLocked(true);
-            setScore((s) => s + (correct ? POINTS_PER_ROUND : 0));
-          }}
-        />
+        <LockBar disabled={!zone} onLock={seal} />
       )}
     </GameShell>
   );

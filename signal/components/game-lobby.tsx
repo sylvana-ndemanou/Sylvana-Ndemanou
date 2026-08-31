@@ -4,6 +4,7 @@
 import { SignalLink } from "@s/components/signal-link";
 import { useState, type ReactNode } from "react";
 import { ArrowLeft, CalendarDays, Check, Link2, User, Users } from "lucide-react";
+import { CountdownOverlay, useCountdown } from "@s/components/countdown";
 import { GamePreview } from "@s/components/game-previews";
 import { BoardOrb, RankedBoard } from "@s/components/ranked-board";
 import { Button, buttonVariants } from "@s/components/ui/button";
@@ -24,6 +25,7 @@ export function GameLobby({
 }) {
   const { t } = useI18n();
   const session = usePlaySession();
+  const { beat, arm, advance } = useCountdown(onStart);
   const levels = difficultiesFor(session.slug);
   const [invite, setInvite] = useState(session.mode === "multi");
   const [copied, setCopied] = useState(false);
@@ -36,14 +38,12 @@ export function GameLobby({
 
   function startSolo() {
     session.setMode("solo");
-    onStart();
-    play("start");
+    arm();
   }
 
   function startDaily() {
     session.setMode("daily");
-    onStart();
-    play("start");
+    arm();
   }
 
   function openMulti() {
@@ -69,8 +69,7 @@ export function GameLobby({
 
   function startMulti() {
     session.ensureRoom();
-    play("start");
-    onStart();
+    arm();
   }
 
   return (
@@ -199,6 +198,7 @@ export function GameLobby({
         </div>
       </div>
       <RankedBoard open={boardOpen} onClose={() => setBoardOpen(false)} />
+      <CountdownOverlay beat={beat} onAdvance={advance} />
     </div>
   );
 }

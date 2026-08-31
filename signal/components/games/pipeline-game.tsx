@@ -2,7 +2,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { shuffle } from "@s/components/drag-kit";
+import { DragBoard, Draggable, DropSlot, shuffle } from "@s/components/drag-kit";
 import { LockBar } from "@s/components/interact";
 import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
 import { play } from "@s/lib/audio";
@@ -168,21 +168,27 @@ export function PipelineGame({ onFinish }: { onFinish: (score: number) => void }
     setHeld((h) => (h === job ? null : job));
   }
 
-  function tapDock(di: number) {
+  function placeJob(job: string, di: number) {
     if (busy) return;
     const occupant = docks[di];
+    setDocks((prev) => {
+      const next = [...prev];
+      const from = next.indexOf(job);
+      if (from >= 0) next[from] = occupant;
+      next[di] = job;
+      return next;
+    });
+    play(occupant && occupant !== job ? "swap" : "dock");
+    setHeld(null);
+  }
+
+  function tapDock(di: number) {
+    if (busy) return;
     if (held) {
-      setDocks((prev) => {
-        const next = [...prev];
-        const from = next.indexOf(held);
-        if (from >= 0) next[from] = occupant;
-        next[di] = held;
-        return next;
-      });
-      play(occupant && occupant !== held ? "swap" : "dock");
-      setHeld(null);
+      placeJob(held, di);
       return;
     }
+    const occupant = docks[di];
     if (occupant) {
       play("lift");
       setDocks((prev) => {
@@ -248,7 +254,7 @@ export function PipelineGame({ onFinish }: { onFinish: (score: number) => void }
     return (
       <Intro
         title="Pipeline"
-        how="Tape un job, puis un quai — il s’aimante. Tape un quai occupé pour le reprendre. Ensuite tu lances le paquet. Un quai menteur, ça explose."
+        how="Glisse un job sur un quai. Tu peux aussi taper. Un quai occupé, tu le reprends. Ensuite tu lances le paquet."
         onStart={() => {
           startRound(0);
           setPhase("play");
@@ -281,7 +287,20 @@ export function PipelineGame({ onFinish }: { onFinish: (score: number) => void }
         context={scenario.name}
         question={held ? `Quai pour « ${held} » ?` : "Monte la ligne. Ensuite on fait courir un paquet."}
       />
-      <div className="mt-6">
+      <DragBoard
+        disabled={busy}
+        className="mt-6"
+        onDrop={(piece, zone) => {
+          if (!zone.startsWith("dock-")) return;
+          const di = Number(zone.slice(5));
+          if (Number.isFinite(di)) placeJob(piece, di);
+        }}
+        onTap={(piece) => {
+          const at = docks.indexOf(piece);
+          if (at >= 0) tapDock(at);
+          else pickJob(piece);
+        }}
+      >
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Convoyeur</p>
         <div className="conveyor-rail mt-2 flex items-stretch gap-1 overflow-x-auto pb-1">
           {docks.map((id, di) => (
@@ -290,12 +309,10 @@ export function PipelineGame({ onFinish }: { onFinish: (score: number) => void }
                 {di + 1}
                 {di < n - 1 ? " →" : ""}
               </span>
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => tapDock(di)}
+              <DropSlot
+                id={`dock-${di}`}
                 className={cn(
-                  "flex h-[4.6rem] w-full items-center justify-center rounded-2xl border-2 border-dashed px-1.5 text-center text-[11px] leading-tight transition",
+                  "flex h-[4.6rem] w-full items-center justify-center rounded-2xl border-2 border-dashed px-1.5 text-center text-[11px] leading-tight",
                   id ? "border-solid border-border bg-card" : "border-border/70 bg-muted/30",
                   held && !id && "border-primary bg-primary/10",
                   boom === di && "border-anomaly bg-anomaly/20 bar-miss",
@@ -303,13 +320,17 @@ export function PipelineGame({ onFinish }: { onFinish: (score: number) => void }
                 )}
               >
                 {id ? (
-                  <span key={`${id}-${di}`} className="magnet-snap font-mono">
-                    {id}
-                  </span>
+                  <Draggable id={id} disabled={busy} className="w-full">
+                    <span key={`${id}-${di}`} className="magnet-snap block font-mono">
+                      {id}
+                    </span>
+                  </Draggable>
                 ) : (
-                  <span className="font-mono text-[10px] text-muted-foreground">{held ? "aimanter ici" : "quai"}</span>
+                  <button type="button" disabled={busy} onClick={() => tapDock(di)} className="h-full w-full font-mono text-[10px] text-muted-foreground">
+                    {held ? "dépose ici" : "quai"}
+                  </button>
                 )}
-              </button>
+              </DropSlot>
               {packetAt === di && boom !== di ? (
                 <span className="packet-run size-2.5 rounded-full bg-primary shadow-[0_0_12px_var(--primary)]" />
               ) : boom === di ? (
@@ -323,26 +344,24 @@ export function PipelineGame({ onFinish }: { onFinish: (score: number) => void }
         <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Tas de jobs</p>
         <div className="mt-2 flex min-h-[4.4rem] flex-wrap gap-2 rounded-2xl border border-dashed border-border bg-muted/40 p-3">
           {idle.map((step) => (
-            <button
-              key={step}
-              type="button"
-              disabled={busy}
-              onClick={() => pickJob(step)}
-              className={cn(
-                "rounded-xl border px-3 py-2 text-left text-[12px] leading-tight transition",
-                held === step
-                  ? "border-primary bg-primary text-primary-foreground shadow-[0_0_20px_color-mix(in_oklch,var(--primary)_35%,transparent)]"
-                  : "border-border bg-card hover:border-primary/50"
-              )}
-            >
-              {step}
-            </button>
+            <Draggable key={step} id={step} disabled={busy}>
+              <div
+                className={cn(
+                  "rounded-xl border px-3 py-2 text-left text-[12px] leading-tight transition",
+                  held === step
+                    ? "border-primary bg-primary text-primary-foreground shadow-[0_0_20px_color-mix(in_oklch,var(--primary)_35%,transparent)]"
+                    : "border-border bg-card hover:border-primary/50"
+                )}
+              >
+                {step}
+              </div>
+            </Draggable>
           ))}
           {idle.length === 0 ? (
             <span className="font-mono text-xs text-muted-foreground">Tas vide — lance le run.</span>
           ) : null}
         </div>
-      </div>
+      </DragBoard>
       {locked ? (
         <Verdict
           tone={roundTone(points)}

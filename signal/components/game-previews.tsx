@@ -444,7 +444,7 @@ function BruitStage() {
           width="70"
           height="80"
           rx="8"
-          className="fill-primary/12 stroke-primary/45"
+          className="fill-primary/12 stroke-primary/45 transition-all duration-500 group-hover/card:fill-chart-3/20 group-hover/card:stroke-chart-3"
         />
         <path
           d="M12 64 C 36 56, 48 46, 70 48 S 110 72, 140 40 S 190 22, 210 34 S 250 70, 268 58"
@@ -505,26 +505,22 @@ function PipelineStage() {
 
 function JointureStage() {
   return (
-    <div className="flex h-full flex-col px-4 py-3">
-      <div className="mb-2 flex items-center justify-between">
-        <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-signal">inner join</p>
-        <p className="font-mono text-[9px] text-muted-foreground">client_id</p>
-      </div>
-      <div className="grid min-h-0 flex-1 grid-cols-[1fr_auto_1fr] items-stretch gap-2">
-        <div className="rounded-xl border border-chart-2/45 bg-chart-2/15 px-2.5 py-2">
-          <p className="font-mono text-[9px] text-chart-2">clients</p>
-          <p className="mt-1.5 font-mono text-[12px] leading-5">Léa</p>
-          <p className="font-mono text-[12px] leading-5">Marc</p>
-        </div>
-        <div className="flex flex-col items-center justify-center px-0.5">
-          <span className="font-mono text-[9px] text-primary">∩</span>
-          <span className="mt-1 h-8 w-px bg-primary/40" />
-        </div>
-        <div className="rounded-xl border border-primary/45 bg-primary/15 px-2.5 py-2">
-          <p className="font-mono text-[9px] text-primary">commandes</p>
-          <p className="mt-1.5 font-mono text-[12px] leading-5">40 €</p>
-          <p className="font-mono text-[12px] leading-5">25 €</p>
-        </div>
+    <div className="flex h-full flex-col items-center justify-center px-4 py-3">
+      <p className="mb-2 font-mono text-[9px] uppercase tracking-[0.16em] text-signal">inner join</p>
+      <div className="relative h-[7.2rem] w-[13.5rem]">
+        <span className="preview-join-l absolute left-3 top-2 size-[6.4rem] rounded-full border-2 border-chart-2/80 bg-chart-2/20" />
+        <span className="preview-join-r absolute right-3 top-2 size-[6.4rem] rounded-full border-2 border-primary/80 bg-primary/20" />
+        <span className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1">
+          <span className="preview-join-chip rounded-full border border-ok/40 bg-ok/20 px-2 py-0.5 font-mono text-[10px]">
+            Léa
+          </span>
+          <span
+            className="preview-join-chip rounded-full border border-ok/40 bg-ok/20 px-2 py-0.5 font-mono text-[10px]"
+            style={{ animationDelay: "0.12s" }}
+          >
+            40 €
+          </span>
+        </span>
       </div>
     </div>
   );
@@ -659,11 +655,12 @@ function CloneStage() {
 function FluxStage() {
   return (
     <div className="flex h-full flex-col items-center justify-center px-5 py-3">
-      <p className="mb-3 font-mono text-[9px] uppercase tracking-[0.16em] text-signal">stream</p>
-      <div className="relative grid size-16 place-items-center rounded-full border-2 border-primary/50">
+      <p className="mb-3 font-mono text-[9px] uppercase tracking-[0.16em] text-signal">catch · CDC</p>
+      <div className="catch-orb relative grid size-16 place-items-center rounded-full border-2 border-primary/50">
+        <span className="catch-packet opacity-100 group-hover/card:opacity-100" />
         <span className="size-2.5 rounded-full bg-primary" />
       </div>
-      <p className="mt-2 font-mono text-[10px] text-muted-foreground">offset · CDC</p>
+      <p className="mt-2 font-mono text-[10px] text-muted-foreground">attrape le paquet</p>
     </div>
   );
 }

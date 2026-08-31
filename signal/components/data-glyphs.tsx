@@ -13,6 +13,7 @@ export function MiniTable({
   selectTone = "key",
   dimRows,
   crushRows,
+  liveRows,
 }: {
   name: string;
   headers: string[];
@@ -25,11 +26,13 @@ export function MiniTable({
   selectTone?: "key" | "yank";
   dimRows?: number[];
   crushRows?: number[];
+  liveRows?: number[];
 }) {
   const marked = new Set(highlightRows ?? []);
   const picked = new Set(selectedCols ?? []);
   const dimmed = new Set(dimRows ?? []);
   const crushed = new Set(crushRows ?? []);
+  const living = new Set(liveRows ?? []);
   const interactive = Boolean(onToggleCol) && !disabled;
   return (
     <div className="min-w-0 overflow-x-auto rounded-xl border border-border bg-card">
@@ -73,7 +76,8 @@ export function MiniTable({
               className={cn(
                 marked.has(r) && "bg-anomaly/20 text-anomaly",
                 dimmed.has(r) && "row-ghost",
-                crushed.has(r) && "row-crush"
+                crushed.has(r) && "row-crush",
+                living.has(r) && "row-live"
               )}
             >
               {row.map((cell, c) => (
@@ -156,6 +160,7 @@ export function JoinVenn({
   leftCount,
   rightCount,
   outCount,
+  chips,
 }: {
   mode?: "inner" | "left" | "full" | "anti" | null;
   leftLabel: string;
@@ -163,42 +168,33 @@ export function JoinVenn({
   leftCount: number;
   rightCount: number;
   outCount?: number;
+  chips?: string[];
 }) {
-  const fillL =
-    mode === "inner"
-      ? "transparent"
-      : mode === "anti"
-        ? "color-mix(in oklch, var(--anomaly) 35%, transparent)"
-        : mode === "left" || mode === "full"
-          ? "color-mix(in oklch, var(--chart-2) 32%, transparent)"
-          : "color-mix(in oklch, var(--chart-2) 10%, transparent)";
-  const fillR =
-    mode === "full"
-      ? "color-mix(in oklch, var(--primary) 28%, transparent)"
-      : "color-mix(in oklch, var(--primary) 10%, transparent)";
-  const fillM =
-    mode === "anti"
-      ? "transparent"
-      : mode
-        ? "color-mix(in oklch, var(--ok) 38%, transparent)"
-        : "color-mix(in oklch, var(--foreground) 6%, transparent)";
-
   return (
-    <div className="flex flex-col items-center gap-2">
-      <svg viewBox="0 0 220 92" className="h-[4.6rem] w-full max-w-xs" aria-hidden>
-        <circle cx="78" cy="46" r="38" fill={fillL} stroke="var(--chart-2)" strokeWidth="2" />
-        <circle cx="142" cy="46" r="38" fill={fillR} stroke="var(--primary)" strokeWidth="2" />
-        <ellipse cx="110" cy="46" rx="18" ry="32" fill={fillM} />
-        <text x="58" y="50" textAnchor="middle" fontSize="9" className="fill-muted-foreground">
+    <div className={cn("join-arena relative flex flex-col items-center gap-2", mode && `join-mode-${mode}`)}>
+      <svg viewBox="0 0 260 140" className="h-[9.5rem] w-full max-w-md" aria-hidden>
+        <circle className="join-l" cx="92" cy="70" r="54" stroke="var(--chart-2)" strokeWidth="2.4" />
+        <circle className="join-r" cx="168" cy="70" r="54" stroke="var(--primary)" strokeWidth="2.4" />
+        <ellipse className="join-m" cx="130" cy="70" rx="26" ry="46" />
+        <text x="68" y="74" textAnchor="middle" fontSize="11" className="fill-muted-foreground">
           {leftLabel}
         </text>
-        <text x="162" y="50" textAnchor="middle" fontSize="9" className="fill-muted-foreground">
+        <text x="192" y="74" textAnchor="middle" fontSize="11" className="fill-muted-foreground">
           {rightLabel}
         </text>
       </svg>
+      {chips?.length ? (
+        <div className="join-chips pointer-events-none absolute inset-x-[18%] top-[28%] flex flex-wrap items-center justify-center gap-1.5">
+          {chips.map((chip, i) => (
+            <span key={`${chip}-${i}`} className="join-chip" style={{ animationDelay: `${i * 70}ms` }}>
+              {chip}
+            </span>
+          ))}
+        </div>
+      ) : null}
       <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
         {leftCount} + {rightCount}
-        {typeof outCount === "number" ? ` → ${outCount} ligne${outCount > 1 ? "s" : ""}` : ""}
+        {typeof outCount === "number" ? ` → ${outCount} ligne${outCount > 1 ? "s" : ""}` : " · glisse une lentille"}
       </p>
     </div>
   );
