@@ -618,9 +618,11 @@ export function FunnelShape({
 export function RawSeries({
   values,
   labels,
+  caption,
 }: {
   values: number[];
   labels?: string[];
+  caption?: string;
 }) {
   const max = Math.max(...values, 1);
   return (
@@ -639,7 +641,7 @@ export function RawSeries({
         </div>
       ))}
       <p className="pointer-events-none absolute inset-x-0 top-2 text-center font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-        données brutes · choisis un outil
+        {caption}
       </p>
     </div>
   );

@@ -139,6 +139,7 @@ export type PlayUi = {
   stripHint: string;
   boomDock: (n: number) => string;
   jobEmpty: string;
+  rawPick: string;
 };
 
 const punchFr: Record<GameSlug, Punch> = {
@@ -329,6 +330,7 @@ export const PLAY_UI: Record<Locale, PlayUi> = {
     stripHint: "Touche ce qui n’est pas une clé ni une mesure.",
     boomDock: (n) => `Explosion au quai ${n}.`,
     jobEmpty: "Tas vide — lance le run.",
+    rawPick: "données brutes · choisis un outil",
   },
   en: {
     punch: punchEn,
@@ -482,6 +484,7 @@ export const PLAY_UI: Record<Locale, PlayUi> = {
     stripHint: "Tap what is neither a key nor a measure.",
     boomDock: (n) => `Boom at dock ${n}.`,
     jobEmpty: "Pile empty — run it.",
+    rawPick: "raw data · pick a tool",
   },
 };
 

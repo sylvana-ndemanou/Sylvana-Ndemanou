@@ -89,7 +89,15 @@ export function CountdownOverlay({
         beat === "go" && "countdown-go",
         `countdown-${beat}`
       )}
-      onClick={beat === "go" ? onGo : undefined}
+      onClick={
+        beat === "go"
+          ? (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onGo();
+            }
+          : undefined
+      }
     >
       <span className="countdown-kicker">{beat === "go" ? t.lobby.start : t.lobby.ready}</span>
       <span key={label} className="countdown-num">

@@ -342,7 +342,7 @@ export function GraphiqueGame({ onFinish }: { onFinish: (score: number) => void 
               points={round.points}
             />
           ) : (
-            <RawSeries values={round.values} labels={round.labels} />
+            <RawSeries values={round.values} labels={round.labels} caption={playI18n.ui.rawPick} />
           )}
         </DropSlot>
         <div className={cn("scene-opts mt-4 grid gap-2", tools.length <= 2 ? "grid-cols-2" : "grid-cols-4")}>

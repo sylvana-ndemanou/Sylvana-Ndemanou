@@ -99,7 +99,7 @@ function makeDashboards(count: number, rng: () => number, difficulty: Difficulty
         question: pack.red?.question ?? ui.memoire.qRed,
         options: shuffleUnique([worst.label, ...kpis.filter((k) => k.label !== worst.label).map((k) => k.label)]).slice(0, cap),
         answer: worst.label,
-        lesson: "On mémorise d'abord ce qui va mal. En comité, c'est souvent le seul chiffre qu'on te redemandera.",
+        lesson: pack.red?.lesson ?? "On mémorise d'abord ce qui va mal. En comité, c'est souvent le seul chiffre qu'on te redemandera.",
       }),
       () => ({
         kpis,
@@ -123,7 +123,7 @@ function makeDashboards(count: number, rng: () => number, difficulty: Difficulty
           fmt(Math.round(ca * 1.08), "€", locale),
         ]).slice(0, cap),
         answer: kpis[0].value,
-        lesson: "L'ordre de grandeur compte plus que le centime. Si tu te trompes d'un zéro, le reste du dashboard est décoratif.",
+        lesson: pack.ca?.lesson ?? "L'ordre de grandeur compte plus que le centime. Si tu te trompes d'un zéro, le reste du dashboard est décoratif.",
       }),
       () => ({
         kpis,
@@ -131,7 +131,7 @@ function makeDashboards(count: number, rng: () => number, difficulty: Difficulty
         question: pack.filter2?.question ?? ui.memoire.qFilter,
         options: shuffleUnique([filter, ...hardFilters.filter((f) => f !== filter), "France"]).slice(0, cap),
         answer: filter,
-        lesson: "Un KPI sans filtre, c'est une moyenne qui ment. Le grain et le segment, c'est la moitié de la vérité.",
+        lesson: pack.filter2?.lesson ?? "Un KPI sans filtre, c'est une moyenne qui ment. Le grain et le segment, c'est la moitié de la vérité.",
       }),
       () => ({
         kpis,
@@ -139,7 +139,7 @@ function makeDashboards(count: number, rng: () => number, difficulty: Difficulty
         question: pack.best2?.question ?? ui.memoire.qBest,
         options: shuffleUnique([best.label, ...kpis.filter((k) => k.label !== best.label).map((k) => k.label)]).slice(0, cap),
         answer: best.label,
-        lesson: "Une hausse isolée n'est pas une stratégie. Note-la, puis demande : volume, mix, ou prix ?",
+        lesson: pack.best2?.lesson ?? "Une hausse isolée n'est pas une stratégie. Note-la, puis demande : volume, mix, ou prix ?",
       }),
       () => ({
         kpis,
@@ -147,7 +147,7 @@ function makeDashboards(count: number, rng: () => number, difficulty: Difficulty
         question: pack.red?.question ?? ui.memoire.qRed,
         options: shuffleUnique([worst.label, ...kpis.filter((k) => k.label !== worst.label).map((k) => k.label)]).slice(0, cap),
         answer: worst.label,
-        lesson: "On mémorise d'abord ce qui va mal. En comité, c'est souvent le seul chiffre qu'on te redemandera.",
+        lesson: pack.red?.lesson ?? "On mémorise d'abord ce qui va mal. En comité, c'est souvent le seul chiffre qu'on te redemandera.",
       }),
       () => ({
         kpis,
@@ -160,7 +160,7 @@ function makeDashboards(count: number, rng: () => number, difficulty: Difficulty
           fmt(conv + convGap * 1.4, "%", locale),
         ]).slice(0, cap),
         answer: kpis[1]?.value ?? fmt(conv, "%", locale),
-        lesson: "Les taux se ressemblent. D'où l'intérêt d'ancrer un ordre de grandeur avant de parler de +0,2 point.",
+        lesson: pack.conv?.lesson ?? "Les taux se ressemblent. D'où l'intérêt d'ancrer un ordre de grandeur avant de parler de +0,2 point.",
       }),
     ];
 

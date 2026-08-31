@@ -3,7 +3,8 @@
 
 import { SignalLink } from "@s/components/signal-link";
 import { ArrowLeft } from "lucide-react";
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { GameLobby } from "@s/components/game-lobby";
 import { BoardCapture } from "@s/components/ranked-board";
 import { Button } from "@s/components/ui/button";
@@ -292,17 +293,34 @@ export function QuestionBeat({
   const { t, locale } = useI18n();
   const session = usePlaySession();
   const ui = PLAY_UI[locale];
+  const armed = useRef(false);
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
+    setMounted(true);
+    armed.current = false;
     play("tick");
-    const id = window.setTimeout(onGo, 4200);
-    return () => window.clearTimeout(id);
+    const arm = window.setTimeout(() => {
+      armed.current = true;
+    }, 520);
+    const id = window.setTimeout(onGo, 4500);
+    return () => {
+      window.clearTimeout(arm);
+      window.clearTimeout(id);
+    };
   }, [onGo, question]);
-  return (
+
+  function skip() {
+    if (!armed.current) return;
+    onGo();
+  }
+
+  const node = (
     <button
       type="button"
-      onClick={onGo}
+      onClick={skip}
       className={cn(
-        "question-beat mx-auto flex min-h-[52vh] w-full max-w-xl flex-col items-center justify-center px-4 text-center",
+        "question-beat question-beat-veil",
         session.slug && `question-beat-${session.slug}`
       )}
     >
@@ -320,6 +338,8 @@ export function QuestionBeat({
       </span>
     </button>
   );
+
+  return mounted ? createPortal(node, document.body) : null;
 }
 
 export function PlayStage({
