@@ -1,6 +1,6 @@
 "use client";
 
-import { GameMark } from "@s/components/game-previews";
+import { PlayMark } from "@s/components/game-previews";
 import {
   hydrateMute,
   play,
@@ -72,8 +72,14 @@ export function SignalNavItem({
   const pathname = usePathname();
   const copy = signalCopy(locale);
   const [open, setOpen] = useState(false);
+  const [track, setTrack] = useState<GameTrack | null>(null);
   const rootRef = useRef<HTMLLIElement>(null);
   const leaveTimer = useRef<number | null>(null);
+
+  function closeMenu() {
+    setOpen(false);
+    setTrack(null);
+  }
 
   function cancelLeave() {
     if (leaveTimer.current != null) {
@@ -84,11 +90,11 @@ export function SignalNavItem({
 
   function scheduleLeave() {
     cancelLeave();
-    leaveTimer.current = window.setTimeout(() => setOpen(false), 120);
+    leaveTimer.current = window.setTimeout(closeMenu, 120);
   }
 
   useEffect(() => {
-    setOpen(false);
+    closeMenu();
   }, [pathname]);
 
   useEffect(() => {
@@ -100,12 +106,12 @@ export function SignalNavItem({
   useEffect(() => {
     if (!open) return;
     function onKey(event: KeyboardEvent) {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") closeMenu();
     }
     function onPointer(event: PointerEvent) {
       if (!(event.target instanceof Node)) return;
       if (rootRef.current?.contains(event.target)) return;
-      setOpen(false);
+      closeMenu();
     }
     document.addEventListener("keydown", onKey);
     document.addEventListener("pointerdown", onPointer);
@@ -116,6 +122,7 @@ export function SignalNavItem({
   }, [open]);
 
   const tracks: GameTrack[] = ["bi", "data", "snowflake"];
+  const trayGames = track ? GAMES.filter((game) => game.track === track) : [];
 
   return (
     <li
@@ -171,51 +178,71 @@ export function SignalNavItem({
         }`}
         onPointerEnter={cancelLeave}
       >
-                <div className="bg-background border-foreground/8 w-max max-w-[min(92vw,28rem)] overflow-visible rounded-[1.35rem] border p-2 shadow-sm sm:max-w-[min(92vw,38rem)]">
-          {tracks.map((id) => {
-            const games = GAMES.filter((game) => game.track === id);
-            return (
-              <section key={id} className="px-1 py-1.5">
-                <p className="px-3 pb-1 font-mono text-[10px] tracking-[0.18em] text-foreground/45 uppercase">
+        <div className={`bg-background border-foreground/8 w-max max-w-[min(92vw,40rem)] overflow-visible border p-1.5 shadow-sm ${
+            track ? "rounded-[1.75rem]" : "rounded-full"
+          }`}
+        >
+          <div className="flex items-center justify-center">
+            {tracks.map((id) => {
+              const on = track === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  role="menuitem"
+                  aria-expanded={on}
+                  aria-controls="signal-nav-tray-games"
+                  onPointerEnter={() => {
+                    if (canHover()) setTrack(id);
+                  }}
+                  onFocus={() => setTrack(id)}
+                  onClick={() => {
+                    play("tap");
+                    setTrack(id);
+                  }}
+                  className={`focus-ring relative inline-flex h-8 cursor-pointer items-center justify-center rounded-full px-3 text-[13px] font-medium transition-colors sm:px-4 sm:text-sm ${
+                    on
+                      ? "bg-foreground/5 text-foreground ring-1 ring-foreground/8"
+                      : "text-foreground/60 hover:text-foreground"
+                  }`}
+                >
                   {copy.tracks[id].kicker}
-                </p>
-                <ul className="flex flex-wrap items-center">
-                  {games.map((game) => {
-                    const href = `/signal/play/${game.slug}`;
-                    const current =
-                      pathname === href || pathname.startsWith(`${href}/`);
-                    return (
-                      <li key={game.slug} className="group/play relative">
-                        <Link
-                          href={href}
-                          role="menuitem"
-                          onClick={() => play("tap")}
-                          onPointerEnter={() => {
-                            unlockAudio();
-                            play("hover");
-                          }}
-                          className={`focus-ring group/play relative inline-flex h-8 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium transition-colors sm:px-3 ${
-                            current
-                              ? "text-foreground"
-                              : "text-foreground/60 hover:text-foreground"
-                          }`}
-                        >
-                          <span
-                            aria-hidden
-                            className="nav-signal-mark grid size-5 place-items-center rounded-[0.35rem] text-[oklch(0.16_0.04_122)]"
-                            style={{ background: game.accent }}
-                          >
-                            <GameMark slug={game.slug} live />
-                          </span>
-                          {copy.games[game.slug].name}
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </section>
-            );
-          })}
+                </button>
+              );
+            })}
+          </div>
+          {trayGames.length > 0 ? (
+            <ul
+              id="signal-nav-tray-games"
+              className="mt-1 flex items-center justify-center px-1 pb-0.5"
+            >
+              {trayGames.map((game) => {
+                const href = `/signal/play/${game.slug}`;
+                const current = pathname === href || pathname.startsWith(`${href}/`);
+                return (
+                  <li key={game.slug} className="group/play relative">
+                    <Link
+                      href={href}
+                      role="menuitem"
+                      onClick={() => play("tap")}
+                      onPointerEnter={() => {
+                        unlockAudio();
+                        play("hover");
+                      }}
+                      className={`focus-ring relative inline-flex h-8 items-center rounded-full px-2.5 text-[13px] font-medium transition-colors sm:px-3 ${
+                        current
+                          ? "text-foreground"
+                          : "text-foreground/60 hover:text-foreground"
+                      }`}
+                    >
+                      {copy.games[game.slug].name}
+                    </Link>
+                    <PlayMark game={game} />
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
         </div>
       </div>
     </li>

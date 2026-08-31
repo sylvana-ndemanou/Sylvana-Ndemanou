@@ -63,6 +63,7 @@ export function PortfolioNav() {
   const playing = playSlug ? getGame(playSlug) : undefined;
   const home = pathname === "/";
   const [open, setOpen] = useState<GameTrack | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState<GameTrack | null>(null);
   const signalRef = useRef<HTMLLIElement>(null);
   const trayRef = useRef<HTMLDivElement>(null);
@@ -79,6 +80,7 @@ export function PortfolioNav() {
 
   useEffect(() => {
     setOpen(null);
+    setMenuOpen(false);
     clear();
   }, [pathname, clear]);
 
@@ -119,15 +121,17 @@ export function PortfolioNav() {
   }, [home]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!menuOpen) return;
     function down(event: PointerEvent) {
       if (!(event.target instanceof Node) || isHot(event.target)) return;
       setOpen(null);
+      setMenuOpen(false);
       clear();
     }
     function onKey(event: KeyboardEvent) {
       if (event.key !== "Escape") return;
       setOpen(null);
+      setMenuOpen(false);
       clear();
     }
     document.addEventListener("pointerdown", down);
@@ -136,7 +140,7 @@ export function PortfolioNav() {
       document.removeEventListener("pointerdown", down);
       document.removeEventListener("keydown", onKey);
     };
-  }, [open, clear]);
+  }, [menuOpen, clear]);
 
   useEffect(() => {
     return () => {
@@ -165,17 +169,19 @@ export function PortfolioNav() {
     cancelLeave();
     leaveTimer.current = window.setTimeout(() => {
       setOpen(null);
+      setMenuOpen(false);
       clear();
     }, 80);
   }
 
-  function openMenu(track: GameTrack = preferred) {
+  function openMenu() {
     cancelLeave();
-    setOpen((prev) => prev ?? track);
+    setMenuOpen(true);
   }
 
   function pickTrack(id: GameTrack) {
     play("tap");
+    setMenuOpen(true);
     setOpen(id);
     if (home) {
       document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -221,13 +227,14 @@ export function PortfolioNav() {
                     href="/"
                     data-tab="signal"
                     aria-current="page"
-                    aria-expanded={open !== null}
+                    aria-expanded={menuOpen}
                     aria-controls="signal-tray"
                     onClick={(event) => {
                       if (home && !canHover()) {
                         event.preventDefault();
-                        if (open) {
+                        if (menuOpen) {
                           setOpen(null);
+                          setMenuOpen(false);
                           clear();
                         } else {
                           openMenu();
@@ -267,15 +274,16 @@ export function PortfolioNav() {
           ref={trayRef}
           className={cn(
             "absolute top-full left-1/2 z-10 origin-top pt-2 -translate-x-1/2 transition duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]",
-            open ? "visible opacity-100" : "invisible pointer-events-none opacity-0"
+            menuOpen ? "visible opacity-100" : "invisible pointer-events-none opacity-0"
           )}
           onPointerEnter={cancelLeave}
         >
           <div
             id="signal-tray"
             className={cn(
-              "liquid-glass relative w-max max-w-[min(92vw,42rem)] overflow-visible rounded-[1.75rem] p-2 pb-3",
-              open && "glass-melt"
+              "liquid-glass relative w-max max-w-[min(92vw,42rem)] overflow-visible p-1.5",
+              open ? "rounded-[1.75rem]" : "rounded-full",
+              menuOpen && "glass-melt"
             )}
           >
             <div ref={tracksRef} className="relative z-10 flex items-center justify-center">
@@ -297,7 +305,10 @@ export function PortfolioNav() {
                   aria-controls="signal-tray-games"
                   onClick={() => pickTrack(track.id)}
                   onPointerEnter={() => {
-                    if (canHover()) setOpen(track.id);
+                    if (canHover()) {
+                      setMenuOpen(true);
+                      setOpen(track.id);
+                    }
                   }}
                   className={cn("nav-link nav-link-quiet relative z-10", open === track.id && "text-foreground")}
                 >
@@ -305,34 +316,36 @@ export function PortfolioNav() {
                 </button>
               ))}
             </div>
-            <ul
-              id="signal-tray-games"
-              className="relative z-10 mt-1 flex items-center justify-center gap-0 px-1"
-            >
-              {trayGames.map((game, i) => {
-                const active = game.slug === playing?.slug;
-                const hot = game.slug === hoverSlug;
-                const copy = t.games[game.slug];
-                return (
-                  <li
-                    key={game.slug}
-                    className={cn("group/play relative shrink-0", hot && "is-play-hot")}
-                    style={{ animationDelay: `${40 + i * 45}ms` }}
-                  >
-                    <SignalLink
-                      href={`/play/${game.slug}`}
-                      onClick={() => play("tap")}
-                      onPointerEnter={() => enter(game.slug)}
-                      onPointerLeave={() => leave(game.slug)}
-                      className={cn("nav-link tray-game", (active || hot) && "nav-link-on")}
+            {trayGames.length > 0 ? (
+              <ul
+                id="signal-tray-games"
+                className="relative z-10 mt-1 flex items-center justify-center gap-0 px-1"
+              >
+                {trayGames.map((game, i) => {
+                  const active = game.slug === playing?.slug;
+                  const hot = game.slug === hoverSlug;
+                  const copy = t.games[game.slug];
+                  return (
+                    <li
+                      key={game.slug}
+                      className={cn("group/play relative shrink-0", hot && "is-play-hot")}
+                      style={{ animationDelay: `${40 + i * 45}ms` }}
                     >
-                      {copy.name}
-                    </SignalLink>
-                    <PlayMark game={game} />
-                  </li>
-                );
-              })}
-            </ul>
+                      <SignalLink
+                        href={`/play/${game.slug}`}
+                        onClick={() => play("tap")}
+                        onPointerEnter={() => enter(game.slug)}
+                        onPointerLeave={() => leave(game.slug)}
+                        className={cn("nav-link tray-game", (active || hot) && "nav-link-on")}
+                      >
+                        {copy.name}
+                      </SignalLink>
+                      <PlayMark game={game} />
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : null}
           </div>
         </div>
       </div>
