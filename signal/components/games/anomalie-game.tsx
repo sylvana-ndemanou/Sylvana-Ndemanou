@@ -7,7 +7,7 @@ import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/ga
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
 import type { Difficulty } from "@s/lib/play";
-import { heat, scaleByHeat, takeDeck } from "@s/lib/play";
+import { lerp, takeDeck } from "@s/lib/play";
 import { scoreLine } from "@s/lib/feedback";
 
 type Round = {
@@ -22,6 +22,29 @@ type Round = {
 };
 
 type Spec = Omit<Round, "values" | "labels" | "answer"> & { tier: Difficulty };
+
+function along(
+  difficulty: Difficulty,
+  round: number,
+  total: number,
+  easy: readonly [number, number],
+  hard: readonly [number, number],
+  brutal: readonly [number, number]
+) {
+  const t = total <= 1 ? 0 : Math.min(1, round / (total - 1));
+  const pair = difficulty === "easy" ? easy : difficulty === "hard" ? hard : brutal;
+  return lerp(pair[0], pair[1], t);
+}
+
+function uniqueExtremum(values: number[], answer: number, kind: "spike" | "dip", minGap: number) {
+  if (kind === "spike") {
+    const othersMax = Math.max(...values.filter((_, i) => i !== answer));
+    if (values[answer] < othersMax + minGap) values[answer] = othersMax + minGap;
+    return;
+  }
+  const othersMin = Math.min(...values.filter((_, i) => i !== answer));
+  values[answer] = Math.max(3, Math.min(values[answer], othersMin - minGap));
+}
 
 function makeRounds(rng: () => number, difficulty: Difficulty, total: number): Round[] {
   const specs: Spec[] = [
@@ -132,27 +155,35 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
   ];
 
   return takeDeck(specs, difficulty).map((spec, round) => {
-    const h = heat(difficulty, round, total);
-    const n = Math.round(scaleByHeat(5, 16, h));
+    const n = Math.round(along(difficulty, round, total, [5, 7], [9, 12], [13, 16]));
     const labels = weekLabels(n);
-    const start = 40 + round * 8 + Math.round(rng() * 12);
-    const slope = spec.kind === "break" ? 0.4 : 1.2 + round * 0.15;
-    const noise = scaleByHeat(0.35, 7.4, h);
+    const start = 42 + round * 6 + Math.round(rng() * 10);
+    const slope =
+      spec.kind === "break"
+        ? along(difficulty, round, total, [0.15, 0.1], [0.35, 0.22], [0.4, 0.28])
+        : along(difficulty, round, total, [0.35, 0.55], [1.05, 1.55], [1.3, 1.9]);
+    const noise = along(difficulty, round, total, [0.7, 1.4], [3.4, 5.8], [7.2, 11]);
     const values = Array.from({ length: n }, (_, i) => {
       const trend = start + slope * i;
-      return Math.max(4, Math.round(trend + (rng() - 0.5) * noise));
+      return Math.max(4, Math.round(trend + (rng() - 0.5) * 2 * noise));
     });
-    const margin = Math.round(scaleByHeat(2, 3, h));
-    const answer = margin + Math.floor(rng() * Math.max(1, n - margin * 2));
-    const subtlety = scaleByHeat(1.15, 0.07, h);
+    const edge = difficulty === "easy" ? 1 : 2;
+    const answer = edge + Math.floor(rng() * Math.max(1, n - edge * 2));
+    const lift = along(difficulty, round, total, [0.88, 0.64], [0.22, 0.13], [0.1, 0.055]);
+    const minGap = Math.max(
+      2,
+      Math.round(start * along(difficulty, round, total, [0.38, 0.28], [0.1, 0.07], [0.045, 0.03]))
+    );
     if (spec.kind === "spike") {
-      values[answer] = Math.round(values[answer] * (1 + subtlety));
+      values[answer] = Math.round(values[answer] * (1 + lift));
+      uniqueExtremum(values, answer, "spike", minGap);
     } else if (spec.kind === "dip") {
-      values[answer] = Math.max(3, Math.round(values[answer] * (1 - subtlety)));
+      values[answer] = Math.max(3, Math.round(values[answer] * (1 - lift)));
+      uniqueExtremum(values, answer, "dip", minGap);
     } else {
-      const lift = start * scaleByHeat(0.58, 0.09, h);
+      const step = Math.round(start * along(difficulty, round, total, [0.5, 0.38], [0.15, 0.1], [0.075, 0.045]));
       for (let i = answer; i < n; i += 1) {
-        values[i] = Math.round(values[i] + lift);
+        values[i] = Math.round(values[i] + step);
       }
     }
     return { ...spec, values, labels, answer };
@@ -183,7 +214,7 @@ export function AnomalieGame({ onFinish }: { onFinish: (score: number) => void }
       : "Où est l’intrus ?";
   const helpers = {
     showValues: difficulty === "easy",
-    showMean: difficulty !== "brutal",
+    showMean: difficulty === "easy",
   };
 
   function pick(i: number) {
@@ -256,7 +287,7 @@ export function AnomalieGame({ onFinish }: { onFinish: (score: number) => void }
         />
       ) : (
         <p className="mt-8 text-center text-sm text-muted-foreground">
-          Unité : {round.unit}. {difficulty === "brutal" ? "Compare barre à barre." : "Touche une barre."}
+          Unité : {round.unit}. {difficulty === "easy" ? "Touche une barre." : "Compare barre à barre."}
         </p>
       )}
     </GameShell>
