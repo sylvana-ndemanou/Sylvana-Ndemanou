@@ -1548,6 +1548,11 @@
   -webkit-backdrop-filter: blur(18px) saturate(1.4);
 }
 
+.countdown-armed {
+  pointer-events: none;
+  cursor: default;
+}
+
 .countdown-kicker {
   font-family: var(--font-instrument), ui-serif, Georgia, serif;
   font-size: 1.15rem;
