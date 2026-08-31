@@ -305,7 +305,7 @@ export function PipelineGame({ onFinish }: { onFinish: (score: number) => void }
   }
 
   return (
-    <GameShell slug="pipeline" round={index} total={total} score={score} maxScore={maxScore}>
+    <GameShell slug="pipeline" round={index} total={total} score={score} maxScore={maxScore} briefContext={scenario.name} briefQuestion={playI18n.ui.pipelineQ}>
       <RoundHeader
         context={scenario.name}
         question={held ? playI18n.ui.pipelineHeld(held) : playI18n.ui.pipelineQ}

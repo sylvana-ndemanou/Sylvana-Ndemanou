@@ -319,7 +319,7 @@ export function GraphiqueGame({ onFinish }: { onFinish: (score: number) => void 
   }
 
   return (
-    <GameShell slug="graphique" round={index} total={total} score={score} maxScore={maxScore}>
+    <GameShell slug="graphique" round={index} total={total} score={score} maxScore={maxScore} briefContext={round.context} briefQuestion={round.question}>
       <RoundHeader context={round.context} question={round.question} />
       <PlayStage slug="graphique" className="mt-5">
         <DragBoard

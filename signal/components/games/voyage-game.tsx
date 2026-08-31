@@ -335,7 +335,7 @@ export function VoyageGame({ onFinish }: { onFinish: (score: number) => void }) 
   }
 
   return (
-    <GameShell slug="voyage" round={index} total={total} score={score} maxScore={maxScore}>
+    <GameShell slug="voyage" round={index} total={total} score={score} maxScore={maxScore} briefContext={round.context} briefQuestion={round.question}>
       <RoundHeader context={round.context} question={round.question} />
       <PlayStage slug="voyage" className="mt-6">
         <VoyageTram

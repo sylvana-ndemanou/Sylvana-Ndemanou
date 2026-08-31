@@ -308,7 +308,7 @@ export function FluxGame({ onFinish }: { onFinish: (score: number) => void }) {
   }
 
   return (
-    <GameShell slug="flux" round={index} total={total} score={score} maxScore={maxScore}>
+    <GameShell slug="flux" round={index} total={total} score={score} maxScore={maxScore} briefContext={round.context} briefQuestion={round.question}>
       <RoundHeader context={round.context} question={round.question} />
       <PlayStage slug="flux" className="mt-6">
       <div className="flex flex-col items-center">

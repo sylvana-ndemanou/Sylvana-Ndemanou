@@ -290,7 +290,7 @@ export function BruitGame({ onFinish }: { onFinish: (score: number) => void }) {
   }
 
   return (
-    <GameShell slug="bruit" round={index} total={total} score={score} maxScore={maxScore}>
+    <GameShell slug="bruit" round={index} total={total} score={score} maxScore={maxScore} briefContext={round.title} briefQuestion={playI18n.ui.bruitQ}>
       <RoundHeader context={round.title} question={playI18n.ui.bruitQ} />
       <PlayStage slug="bruit" className="mt-6">
       <DragBoard

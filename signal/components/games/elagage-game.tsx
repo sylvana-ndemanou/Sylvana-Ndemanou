@@ -314,7 +314,7 @@ export function ElagageGame({ onFinish }: { onFinish: (score: number) => void })
   }
 
   return (
-    <GameShell slug="elagage" round={index} total={total} score={score} maxScore={maxScore}>
+    <GameShell slug="elagage" round={index} total={total} score={score} maxScore={maxScore} briefContext={round.context} briefQuestion={playI18n.ui.elagage.question}>
       <RoundHeader context={round.context} question={playI18n.ui.elagage.question} />
       <PlayStage slug="elagage" className="mt-4">
       <p className="rounded-xl border border-border bg-card px-3 py-2 font-mono text-xs text-signal">{round.sql}</p>

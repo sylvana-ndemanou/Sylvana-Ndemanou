@@ -418,7 +418,7 @@ export function MemoireGame({ onFinish }: { onFinish: (score: number) => void })
   }
 
   return (
-    <GameShell slug="memoire" round={index} total={total} score={score} maxScore={maxScore}>
+    <GameShell slug="memoire" round={index} total={total} score={score} maxScore={maxScore} briefContext={round.filter} briefQuestion={round.question}>
       <PlayStage slug="memoire" className="mt-2">
       {mode === "flash" ? (
         <>

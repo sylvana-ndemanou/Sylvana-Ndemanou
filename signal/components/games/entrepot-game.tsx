@@ -389,7 +389,7 @@ export function EntrepotGame({ onFinish }: { onFinish: (score: number) => void }
   }
 
   return (
-    <GameShell slug="entrepot" round={index} total={total} score={score} maxScore={maxScore}>
+    <GameShell slug="entrepot" round={index} total={total} score={score} maxScore={maxScore} briefContext={round.context} briefQuestion={round.question}>
       <RoundHeader context={round.context} question={round.question} />
       <PlayStage slug="entrepot" className="mt-6">
       <div className="grid gap-5 sm:grid-cols-[1fr_auto]">

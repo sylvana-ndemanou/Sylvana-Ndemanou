@@ -337,7 +337,7 @@ export function AnomalieGame({ onFinish }: { onFinish: (score: number) => void }
   }
 
   return (
-    <GameShell slug="anomalie" round={index} total={total} score={score} maxScore={maxScore}>
+    <GameShell slug="anomalie" round={index} total={total} score={score} maxScore={maxScore} briefContext={round.title} briefQuestion={question}>
       <RoundHeader context={round.title} question={question} />
       <PlayStage slug="anomalie" className="mt-8">
         <BarChart

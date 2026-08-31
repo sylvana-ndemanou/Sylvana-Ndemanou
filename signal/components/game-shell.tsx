@@ -27,6 +27,8 @@ export function GameShell({
   maxScore,
   children,
   footer,
+  briefContext,
+  briefQuestion,
 }: {
   slug?: GameSlug;
   title?: string;
@@ -36,11 +38,19 @@ export function GameShell({
   maxScore: number;
   children: ReactNode;
   footer?: ReactNode;
+  briefContext?: string;
+  briefQuestion?: string;
 }) {
   const { t } = useI18n();
   const heading = title ?? (slug ? t.games[slug].name : "");
   const session = usePlaySession();
   const pressure = heat(session.difficulty, round, total);
+  const briefKey = `${round}::${briefQuestion ?? ""}`;
+  const [veil, setVeil] = useState({ key: briefKey, open: Boolean(briefQuestion) });
+  if (briefQuestion && veil.key !== briefKey) {
+    setVeil({ key: briefKey, open: true });
+  }
+  const briefing = Boolean(briefQuestion && veil.open);
   useEffect(() => {
     setAudioPalette(session.slug);
     return () => setAudioPalette(null);
@@ -107,7 +117,15 @@ export function GameShell({
         key={round}
         className="scene-round mx-auto flex w-full max-w-3xl flex-1 flex-col overflow-y-auto px-4 py-6 sm:px-6"
       >
-        {children}
+        {briefing ? (
+          <QuestionBeat
+            context={briefContext}
+            question={briefQuestion}
+            onGo={() => setVeil((s) => ({ ...s, open: false }))}
+          />
+        ) : (
+          children
+        )}
       </div>
       {footer ? <div className="px-4 pb-8 sm:px-8">{footer}</div> : null}
     </div>

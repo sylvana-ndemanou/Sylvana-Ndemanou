@@ -390,7 +390,7 @@ export function GrainGame({ onFinish }: { onFinish: (score: number) => void }) {
   }
 
   return (
-    <GameShell slug="grain" round={index} total={total} score={score} maxScore={maxScore}>
+    <GameShell slug="grain" round={index} total={total} score={score} maxScore={maxScore} briefContext={round.context} briefQuestion={round.question}>
       <RoundHeader context={round.context} question={round.question} />
       <PlayStage slug="grain" className="mt-5">
       <div>

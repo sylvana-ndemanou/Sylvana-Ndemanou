@@ -288,7 +288,7 @@ export function CloneGame({ onFinish }: { onFinish: (score: number) => void }) {
   }
 
   return (
-    <GameShell slug="clone" round={index} total={total} score={score} maxScore={maxScore}>
+    <GameShell slug="clone" round={index} total={total} score={score} maxScore={maxScore} briefContext={round.context} briefQuestion={round.question}>
       <RoundHeader context={round.context} question={round.question} />
       <PlayStage slug="clone" className="mt-6">
       <div>

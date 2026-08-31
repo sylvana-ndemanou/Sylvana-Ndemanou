@@ -262,7 +262,7 @@ export function EntonnoirGame({ onFinish }: { onFinish: (score: number) => void 
   }
 
   return (
-    <GameShell slug="entonnoir" round={index} total={total} score={score} maxScore={maxScore}>
+    <GameShell slug="entonnoir" round={index} total={total} score={score} maxScore={maxScore} briefContext={scenario.name} briefQuestion={playI18n.ui.funnelQ}>
       <RoundHeader context={scenario.name} question={playI18n.ui.funnelQ} />
       <p className="mt-1 text-center font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
         {playI18n.ui.funnelFloors(n)}

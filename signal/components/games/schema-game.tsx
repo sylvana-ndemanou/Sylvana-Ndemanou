@@ -340,7 +340,7 @@ export function SchemaGame({ onFinish }: { onFinish: (score: number) => void }) 
   }
 
   return (
-    <GameShell slug="schema" round={index} total={total} score={score} maxScore={maxScore}>
+    <GameShell slug="schema" round={index} total={total} score={score} maxScore={maxScore} briefContext={round.context} briefQuestion={round.question}>
       <RoundHeader context={round.context} question={round.question} />
       <PlayStage slug="schema" className="mt-2">
       {round.kind === "star" ? <StarPlay locked={locked} onLock={lock} /> : null}
