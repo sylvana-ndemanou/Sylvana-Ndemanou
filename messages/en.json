@@ -9,7 +9,9 @@
     "switchToDark": "Switch to dark theme",
     "language": "Language",
     "switchToEnglish": "Switch to English",
-    "switchToFrench": "Passer en français"
+    "switchToFrench": "Passer en français",
+    "mute": "Mute sound",
+    "unmute": "Unmute sound"
   },
   "Hero": {
     "greeting": "Hi, I’m Sylvana",

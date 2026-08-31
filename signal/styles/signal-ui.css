@@ -1164,12 +1164,31 @@
 
 .chart-stage {
   padding-top: 0.75rem;
+  padding-bottom: 0.15rem;
+}
+
+.chart-plot {
+  border-radius: 0.85rem 0.85rem 0.2rem 0.2rem;
+  background:
+    linear-gradient(180deg, color-mix(in oklch, var(--background) 0%, transparent), transparent 40%),
+    linear-gradient(var(--grid-line) 1px, transparent 1px);
+  background-size: auto, 100% 24px;
+  padding: 0.35rem 0.4rem 0;
+}
+
+.chart-axis {
+  min-height: 1.1rem;
+}
+
+.chart-axis-dense {
+  font-size: 0.5625rem;
 }
 
 .bar-body {
   box-shadow:
-    inset 0 1px 0 color-mix(in oklch, white 28%, transparent),
-    0 8px 18px color-mix(in oklch, var(--primary) 18%, transparent);
+    inset 0 1px 0 color-mix(in oklch, white 42%, transparent),
+    inset 0 -8px 10px color-mix(in oklch, black 10%, transparent),
+    0 10px 18px color-mix(in oklch, var(--primary) 22%, transparent);
 }
 
 .bar-value {
@@ -1544,6 +1563,9 @@
   cursor: default;
   overflow: hidden;
   background-color: var(--background);
+  background-image: none;
+  isolation: isolate;
+  opacity: 1;
 }
 
 .countdown-go {
@@ -1808,6 +1830,91 @@
 
 .group\/card:hover .preview-join-r {
   animation: mark-join-r 1.2s ease-in-out infinite;
+}
+
+.funnel-preview-band {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.35rem;
+  margin-block: 1px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklch, var(--chart-3) 88%, white) 0%,
+    color-mix(in oklch, var(--chart-3) 70%, transparent) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 35%),
+    0 6px 12px -8px oklch(0.3 0.04 118 / 0.45);
+  color: var(--foreground);
+  font-family: ui-monospace, monospace;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+}
+
+.funnel-preview-leak {
+  display: block;
+  width: 1px;
+  height: 0.35rem;
+  background: color-mix(in oklch, var(--anomaly) 55%, transparent);
+}
+
+.funnel-band {
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 28%),
+    0 10px 18px -12px oklch(0.28 0.04 118 / 0.4);
+}
+
+.memoire-preview .memoire-tile {
+  box-shadow:
+    0 8px 16px -12px oklch(0.3 0.04 118 / 0.4),
+    inset 0 1px 0 oklch(1 0 0 / 40%);
+  filter: blur(0.35px);
+  transition: filter 0.4s ease, transform 0.4s ease;
+}
+
+.group\/card:hover .memoire-tile {
+  filter: blur(1.15px);
+  transform: scale(0.985);
+}
+
+.nav-signal-mark {
+  box-shadow: 0 4px 10px -6px oklch(0.28 0.04 118 / 0.55);
+}
+
+.nav-signal-mark svg {
+  width: 13px;
+  height: 13px;
+}
+
+.group\/play:hover .nav-signal-mark,
+.group\/play:focus-visible .nav-signal-mark {
+  transform: translateY(-1px) scale(1.08);
+}
+
+.group\/play:hover .nav-signal-mark .mark-live,
+.group\/play:focus-visible .nav-signal-mark .mark-live {
+  animation: play-mark-float 1.4s ease-in-out infinite;
+}
+
+.game-card {
+  box-shadow:
+    0 18px 40px -24px oklch(0.35 0.04 118 / 0.28),
+    inset 0 1px 0 oklch(1 0 0 / 55%);
+}
+
+.preview-frame {
+  background: var(--preview-stage);
+  box-shadow: inset 0 12px 24px -18px oklch(0.28 0.04 118 / 0.28);
+}
+
+.lock-dock {
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    color-mix(in oklch, var(--background) 92%, transparent) 38%,
+    var(--background) 100%
+  );
 }
 
 @media (prefers-reduced-motion: reduce) {

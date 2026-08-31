@@ -274,7 +274,7 @@ export function GameMark({ slug, live = false }: { slug: GameSlug; live?: boolea
 
 export function GamePreview({ slug, className }: { slug: GameSlug; className?: string }) {
   return (
-    <div className={cn("preview-frame relative h-40 overflow-hidden rounded-b-3xl", className)}>
+    <div className={cn("preview-frame relative h-40 min-w-0 overflow-hidden rounded-b-3xl", className)}>
       <div className="preview-stage absolute inset-0">
         {slug === "anomalie" && <AnomalieStage />}
         {slug === "graphique" && <GraphiqueStage />}
@@ -385,23 +385,32 @@ function GraphiqueStage() {
 
 function EntonnoirStage() {
   const steps = [
-    { w: "92%", label: "visite" },
-    { w: "70%", label: "panier" },
-    { w: "48%", label: "paiement" },
-    { w: "28%", label: "achat" },
+    { w: 100, label: "visite" },
+    { w: 78, label: "panier" },
+    { w: 52, label: "paiement" },
+    { w: 28, label: "achat" },
   ];
   return (
-    <div className="flex h-full flex-col justify-center gap-1.5 px-5 py-3">
-      <p className="mb-1 font-mono text-[9px] uppercase tracking-[0.16em] text-signal">entonnoir</p>
-      {steps.map((step) => (
-        <div key={step.label} className="flex items-center gap-2">
-          <div
-            className="h-4 rounded-sm bg-chart-3/85 transition-colors duration-500 group-hover/card:bg-chart-3"
-            style={{ width: step.w }}
-          />
-          <span className="shrink-0 font-mono text-[9px] text-muted-foreground">{step.label}</span>
-        </div>
-      ))}
+    <div className="funnel-preview flex h-full flex-col items-center justify-center px-5 py-3">
+      <p className="mb-2 font-mono text-[9px] uppercase tracking-[0.16em] text-signal">entonnoir</p>
+      <div className="flex w-full max-w-[13.5rem] flex-col items-center">
+        {steps.map((step, i) => (
+          <div key={step.label} className="funnel-preview-row relative flex w-full flex-col items-center">
+            {i > 0 ? <span className="funnel-preview-leak" /> : null}
+            <div
+              className="funnel-preview-band"
+              style={{
+                width: `${step.w}%`,
+                clipPath: i === steps.length - 1
+                  ? "polygon(8% 0, 92% 0, 78% 100%, 22% 100%)"
+                  : "polygon(0 0, 100% 0, 88% 100%, 12% 100%)",
+              }}
+            >
+              <span>{step.label}</span>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -414,12 +423,12 @@ function MemoireStage() {
     { k: "NPS", v: "31", d: "+4" },
   ];
   return (
-    <div className="grid h-full grid-cols-2 gap-2 p-3">
+    <div className="memoire-preview grid h-full grid-cols-2 gap-2 p-3">
       {tiles.map((t, i) => (
         <div
           key={t.k}
-          className="rounded-xl border border-border bg-background/70 px-2.5 py-2 transition duration-300 group-hover/card:blur-[2px] group-hover/card:scale-[0.98]"
-          style={{ transitionDelay: `${i * 40}ms` }}
+          className="memoire-tile rounded-xl border border-border/80 bg-background/80 px-2.5 py-2"
+          style={{ animationDelay: `${i * 40}ms` }}
         >
           <p className="text-[9px] uppercase tracking-wider text-muted-foreground">{t.k}</p>
           <p className="font-heading text-lg leading-none">{t.v}</p>
@@ -432,27 +441,38 @@ function MemoireStage() {
 
 function BruitStage() {
   return (
-    <div className="flex h-full flex-col px-4 py-3">
+    <div className="bruit-preview flex h-full flex-col px-3 py-3">
       <div className="mb-1 flex items-center justify-between">
         <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-signal">série</p>
         <p className="font-mono text-[9px] text-muted-foreground">fenêtre · saison</p>
       </div>
-      <svg viewBox="0 0 280 100" className="min-h-0 w-full flex-1">
+      <svg viewBox="0 0 280 108" className="min-h-0 w-full flex-1">
+        {[28, 52, 76].map((y) => (
+          <line key={y} x1="12" x2="268" y1={y} y2={y} stroke="var(--grid-line)" strokeWidth="1" />
+        ))}
         <rect
           x="148"
-          y="10"
-          width="70"
+          y="14"
+          width="72"
           height="80"
-          rx="8"
-          className="fill-primary/12 stroke-primary/45 transition-all duration-500 group-hover/card:fill-chart-3/20 group-hover/card:stroke-chart-3"
+          rx="10"
+          className="fill-primary/14 stroke-primary/50 transition-all duration-500 group-hover/card:fill-chart-3/22 group-hover/card:stroke-chart-3"
+        />
+        <path
+          d="M12 64 C 36 56, 48 46, 70 48 S 110 72, 140 40 S 190 22, 210 34 S 250 70, 268 58"
+          fill="color-mix(in oklch, var(--primary) 16%, transparent)"
         />
         <path
           d="M12 64 C 36 56, 48 46, 70 48 S 110 72, 140 40 S 190 22, 210 34 S 250 70, 268 58"
           fill="none"
           stroke="var(--primary)"
-          strokeWidth="2.4"
+          strokeWidth="2.6"
           strokeLinecap="round"
         />
+        <circle cx="184" cy="28" r="3.2" fill="var(--primary)" />
+        <text x="156" y="102" fontSize="8" className="fill-muted-foreground">
+          S16–S20
+        </text>
       </svg>
     </div>
   );
@@ -460,21 +480,33 @@ function BruitStage() {
 
 function SchemaStage() {
   return (
-    <div className="flex h-full flex-col px-4 py-3">
-      <p className="mb-2 font-mono text-[9px] uppercase tracking-[0.16em] text-signal">étoile</p>
-      <div className="grid min-h-0 flex-1 grid-cols-3 grid-rows-3 place-items-center gap-1">
-        <span />
-        <span className="rounded-md bg-chart-2/25 px-2 py-1 font-mono text-[10px]">date</span>
-        <span />
-        <span className="rounded-md bg-chart-2/25 px-2 py-1 font-mono text-[10px]">magasin</span>
-        <span className="rounded-lg bg-primary px-2.5 py-1.5 font-mono text-[10px] text-primary-foreground shadow-sm">
+    <div className="schema-preview relative flex h-full items-center justify-center px-3 py-2">
+      <svg viewBox="0 0 220 140" className="h-full w-full">
+        <line x1="110" y1="28" x2="110" y2="58" stroke="var(--chart-2)" strokeWidth="1.6" />
+        <line x1="110" y1="82" x2="110" y2="112" stroke="var(--chart-2)" strokeWidth="1.6" />
+        <line x1="48" y1="70" x2="84" y2="70" stroke="var(--chart-2)" strokeWidth="1.6" />
+        <line x1="136" y1="70" x2="172" y2="70" stroke="var(--chart-2)" strokeWidth="1.6" />
+        <rect x="86" y="58" width="48" height="24" rx="7" fill="var(--primary)" />
+        <text x="110" y="74" textAnchor="middle" fontSize="9" fill="var(--primary-foreground)">
           fait
-        </span>
-        <span className="rounded-md bg-chart-2/25 px-2 py-1 font-mono text-[10px]">produit</span>
-        <span />
-        <span className="rounded-md bg-chart-2/25 px-2 py-1 font-mono text-[10px]">client</span>
-        <span />
-      </div>
+        </text>
+        <rect x="86" y="10" width="48" height="18" rx="5" fill="color-mix(in oklch, var(--chart-2) 28%, var(--background))" />
+        <text x="110" y="22" textAnchor="middle" fontSize="8" className="fill-foreground">
+          date
+        </text>
+        <rect x="86" y="112" width="48" height="18" rx="5" fill="color-mix(in oklch, var(--chart-2) 28%, var(--background))" />
+        <text x="110" y="124" textAnchor="middle" fontSize="8" className="fill-foreground">
+          client
+        </text>
+        <rect x="8" y="61" width="54" height="18" rx="5" fill="color-mix(in oklch, var(--chart-2) 28%, var(--background))" />
+        <text x="35" y="73" textAnchor="middle" fontSize="8" className="fill-foreground">
+          magasin
+        </text>
+        <rect x="158" y="61" width="54" height="18" rx="5" fill="color-mix(in oklch, var(--chart-2) 28%, var(--background))" />
+        <text x="185" y="73" textAnchor="middle" fontSize="8" className="fill-foreground">
+          produit
+        </text>
+      </svg>
     </div>
   );
 }
@@ -482,15 +514,15 @@ function SchemaStage() {
 function PipelineStage() {
   const layers = ["bronze", "silver", "gold"];
   return (
-    <div className="relative flex h-full items-center justify-center gap-2 px-4">
+    <div className="pipe-preview relative flex h-full items-center justify-center gap-1.5 px-4">
       {layers.map((name, i) => (
-        <div key={name} className="flex items-center gap-2">
+        <div key={name} className="flex items-center gap-1.5">
           <div
             className={cn(
-              "rounded-lg px-3 py-3 font-mono text-[11px] transition-all duration-300",
-              i === 0 && "bg-chart-4/50 group-hover/card:bg-chart-4/80",
-              i === 1 && "bg-chart-3/50 group-hover/card:bg-chart-3/80",
-              i === 2 && "bg-primary/80 text-primary-foreground group-hover/card:bg-primary"
+              "pipe-node rounded-xl px-3 py-3 font-mono text-[11px] shadow-[0_8px_18px_-10px_oklch(0.3_0.04_118_/_0.45)]",
+              i === 0 && "bg-chart-4/55 group-hover/card:bg-chart-4/80",
+              i === 1 && "bg-chart-3/55 group-hover/card:bg-chart-3/80",
+              i === 2 && "bg-primary text-primary-foreground"
             )}
           >
             {name}
@@ -505,17 +537,17 @@ function PipelineStage() {
 
 function JointureStage() {
   return (
-    <div className="flex h-full flex-col items-center justify-center px-4 py-3">
-      <p className="mb-2 font-mono text-[9px] uppercase tracking-[0.16em] text-signal">inner join</p>
-      <div className="relative h-[7.2rem] w-[13.5rem]">
-        <span className="preview-join-l absolute left-3 top-2 size-[6.4rem] rounded-full border-2 border-chart-2/80 bg-chart-2/20" />
-        <span className="preview-join-r absolute right-3 top-2 size-[6.4rem] rounded-full border-2 border-primary/80 bg-primary/20" />
+    <div className="join-preview flex h-full flex-col items-center justify-center px-4 py-3">
+      <p className="mb-1 font-mono text-[9px] uppercase tracking-[0.16em] text-signal">inner join</p>
+      <div className="relative h-[7.4rem] w-[13.2rem]">
+        <span className="preview-join-l absolute left-2 top-2 size-[6.6rem] rounded-full border-2 border-chart-2/80 bg-chart-2/18 shadow-[inset_0_8px_16px_oklch(1_0_0_/_0.18)]" />
+        <span className="preview-join-r absolute right-2 top-2 size-[6.6rem] rounded-full border-2 border-primary/80 bg-primary/18 shadow-[inset_0_8px_16px_oklch(1_0_0_/_0.18)]" />
         <span className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1">
-          <span className="preview-join-chip rounded-full border border-ok/40 bg-ok/20 px-2 py-0.5 font-mono text-[10px]">
+          <span className="preview-join-chip rounded-full border border-ok/40 bg-background/90 px-2 py-0.5 font-mono text-[10px] shadow-sm">
             Léa
           </span>
           <span
-            className="preview-join-chip rounded-full border border-ok/40 bg-ok/20 px-2 py-0.5 font-mono text-[10px]"
+            className="preview-join-chip rounded-full border border-ok/40 bg-background/90 px-2 py-0.5 font-mono text-[10px] shadow-sm"
             style={{ animationDelay: "0.12s" }}
           >
             40 €
@@ -533,22 +565,21 @@ function GrainStage() {
     ["04-02", "A", "9"],
   ];
   return (
-    <div className="flex h-full items-center px-4">
-      <div className="w-full overflow-hidden rounded-xl border border-border font-mono text-[10px]">
-        <div className="grid grid-cols-3 border-b border-border bg-primary/20 text-primary">
-          <span className="px-2 py-1.5 transition-colors group-hover/card:bg-primary group-hover/card:text-primary-foreground">
-            🔑 date
-          </span>
-          <span className="px-2 py-1.5 transition-colors group-hover/card:bg-primary group-hover/card:text-primary-foreground">
-            🔑 sku
-          </span>
-          <span className="px-2 py-1.5">qty</span>
+    <div className="grain-preview flex h-full min-w-0 items-center px-3 py-3">
+      <div className="grid w-full min-w-0 overflow-hidden rounded-xl border border-border bg-background/70 font-mono text-[10px] shadow-[0_10px_24px_-16px_oklch(0.3_0.04_118_/_0.5)]">
+        <div className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)_minmax(0,0.6fr)] border-b border-border bg-primary/18 text-primary">
+          <span className="truncate px-2 py-1.5">🔑 date</span>
+          <span className="truncate px-2 py-1.5">🔑 sku</span>
+          <span className="truncate px-2 py-1.5">qty</span>
         </div>
         {rows.map((row) => (
-          <div key={row.join()} className="grid grid-cols-3 border-b border-border/50 last:border-0">
-            <span className="px-2 py-1 text-primary">{row[0]}</span>
-            <span className="px-2 py-1 text-primary">{row[1]}</span>
-            <span className="px-2 py-1">{row[2]}</span>
+          <div
+            key={row.join()}
+            className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)_minmax(0,0.6fr)] border-b border-border/50 last:border-0"
+          >
+            <span className="truncate px-2 py-1 text-primary">{row[0]}</span>
+            <span className="truncate px-2 py-1 text-primary">{row[1]}</span>
+            <span className="truncate px-2 py-1">{row[2]}</span>
           </div>
         ))}
       </div>

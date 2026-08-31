@@ -27,6 +27,8 @@ export type Messages = {
     projects: string;
     about: string;
     signal: string;
+    menu: string;
+    categories: string;
   };
   hub: {
     lede: string;
@@ -107,6 +109,8 @@ export const MESSAGES: Record<Locale, Messages> = {
       projects: "Projets",
       about: "À propos",
       signal: "Signal",
+      menu: "Menu Signal",
+      categories: "Catégories des jeux",
     },
     hub: {
       lede: "Mini-jeux d’œil, de socle, et de Snowflake. Lire un dashboard, poser un grain, puis entendre un warehouse compter les crédits. Cinq manches. Score sur 50.",
@@ -299,6 +303,8 @@ export const MESSAGES: Record<Locale, Messages> = {
       projects: "Projects",
       about: "About",
       signal: "Signal",
+      menu: "Signal menu",
+      categories: "Game categories",
     },
     hub: {
       lede: "Mini-games for the BI eye, the data stack, and Snowflake. Read a dashboard, set a grain, then hear a warehouse tick credits. Five rounds. Score out of 50.",

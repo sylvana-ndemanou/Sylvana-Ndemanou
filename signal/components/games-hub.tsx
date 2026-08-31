@@ -30,7 +30,7 @@ function GameGrid({ track, scores }: { track: GameTrack; scores: ScoreMap }) {
         return (
           <li
             key={game.slug}
-            className="reveal-up game-card group/card relative z-0 flex flex-col overflow-visible rounded-3xl border border-border bg-card transition duration-300 hover:z-20 hover:-translate-y-1 hover:border-primary/40"
+            className="reveal-up game-card group/card relative z-0 flex min-w-0 flex-col overflow-hidden rounded-3xl border border-border bg-card transition duration-300 hover:z-20 hover:-translate-y-1 hover:border-primary/40"
             style={{ animationDelay: `${i * 70}ms` }}
             onPointerEnter={() => {
               play("grain");
@@ -38,7 +38,7 @@ function GameGrid({ track, scores }: { track: GameTrack; scores: ScoreMap }) {
             }}
             onPointerLeave={() => leave(game.slug)}
           >
-            <div className="relative z-10 flex flex-1 flex-col overflow-visible p-5 pb-9">
+            <div className="relative z-10 flex min-w-0 flex-1 flex-col p-5 pb-9">
               <div className="flex items-center gap-3">
                 <span
                   className="game-mark-tile flex size-11 shrink-0 items-center justify-center text-[oklch(0.16_0.04_122)]"
