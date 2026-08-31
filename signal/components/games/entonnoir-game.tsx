@@ -5,16 +5,18 @@ import { useCallback, useMemo, useState } from "react";
 import { DragBoard, Draggable, DropSlot, shuffle } from "@s/components/drag-kit";
 import { FunnelShape } from "@s/components/mini-charts";
 import { LockBar } from "@s/components/interact";
-import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
+import { GameShell, Intro, PlayStage, QuestionBeat, Result, RoundHeader, Verdict, useBriefRound } from "@s/components/game-shell";
 import { play } from "@s/lib/audio";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
+import { usePlay } from "@s/lib/play-text";
 import { stepCount, takeDeck, awardPartial } from "@s/lib/play";
 import type { Difficulty } from "@s/lib/play";
-import { roundTone, scoreLine } from "@s/lib/feedback";
+import { roundTone } from "@s/lib/feedback";
 import { cn } from "@s/lib/utils";
 
 type Scenario = {
+  id: string;
   tier: Difficulty;
   name: string;
   steps: string[];
@@ -25,6 +27,7 @@ type Scenario = {
 const SCENARIOS: Scenario[] = [
   {
     tier: "easy",
+    id: "boutique",
     name: "Boutique simple",
     steps: ["Visite", "Panier", "Achat"],
     rates: [40, 55],
@@ -32,6 +35,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "easy",
+    id: "newsletter",
     name: "Newsletter",
     steps: ["Envoi", "Ouverture", "Clic"],
     rates: [28, 12],
@@ -39,6 +43,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "easy",
+    id: "app",
     name: "App onboarding",
     steps: ["Install", "Compte", "Premier usage"],
     rates: [62, 48],
@@ -46,6 +51,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "hard",
+    id: "ecom",
     name: "E-commerce",
     steps: ["Visite", "Fiche produit", "Panier", "Paiement", "Achat"],
     rates: [38, 44, 31, 18],
@@ -54,6 +60,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "hard",
+    id: "saas",
     name: "SaaS B2B",
     steps: ["Visite", "Essai", "Activation", "Payant", "Rétention 90j"],
     rates: [12, 41, 28, 22],
@@ -62,6 +69,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "hard",
+    id: "lead",
     name: "Lead gen",
     steps: ["Impression", "Clic", "Formulaire", "MQL", "SQL"],
     rates: [2.4, 18, 35, 40],
@@ -70,6 +78,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "hard",
+    id: "mobile",
     name: "App mobile",
     steps: ["Install", "Onboarding", "J+1", "J+7", "Achat in-app"],
     rates: [62, 48, 33, 9],
@@ -78,6 +87,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "hard",
+    id: "retail",
     name: "Retail omni",
     steps: ["Trafic magasin", "Essayage", "Passage caisse", "Ticket", "Retour 14j"],
     rates: [28, 55, 92, 8],
@@ -86,6 +96,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "brutal",
+    id: "plg",
     name: "PLG + sales-assist",
     steps: ["Visite", "Signup", "Activation", "PQL", "Demo", "Won"],
     rates: [18, 44, 22, 35, 28],
@@ -94,6 +105,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "brutal",
+    id: "market",
     name: "Marketplace deux faces",
     steps: ["Visite acheteur", "Recherche", "Fiche", "Offre", "Paiement", "Livraison", "Avis"],
     rates: [54, 31, 48, 22, 81, 14],
@@ -102,6 +114,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "brutal",
+    id: "abm",
     name: "ABM enterprise",
     steps: ["Compte cible", "Engagement", "MQL", "SAL", "SQL", "Proposal", "Close"],
     rates: [8, 40, 55, 48, 32, 22],
@@ -110,6 +123,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "brutal",
+    id: "viral",
     name: "Growth loop viral",
     steps: ["Invite", "Signup filleul", "Activation", "Invite suivante"],
     rates: [22, 51, 18],
@@ -118,6 +132,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "brutal",
+    id: "support",
     name: "Support → expansion",
     steps: ["Ticket", "Résolu", "CSAT", "Upsell", "Renew"],
     rates: [71, 64, 9, 44],
@@ -140,6 +155,7 @@ function scaleScenario(
 
 export function EntonnoirGame({ onFinish }: { onFinish: (score: number) => void }) {
   const { rounds: total, maxScore, difficulty } = usePlaySession();
+  const playI18n = usePlay("entonnoir");
   const deck = useMemo(
     () => takeDeck(SCENARIOS, difficulty).map((s, i) => scaleScenario(s, difficulty, i, total)),
     [difficulty, total]
@@ -153,21 +169,22 @@ export function EntonnoirGame({ onFinish }: { onFinish: (score: number) => void 
   const [pour, setPour] = useState(false);
   const [points, setPoints] = useState(0);
 
-  const scenario = deck[index];
+  const { brief, go } = useBriefRound(index, phase === "play");
+  const scenario = playI18n.overlay(deck[index]);
   const n = scenario?.steps.length ?? 0;
   const idle = pool.filter((s) => !stack.includes(s));
   const complete = n > 0 && stack.length === n;
 
   const startRound = useCallback(
     (i: number) => {
-      const s = deck[i];
+      const s = playI18n.overlay(deck[i]);
       setPool(shuffle(s.steps));
       setStack([]);
       setLocked(false);
       setPour(false);
       setPoints(0);
     },
-    [deck]
+    [deck, playI18n.locale]
   );
 
   function pushStep(step: string) {
@@ -207,8 +224,7 @@ export function EntonnoirGame({ onFinish }: { onFinish: (score: number) => void 
   if (phase === "intro") {
     return (
       <Intro
-        title="Entonnoir"
-        how="Glisse les étapes dans l’entonnoir, du plus large au plus étroit. Un étage faux, tu le démontes. Ensuite on verse."
+        slug="entonnoir"
         onStart={() => {
           startRound(0);
           setPhase("play");
@@ -220,10 +236,9 @@ export function EntonnoirGame({ onFinish }: { onFinish: (score: number) => void 
   if (phase === "done") {
     return (
       <Result
-        title="Entonnoir"
+        slug="entonnoir"
         score={score}
         max={maxScore}
-        line={scoreLine(score, maxScore)}
         onReplay={() => {
           setPhase("intro");
           setIndex(0);
@@ -238,12 +253,21 @@ export function EntonnoirGame({ onFinish }: { onFinish: (score: number) => void 
       ? scenario.rates.indexOf(Math.min(...scenario.rates)) + 1
       : -1;
 
+  if (brief) {
+    return (
+      <GameShell slug="entonnoir" round={index} total={total} score={score} maxScore={maxScore}>
+        <QuestionBeat context={scenario.name} question={playI18n.ui.funnelQ} onGo={go} />
+      </GameShell>
+    );
+  }
+
   return (
-    <GameShell title="Entonnoir" round={index} total={total} score={score} maxScore={maxScore}>
-      <RoundHeader context={scenario.name} question="Empile le parcours. Le goulot se montre après." />
+    <GameShell slug="entonnoir" round={index} total={total} score={score} maxScore={maxScore}>
+      <RoundHeader context={scenario.name} question={playI18n.ui.funnelQ} />
       <p className="mt-1 text-center font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-        {n} étages · large → étroit
+        {playI18n.ui.funnelFloors(n)}
       </p>
+      <PlayStage slug="entonnoir">
       {locked ? (
         <div className="relative mt-8">
           <FunnelShape steps={scenario.steps} rates={scenario.rates} />
@@ -295,7 +319,7 @@ export function EntonnoirGame({ onFinish }: { onFinish: (score: number) => void 
                     </Draggable>
                   ) : (
                     <span className="font-mono text-[11px] text-muted-foreground">
-                      {si === stack.length ? "dépose ici" : `étage ${si + 1}`}
+                      {si === stack.length ? playI18n.ui.dropHere : playI18n.ui.shelfN(si + 1)}
                     </span>
                   )}
                 </DropSlot>
@@ -303,7 +327,7 @@ export function EntonnoirGame({ onFinish }: { onFinish: (score: number) => void 
             })}
           </DropSlot>
           <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            Étapes en vrac
+            {playI18n.ui.looseSteps}
           </p>
           <div className="mt-2 flex min-h-[4.2rem] flex-wrap gap-2 rounded-2xl border border-dashed border-border bg-muted/40 p-3">
             {idle.map((step) => (
@@ -314,25 +338,29 @@ export function EntonnoirGame({ onFinish }: { onFinish: (score: number) => void 
               </Draggable>
             ))}
             {idle.length === 0 ? (
-              <span className="font-mono text-xs text-muted-foreground">Entonnoir plein — verse.</span>
+              <span className="font-mono text-xs text-muted-foreground">{playI18n.ui.funnelFull}</span>
             ) : null}
           </div>
         </DragBoard>
       )}
+      </PlayStage>
       {locked ? (
         <Verdict
           tone={roundTone(points)}
           title={
             points === POINTS_PER_ROUND
-              ? "Parcours juste."
-              : `${stack.filter((s, i) => s === scenario.steps[i]).length}/${n} étages justes.`
+              ? playI18n.punch(true)
+              : playI18n.ui.partialN(
+                  stack.filter((s, i) => s === scenario.steps[i]).length,
+                  n
+                )
           }
           lesson={scenario.lesson}
           onNext={next}
-          nextLabel={index + 1 >= total ? "Voir le score" : "Manche suivante"}
+          isLast={index + 1 >= total}
         />
       ) : (
-        <LockBar label="Verser le trafic" disabled={!complete} onLock={lockIn} />
+        <LockBar label={playI18n.ui.pour} disabled={!complete} onLock={lockIn} />
       )}
     </GameShell>
   );

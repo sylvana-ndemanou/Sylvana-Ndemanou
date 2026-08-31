@@ -5,12 +5,12 @@ import { useMemo, useRef, useState } from "react";
 import { JoinVenn, MiniTable } from "@s/components/data-glyphs";
 import { DragBoard, Draggable, DropSlot } from "@s/components/drag-kit";
 import { ChoiceTile, LockBar } from "@s/components/interact";
-import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
+import { GameShell, Intro, PlayStage, QuestionBeat, Result, RoundHeader, Verdict, useBriefRound } from "@s/components/game-shell";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
+import { usePlay } from "@s/lib/play-text";
 import { countAlong, takeDeck } from "@s/lib/play";
 import type { Difficulty } from "@s/lib/play";
-import { scoreLine } from "@s/lib/feedback";
 import { cn } from "@s/lib/utils";
 
 type JoinKind = "inner" | "left" | "full" | "anti";
@@ -18,6 +18,7 @@ type JoinKind = "inner" | "left" | "full" | "anti";
 type Table = { name: string; headers: string[]; rows: string[][] };
 
 type Round = {
+  id: string;
   tier: Difficulty;
   context: string;
   question: string;
@@ -39,6 +40,7 @@ const LENSES: { id: JoinKind; label: string; hint: string }[] = [
 const ROUNDS_DATA: Round[] = [
   {
     tier: "easy",
+    id: "inner-known",
     context: "Commandes + clients. On ne veut que les commandes avec un client connu.",
     question: "INNER ou LEFT ? Essaie. Qui disparaît ?",
     left: {
@@ -66,6 +68,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "easy",
+    id: "left-all",
     context: "Tous les clients, même sans commande.",
     question: "Marc n’a rien acheté. Doit-il rester ?",
     left: {
@@ -93,6 +96,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "easy",
+    id: "anti-orphan",
     context: "Trouver la commande sans client — juste le problème.",
     question: "Quelle lentille ne garde que l’orpheline ?",
     left: {
@@ -120,6 +124,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "inner-ca",
     context: "On veut le CA des commandes rattachées à un client connu.",
     question: "Essaie les lentilles. Qui disparaît ?",
     left: {
@@ -160,6 +165,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "left-clients",
     context: "Liste de tous les clients, même ceux sans commande ce mois-ci.",
     question: "En partant des clients : qui doit rester à l’écran ?",
     left: {
@@ -190,6 +196,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "anti-quality",
     context: "Qualité : trouver les commandes orphelines, sans client.",
     question: "Quelle lentille ne garde que le problème ?",
     left: {
@@ -217,6 +224,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "anti-catalog",
     context: "Catalogue : produits jamais vendus ce trimestre.",
     question: "En partant des produits, fais apparaître le stock mort.",
     left: {
@@ -248,6 +256,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "full-promo",
     context: "Deux listes de codes promo : CRM et e-commerce. On ne veut perdre personne.",
     question: "Réconcilie sans faire disparaître une source.",
     left: { name: "crm", headers: ["code"], rows: [["WELCOME"], ["VIP"]] },
@@ -264,6 +273,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "anti-badge",
     context: "Employés vs badges : qui n’a jamais badgé ce mois, pour la sécu.",
     question: "On part des employés. On ne veut QUE les absents.",
     left: {
@@ -295,6 +305,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "full-invoices",
     context: "Factures vs paiements : écarts des deux côtés, à réconcilier.",
     question: "Personne ne doit disparaître. Ni facture orpheline, ni paiement fantôme.",
     left: { name: "factures", headers: ["ref"], rows: [["F-1"], ["F-2"]] },
@@ -311,6 +322,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "left-cohort",
     context: "Cohortes : users signup vs first_purchase. Taux d’activation.",
     question: "Le dénominateur, c’est tous les inscrits. Même ceux à 0 €.",
     left: {
@@ -335,6 +347,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "full-sku",
     context: "SKU web vs SKU ERP : mismatches des deux côtés, pour un data contract.",
     question: "On veut le delta complet, pas seulement « web sans ERP ».",
     left: { name: "web", headers: ["sku"], rows: [["A"], ["B"]] },
@@ -351,6 +364,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "anti-gdpr",
     context: "Emails consentis vs base CRM. RGPD : qui est dans le CRM sans consentement.",
     question: "On part du CRM. On garde ceux SANS match consentement.",
     left: {
@@ -402,6 +416,7 @@ function lensesFor(
 
 export function JointureGame({ onFinish }: { onFinish: (score: number) => void }) {
   const { rounds: total, maxScore, difficulty } = usePlaySession();
+  const playI18n = usePlay("jointure");
   const deck = useMemo(() => takeDeck(ROUNDS_DATA, difficulty), [difficulty]);
   const [phase, setPhase] = useState<"intro" | "play" | "done">("intro");
   const [index, setIndex] = useState(0);
@@ -410,7 +425,8 @@ export function JointureGame({ onFinish }: { onFinish: (score: number) => void }
   const [locked, setLocked] = useState(false);
   const sealed = useRef(false);
 
-  const round = deck[index];
+  const { brief, go } = useBriefRound(index, phase === "play");
+  const round = playI18n.overlay(deck[index]);
   const lenses = round ? lensesFor(difficulty, index, total, round.answer) : LENSES;
   const correct = lens === round?.answer;
   const view = lens ? round.views[lens] : null;
@@ -461,8 +477,7 @@ export function JointureGame({ onFinish }: { onFinish: (score: number) => void }
   if (phase === "intro") {
     return (
       <Intro
-        title="Jointure"
-        how="Glisse une lentille sur le Venn. Les lignes volent dans l’intersection — ou meurent. Retape pour valider."
+        slug="jointure"
         onStart={() => setPhase("play")}
       />
     );
@@ -471,10 +486,9 @@ export function JointureGame({ onFinish }: { onFinish: (score: number) => void }
   if (phase === "done") {
     return (
       <Result
-        title="Jointure"
+        slug="jointure"
         score={score}
         max={maxScore}
-        line={scoreLine(score, maxScore)}
         onReplay={() => {
           setPhase("intro");
           setIndex(0);
@@ -487,12 +501,20 @@ export function JointureGame({ onFinish }: { onFinish: (score: number) => void }
     );
   }
 
+  if (brief) {
+    return (
+      <GameShell slug="jointure" round={index} total={total} score={score} maxScore={maxScore}>
+        <QuestionBeat context={round.context} question={round.question} onGo={go} />
+      </GameShell>
+    );
+  }
+
   return (
-    <GameShell title="Jointure" round={index} total={total} score={score} maxScore={maxScore}>
+    <GameShell slug="jointure" round={index} total={total} score={score} maxScore={maxScore}>
       <RoundHeader context={round.context} question={round.question} />
+      <PlayStage slug="jointure" className="mt-5">
       <DragBoard
         disabled={locked}
-        className="mt-5"
         onDrop={(piece, zone) => {
           if (zone === "join" && LENSES.some((l) => l.id === piece)) pickLens(piece as JoinKind);
         }}
@@ -525,6 +547,8 @@ export function JointureGame({ onFinish }: { onFinish: (score: number) => void }
             rightCount={round.right.rows.length}
             outCount={view?.rows.length}
             chips={chips}
+            hint={playI18n.ui.joinHint}
+            outLabel={playI18n.ui.joinOut}
           />
         </DropSlot>
         <div className={cn("scene-opts mt-4 grid gap-2", lenses.length <= 2 ? "grid-cols-2" : "grid-cols-4")}>
@@ -532,7 +556,7 @@ export function JointureGame({ onFinish }: { onFinish: (score: number) => void }
             <Draggable key={l.id} id={l.id} label={l.label} disabled={locked}>
               <ChoiceTile
                 title={l.label}
-                hint={l.hint}
+                hint={playI18n.ui.joins[l.id]}
                 selected={lens === l.id}
                 locked={locked}
                 isAnswer={l.id === round.answer}
@@ -548,22 +572,23 @@ export function JointureGame({ onFinish }: { onFinish: (score: number) => void }
       {view ? (
         <div key={lens} className="table-in mt-4">
           <MiniTable
-            name={`résultat · ${view.name} · ${view.rows.length} ligne${view.rows.length > 1 ? "s" : ""}`}
+            name={playI18n.ui.joinResult(view.name, view.rows.length)}
             headers={view.headers}
             rows={view.rows}
           />
         </div>
       ) : null}
+      </PlayStage>
       {locked ? (
         <Verdict
           tone={correct ? "ok" : "miss"}
-          title={correct ? "Les bonnes lignes." : "Mauvais match."}
+          title={playI18n.punch(correct)}
           lesson={correct ? round.ok : round.miss}
           onNext={next}
-          nextLabel={index + 1 >= total ? "Voir le score" : "Manche suivante"}
+          isLast={index + 1 >= total}
         />
       ) : (
-        <LockBar disabled={!lens} label="Garder cette lentille" onLock={lockIn} />
+        <LockBar disabled={!lens} label={playI18n.ui.keepLens} onLock={lockIn} />
       )}
     </GameShell>
   );

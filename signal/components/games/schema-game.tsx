@@ -5,18 +5,19 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { DragBoard, Draggable, DropSlot } from "@s/components/drag-kit";
 import { LockBar } from "@s/components/interact";
-import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
+import { GameShell, Intro, PlayStage, QuestionBeat, Result, RoundHeader, Verdict, useBriefRound } from "@s/components/game-shell";
 import { Button } from "@s/components/ui/button";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
+import { usePlay } from "@s/lib/play-text";
 import { countAlong, takeDeck } from "@s/lib/play";
 import type { Difficulty } from "@s/lib/play";
-import { scoreLine } from "@s/lib/feedback";
 import { play, unlockAudio } from "@s/lib/audio";
 import { cn } from "@s/lib/utils";
 
 type Round =
   | {
+      id: string;
       tier: Difficulty;
       kind: "star";
       context: string;
@@ -25,6 +26,7 @@ type Round =
       miss: string;
     }
   | {
+      id: string;
       tier: Difficulty;
       kind: "park";
       context: string;
@@ -36,6 +38,7 @@ type Round =
       miss: string;
     }
   | {
+      id: string;
       tier: Difficulty;
       kind: "scd";
       context: string;
@@ -44,6 +47,7 @@ type Round =
       miss: string;
     }
   | {
+      id: string;
       tier: Difficulty;
       kind: "strip";
       context: string;
@@ -57,6 +61,7 @@ const ROUNDS_DATA: Round[] = [
   {
     tier: "easy",
     kind: "star",
+    id: "star",
     context: "Un petit dashboard CA. Date, magasin, produit autour d’un fait.",
     question: "Glisse les pièces. Le fait au centre, les dimensions autour.",
     ok: "L’étoile : un fait, des dimensions. Même en Facile, le CA ne vit pas dans dim_magasin.",
@@ -65,6 +70,7 @@ const ROUNDS_DATA: Round[] = [
   {
     tier: "easy",
     kind: "park",
+    id: "park",
     context: "La caisse encaissse. Où vit le ticket ?",
     question: "Glisse le ticket : écrire, ou lire ?",
     token: "ticket caisse",
@@ -79,6 +85,7 @@ const ROUNDS_DATA: Round[] = [
   {
     tier: "easy",
     kind: "scd",
+    id: "scd",
     context: "Léa déménage. Les commandes de 2023 doivent rester Lyon.",
     question: "Touche la fiche. Tu vas voir ce que ça fait aux commandes passées.",
     ok: "Type 2 : nouvelle version. Écraser l’adresse réécrit le passé.",
@@ -87,6 +94,7 @@ const ROUNDS_DATA: Round[] = [
   {
     tier: "hard",
     kind: "star",
+    id: "star-hard",
     context: "Un dashboard CA quotidien. Dimensions : date, magasin, produit, client.",
     question: "Glisse les pièces. Le fait au centre, les dimensions autour.",
     ok: "L’étoile est faite pour ça : un fait au bon grain, des dimensions autour. Les jointures restent prévisibles.",
@@ -95,6 +103,7 @@ const ROUNDS_DATA: Round[] = [
   {
     tier: "hard",
     kind: "park",
+    id: "park-oltp",
     context: "Caisse magasin. Des milliers d’écritures à la minute, besoin d’intégrité.",
     question: "Glisse le ticket là où le système d’enregistrement doit vivre.",
     token: "ticket caisse",
@@ -111,6 +120,7 @@ const ROUNDS_DATA: Round[] = [
   {
     tier: "hard",
     kind: "scd",
+    id: "scd-hard",
     context: "Léa déménage. Les commandes de 2023 doivent rester « Lyon », 2024 « Nantes ».",
     question: "Touche la fiche. Tu vas voir ce que ça fait aux commandes passées.",
     ok: "Type 2 : nouvelle version, valid_from / valid_to. Le fait pointe la bonne ligne. L’historique reste honnête.",
@@ -119,6 +129,7 @@ const ROUNDS_DATA: Round[] = [
   {
     tier: "hard",
     kind: "park",
+    id: "gold",
     context: "Medallion : Bronze brut, Silver conforme, Gold consommable.",
     question: "Glisse le mart « CA par magasin » sur la bonne couche.",
     token: "mart CA magasin",
@@ -135,6 +146,7 @@ const ROUNDS_DATA: Round[] = [
   {
     tier: "hard",
     kind: "strip",
+    id: "strip",
     context: "Quelqu’un a collé des libellés dans fact_ventes.",
     question: "Arrache les colonnes qui n’ont rien à faire dans un fait.",
     columns: [
@@ -151,6 +163,7 @@ const ROUNDS_DATA: Round[] = [
   {
     tier: "brutal",
     kind: "park",
+    id: "bronze",
     context: "CDC brut qui atterrit. Où le poser avant toute transformation ?",
     token: "topic Kafka commandes",
     question: "Glisse le flux. Le Bronze n’est pas un mart.",
@@ -167,6 +180,7 @@ const ROUNDS_DATA: Round[] = [
   {
     tier: "brutal",
     kind: "strip",
+    id: "pii",
     context: "Wide table « analytics_events » : 40 colonnes, dont du PII.",
     question: "Arrache tout ce qui n’est pas mesure ou clé. Le PII ne vit pas dans le fait.",
     columns: [
@@ -185,6 +199,7 @@ const ROUNDS_DATA: Round[] = [
   {
     tier: "brutal",
     kind: "scd",
+    id: "scd-segment",
     context: "Léa change de segment (VIP) sans changer d’adresse. Les campagnes passées doivent rester « standard ».",
     question: "Même geste. Le segment est historisé, pas juste l’adresse.",
     ok: "Type 2 sur le segment aussi. Un attribut « qui change le reporting » se versionne.",
@@ -193,6 +208,7 @@ const ROUNDS_DATA: Round[] = [
   {
     tier: "brutal",
     kind: "park",
+    id: "feature-store",
     context: "Un data scientist veut un feature store hors contrat BI.",
     token: "table features churn",
     question: "Où vit un feature store ? Pas dans le Gold dashboard.",
@@ -209,6 +225,7 @@ const ROUNDS_DATA: Round[] = [
   {
     tier: "brutal",
     kind: "star",
+    id: "fact-in-dim",
     context: "Le métier a collé le CA dans dim_produit « pour aller plus vite ».",
     question: "Remets l’étoile honnête. Le fait au centre, les dimensions autour.",
     ok: "Le CA n’habite pas une dimension. Deux grains collés, tu vas sommer un libellé. L’étoile refuse ça.",
@@ -256,6 +273,7 @@ function scaleSchema(round: Round, difficulty: Difficulty, roundIndex: number, t
 
 export function SchemaGame({ onFinish }: { onFinish: (score: number) => void }) {
   const { rounds: total, maxScore, difficulty } = usePlaySession();
+  const playI18n = usePlay("schema");
   const deck = useMemo(
     () => takeDeck(ROUNDS_DATA, difficulty).map((item, i) => scaleSchema(item, difficulty, i, total)),
     [difficulty, total]
@@ -266,7 +284,8 @@ export function SchemaGame({ onFinish }: { onFinish: (score: number) => void }) 
   const [locked, setLocked] = useState(false);
   const [ok, setOk] = useState(false);
 
-  const round = deck[index];
+  const { brief, go } = useBriefRound(index, phase === "play");
+  const round = playI18n.overlay(deck[index]);
 
   function lock(correct: boolean) {
     if (locked) return;
@@ -289,8 +308,7 @@ export function SchemaGame({ onFinish }: { onFinish: (score: number) => void }) 
   if (phase === "intro") {
     return (
       <Intro
-        title="Schéma"
-        how="Tu glisses le fait au centre, tu poses un ticket sur l’OLTP, tu versionnes Léa. Le modèle se construit avec les mains."
+        slug="schema"
         onStart={() => setPhase("play")}
       />
     );
@@ -299,10 +317,9 @@ export function SchemaGame({ onFinish }: { onFinish: (score: number) => void }) 
   if (phase === "done") {
     return (
       <Result
-        title="Schéma"
+        slug="schema"
         score={score}
         max={maxScore}
-        line={scoreLine(score, maxScore)}
         onReplay={() => {
           setPhase("intro");
           setIndex(0);
@@ -314,20 +331,30 @@ export function SchemaGame({ onFinish }: { onFinish: (score: number) => void }) 
     );
   }
 
+  if (brief) {
+    return (
+      <GameShell slug="schema" round={index} total={total} score={score} maxScore={maxScore}>
+        <QuestionBeat context={round.context} question={round.question} onGo={go} />
+      </GameShell>
+    );
+  }
+
   return (
-    <GameShell title="Schéma" round={index} total={total} score={score} maxScore={maxScore}>
+    <GameShell slug="schema" round={index} total={total} score={score} maxScore={maxScore}>
       <RoundHeader context={round.context} question={round.question} />
+      <PlayStage slug="schema" className="mt-2">
       {round.kind === "star" ? <StarPlay locked={locked} onLock={lock} /> : null}
       {round.kind === "park" ? <ParkPlay round={round} locked={locked} onLock={lock} /> : null}
       {round.kind === "scd" ? <ScdPlay locked={locked} onLock={lock} /> : null}
       {round.kind === "strip" ? <StripPlay round={round} locked={locked} onLock={lock} /> : null}
+      </PlayStage>
       {locked ? (
         <Verdict
           tone={ok ? "ok" : "miss"}
-          title={ok ? "Ça tient." : "Mauvais modèle."}
+          title={ok ? playI18n.punch(true) : playI18n.punch(false)}
           lesson={ok ? round.ok : round.miss}
           onNext={next}
-          nextLabel={index + 1 >= total ? "Voir le score" : "Manche suivante"}
+          isLast={index + 1 >= total}
         />
       ) : null}
     </GameShell>
@@ -335,6 +362,7 @@ export function SchemaGame({ onFinish }: { onFinish: (score: number) => void }) 
 }
 
 function StarPlay({ locked, onLock }: { locked: boolean; onLock: (ok: boolean) => void }) {
+  const playI18n = usePlay("schema");
   const [slots, setSlots] = useState<Record<string, string | null>>({
     n: null,
     w: null,
@@ -457,7 +485,7 @@ function StarPlay({ locked, onLock }: { locked: boolean; onLock: (ok: boolean) =
           lifting && "pointer-events-none opacity-20"
         )}
       >
-        {id}
+        {playI18n.ui.schemaChips[id] ?? id}
       </div>
     );
   }
@@ -487,7 +515,7 @@ function StarPlay({ locked, onLock }: { locked: boolean; onLock: (ok: boolean) =
         <span className="pointer-events-none font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
           {label}
         </span>
-        {chip ? <Piece id={chip} /> : <span className="pointer-events-none font-mono text-[10px] text-muted-foreground">dépose ici</span>}
+        {chip ? <Piece id={chip} /> : <span className="pointer-events-none font-mono text-[10px] text-muted-foreground">{playI18n.ui.dropHere}</span>}
       </div>
     );
   }
@@ -496,13 +524,13 @@ function StarPlay({ locked, onLock }: { locked: boolean; onLock: (ok: boolean) =
     <div className="mt-6">
       <div className="grid grid-cols-3 place-items-center gap-2">
         <span />
-        <Slot id="n" label="dim" tone="dim" />
+        <Slot id="n" label={playI18n.ui.schemaDim} tone="dim" />
         <span />
-        <Slot id="w" label="dim" tone="dim" />
-        <Slot id="fact" label="fait" tone="fact" />
-        <Slot id="e" label="dim" tone="dim" />
+        <Slot id="w" label={playI18n.ui.schemaDim} tone="dim" />
+        <Slot id="fact" label={playI18n.ui.schemaFact} tone="fact" />
+        <Slot id="e" label={playI18n.ui.schemaDim} tone="dim" />
         <span />
-        <Slot id="s" label="dim" tone="dim" />
+        <Slot id="s" label={playI18n.ui.schemaDim} tone="dim" />
         <span />
       </div>
       <div
@@ -516,10 +544,10 @@ function StarPlay({ locked, onLock }: { locked: boolean; onLock: (ok: boolean) =
           <Piece key={c.id} id={c.id} />
         ))}
         {tray.length === 0 ? (
-          <span className="font-mono text-xs text-muted-foreground">Étoile complète — valide.</span>
+          <span className="font-mono text-xs text-muted-foreground">{playI18n.ui.starFull}</span>
         ) : (
           <span className="basis-full text-center font-mono text-[11px] text-muted-foreground">
-            Attrape une pièce, glisse-la, dépose-la sur DIM ou FAIT.
+            {playI18n.ui.starHint}
           </span>
         )}
       </div>
@@ -530,7 +558,7 @@ function StarPlay({ locked, onLock }: { locked: boolean; onLock: (ok: boolean) =
               className="pointer-events-none fixed z-[90] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-primary bg-primary px-3 py-2 font-mono text-sm text-primary-foreground shadow-2xl"
               style={{ left: drag.x, top: drag.y }}
             >
-              {drag.id}
+              {playI18n.ui.schemaChips[drag.id] ?? drag.id}
             </div>,
             document.body
           )
@@ -606,6 +634,7 @@ function ParkPlay({
 }
 
 function ScdPlay({ locked, onLock }: { locked: boolean; onLock: (ok: boolean) => void }) {
+  const playI18n = usePlay("schema");
   const [mode, setMode] = useState<"idle" | "t1" | "t2">("idle");
   const overwrite = mode === "t1";
   const versioned = mode === "t2";
@@ -614,7 +643,7 @@ function ScdPlay({ locked, onLock }: { locked: boolean; onLock: (ok: boolean) =>
     <div className="mt-6 space-y-4">
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-2xl border border-border bg-card p-4">
-          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">dim_client</p>
+          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{playI18n.ui.scdDim}</p>
           {mode === "idle" || overwrite ? (
             <p className="mt-2 font-heading text-2xl">Léa · {overwrite ? "Nantes" : "Lyon"}</p>
           ) : (
@@ -630,15 +659,15 @@ function ScdPlay({ locked, onLock }: { locked: boolean; onLock: (ok: boolean) =>
             overwrite ? "border-anomaly bg-anomaly/10" : "border-border bg-card"
           )}
         >
-          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">fait commandes 2023</p>
+          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{playI18n.ui.scdFact}</p>
           <p className={cn("mt-2 font-heading text-2xl", overwrite && "text-anomaly")}>
             12 commandes · {overwrite ? "Nantes ?" : "Lyon"}
           </p>
           {overwrite ? (
-            <p className="mt-1 text-xs text-anomaly">Le passé vient d’être réécrit.</p>
+            <p className="mt-1 text-xs text-anomaly">{playI18n.ui.scdRewrite}</p>
           ) : null}
           {versioned ? (
-            <p className="mt-1 text-xs text-ok">Le fait pointe encore v1. L’histoire tient.</p>
+            <p className="mt-1 text-xs text-ok">{playI18n.ui.scdHold}</p>
           ) : null}
         </div>
       </div>
@@ -652,7 +681,7 @@ function ScdPlay({ locked, onLock }: { locked: boolean; onLock: (ok: boolean) =>
             onLock(false);
           }}
         >
-          Écraser l’adresse
+          {playI18n.ui.scdOverwrite}
         </Button>
         <Button
           variant="outline"
@@ -663,7 +692,7 @@ function ScdPlay({ locked, onLock }: { locked: boolean; onLock: (ok: boolean) =>
             onLock(true);
           }}
         >
-          Nouvelle version
+          {playI18n.ui.scdVersion}
         </Button>
       </div>
     </div>
@@ -679,6 +708,7 @@ function StripPlay({
   locked: boolean;
   onLock: (ok: boolean) => void;
 }) {
+  const playI18n = usePlay("schema");
   const [picked, setPicked] = useState<string[]>([]);
   const junk = round.columns.filter((c) => c.junk).map((c) => c.name);
   const correct =
@@ -710,7 +740,7 @@ function StripPlay({
           );
         })}
       </div>
-      <p className="mt-3 text-center text-xs text-muted-foreground">Touche ce qui n’est pas une clé ni une mesure.</p>
+      <p className="mt-3 text-center text-xs text-muted-foreground">{playI18n.ui.stripHint}</p>
       <LockBar disabled={locked || picked.length === 0} onLock={() => onLock(correct)} />
     </div>
   );

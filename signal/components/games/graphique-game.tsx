@@ -5,15 +5,16 @@ import { useMemo, useRef, useState } from "react";
 import { LiveSketch, MiniChartGlyph, RawSeries, type ChartKind } from "@s/components/mini-charts";
 import { DragBoard, Draggable, DropSlot } from "@s/components/drag-kit";
 import { LockBar } from "@s/components/interact";
-import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
+import { GameShell, Intro, PlayStage, QuestionBeat, Result, RoundHeader, Verdict, useBriefRound } from "@s/components/game-shell";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
+import { usePlay } from "@s/lib/play-text";
 import { optionCapAt, takeDeck } from "@s/lib/play";
 import type { Difficulty } from "@s/lib/play";
-import { scoreLine } from "@s/lib/feedback";
 import { cn } from "@s/lib/utils";
 
 type Round = {
+  id: string;
   tier: Difficulty;
   question: string;
   context: string;
@@ -30,6 +31,7 @@ type Round = {
 const ROUNDS_DATA: Round[] = [
   {
     tier: "easy",
+    id: "ca-months",
     question: "Le CA monte-t-il, mois après mois ?",
     context: "Un film, pas une photo. L’outil doit raconter le temps.",
     tools: ["line", "pie"],
@@ -41,6 +43,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "easy",
+    id: "region",
     question: "Quelle région pèse le plus, ce trimestre ?",
     context: "Quatre barres, un classement. Pas de temps.",
     tools: ["bar", "line"],
@@ -52,6 +55,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "easy",
+    id: "mix-3",
     question: "Comment se répartit le CA entre 3 produits — cette année ?",
     context: "Peu de parts, un instant T. Le camembert a le droit d’exister.",
     tools: ["pie", "line"],
@@ -63,6 +67,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "ca-12",
     question: "Comment le CA a-t-il évolué sur 12 mois ?",
     context: "Tourne les outils. Tu vas voir lequel raconte la pente — et lequel la cache.",
     tools: ["line", "pie", "bar", "scatter"],
@@ -74,6 +79,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "region-q",
     question: "Quelle région pèse le plus dans le CA ce trimestre ?",
     context: "Quatre régions. Une photo, pas un film. Change d’outil.",
     tools: ["line", "bar", "scatter", "pie"],
@@ -85,6 +91,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "cac-mix",
     question: "De quoi est composé le coût d'acquisition, mois après mois ?",
     context: "Mix ads / affiliation / organique. Fais tourner. Le mix doit rester visible.",
     tools: ["pie", "stack", "scatter", "line"],
@@ -100,6 +107,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "basket-nps",
     question: "Le panier moyen monte-t-il avec la satisfaction ?",
     context: "Chaque point est un client. Cherche un nuage, pas un total.",
     tools: ["bar", "pie", "scatter", "area"],
@@ -122,6 +130,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "cash",
     question: "Le stock de trésorerie, mois après mois — on veut le volume sous la courbe.",
     context: "Pas juste la pente : l’aire compte. C’est une réserve, pas un ranking.",
     tools: ["area", "bar", "pie", "scatter"],
@@ -133,6 +142,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "cac-ltv",
     question: "CAC vs LTV, par cohorte. Y a-t-il seulement un lien ?",
     context: "Deux métriques continues. Pas de temps, pas de parts. Le piège, c’est la courbe.",
     tools: ["scatter", "line", "bar", "area"],
@@ -153,6 +163,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "mix-evo",
     question: "Mix paid / CRM / organique — et l’évolution du total, ensemble.",
     context: "Le total bouge, le mix aussi. Un seul dessin doit porter les deux.",
     tools: ["stack", "area", "line", "pie"],
@@ -168,6 +179,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "sku-11",
     question: "Parts de 11 catégories SKU, ce mois-ci seulement.",
     context: "Trop de parts. Le camembert va mentir — même si c’est « une photo ».",
     tools: ["bar", "pie", "line", "scatter"],
@@ -179,6 +191,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "ice",
     question: "Température vs ventes glaces, 40 jours. Relation, ou soupe ?",
     context: "Chaque jour est un point. Relier, c’est raconter un feuilleton.",
     tools: ["scatter", "line", "area", "bar"],
@@ -193,6 +206,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "pipeline",
     question: "Pipeline commercial : combien dans chaque étape, aujourd’hui.",
     context: "Un classement d’étapes, pas un funnel animé. L’ordre métier est déjà dans l’axe.",
     tools: ["bar", "pie", "stack", "line"],
@@ -203,15 +217,6 @@ const ROUNDS_DATA: Round[] = [
     miss: "Un camembert donne des parts. Un pipeline se lit en têtes, pas en pourcentages.",
   },
 ];
-
-const NAMES: Record<ChartKind, string> = {
-  line: "Courbe",
-  bar: "Barres",
-  pie: "Camembert",
-  area: "Aires",
-  scatter: "Nuage",
-  stack: "Empilé",
-};
 
 const COUSINS: Record<ChartKind, ChartKind[]> = {
   line: ["line", "area", "bar", "scatter"],
@@ -236,6 +241,7 @@ function toolsFor(round: Round, difficulty: Difficulty, roundIndex: number, tota
 
 export function GraphiqueGame({ onFinish }: { onFinish: (score: number) => void }) {
   const { rounds: total, maxScore, difficulty } = usePlaySession();
+  const playI18n = usePlay("graphique");
   const deck = useMemo(() => takeDeck(ROUNDS_DATA, difficulty), [difficulty]);
   const [phase, setPhase] = useState<"intro" | "play" | "done">("intro");
   const [index, setIndex] = useState(0);
@@ -244,7 +250,8 @@ export function GraphiqueGame({ onFinish }: { onFinish: (score: number) => void 
   const [locked, setLocked] = useState(false);
   const sealed = useRef(false);
 
-  const round = deck[index];
+  const { brief, go } = useBriefRound(index, phase === "play");
+  const round = playI18n.overlay(deck[index]);
   const tools = round ? toolsFor(round, difficulty, index, total) : [];
   const correct = tool === round?.answer;
 
@@ -279,8 +286,7 @@ export function GraphiqueGame({ onFinish }: { onFinish: (score: number) => void 
   if (phase === "intro") {
     return (
       <Intro
-        title="Graphique"
-        how="Glisse un dessin sur les chiffres. Quand c’est lisible, retape pour valider. Le camembert de 12 mois se dénonce tout seul."
+        slug="graphique"
         onStart={() => setPhase("play")}
       />
     );
@@ -289,10 +295,9 @@ export function GraphiqueGame({ onFinish }: { onFinish: (score: number) => void 
   if (phase === "done") {
     return (
       <Result
-        title="Graphique"
+        slug="graphique"
         score={score}
         max={maxScore}
-        line={scoreLine(score, maxScore)}
         onReplay={() => {
           setPhase("intro");
           setIndex(0);
@@ -305,19 +310,27 @@ export function GraphiqueGame({ onFinish }: { onFinish: (score: number) => void 
     );
   }
 
+  if (brief) {
+    return (
+      <GameShell slug="graphique" round={index} total={total} score={score} maxScore={maxScore}>
+        <QuestionBeat context={round.context} question={round.question} onGo={go} />
+      </GameShell>
+    );
+  }
+
   return (
-    <GameShell title="Graphique" round={index} total={total} score={score} maxScore={maxScore}>
+    <GameShell slug="graphique" round={index} total={total} score={score} maxScore={maxScore}>
       <RoundHeader context={round.context} question={round.question} />
-      <DragBoard
-        disabled={locked}
-        className="mt-5"
-        onDrop={(piece, zone) => {
-          if (zone === "canvas" && tools.includes(piece as ChartKind)) pickTool(piece as ChartKind);
-        }}
-        onTap={(piece) => {
-          if (tools.includes(piece as ChartKind)) pickTool(piece as ChartKind);
-        }}
-      >
+      <PlayStage slug="graphique" className="mt-5">
+        <DragBoard
+          disabled={locked}
+          onDrop={(piece, zone) => {
+            if (zone === "canvas" && tools.includes(piece as ChartKind)) pickTool(piece as ChartKind);
+          }}
+          onTap={(piece) => {
+            if (tools.includes(piece as ChartKind)) pickTool(piece as ChartKind);
+          }}
+        >
         <DropSlot id="canvas" className="relative overflow-hidden rounded-2xl border border-dashed border-primary/35 bg-card p-3">
           {tool ? (
             <LiveSketch
@@ -334,7 +347,7 @@ export function GraphiqueGame({ onFinish }: { onFinish: (score: number) => void 
         </DropSlot>
         <div className={cn("scene-opts mt-4 grid gap-2", tools.length <= 2 ? "grid-cols-2" : "grid-cols-4")}>
           {tools.map((kind) => (
-            <Draggable key={kind} id={kind} label={NAMES[kind]} disabled={locked}>
+            <Draggable key={kind} id={kind} label={playI18n.ui.charts[kind]} disabled={locked}>
               <button
                 type="button"
                 disabled={locked}
@@ -348,22 +361,23 @@ export function GraphiqueGame({ onFinish }: { onFinish: (score: number) => void 
                 )}
               >
                 <MiniChartGlyph kind={kind} active={tool === kind} />
-                <span className="text-[11px]">{NAMES[kind]}</span>
+                <span className="text-[11px]">{playI18n.ui.charts[kind]}</span>
               </button>
             </Draggable>
           ))}
         </div>
-      </DragBoard>
+        </DragBoard>
+      </PlayStage>
       {locked ? (
         <Verdict
           tone={correct ? "ok" : "miss"}
-          title={correct ? "Lisible." : "Mauvais outil."}
+          title={playI18n.punch(correct)}
           lesson={correct ? round.ok : round.miss}
           onNext={next}
-          nextLabel={index + 1 >= total ? "Voir le score" : "Manche suivante"}
+          isLast={index + 1 >= total}
         />
       ) : (
-        <LockBar disabled={!tool} label="C’est lisible" onLock={lockIn} />
+        <LockBar disabled={!tool} label={playI18n.ui.readable} onLock={lockIn} />
       )}
     </GameShell>
   );

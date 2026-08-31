@@ -5,16 +5,18 @@ import { useMemo, useState } from "react";
 import { MiniTable } from "@s/components/data-glyphs";
 import { sameSet } from "@s/components/drag-kit";
 import { LockBar } from "@s/components/interact";
-import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
+import { GameShell, Intro, PlayStage, QuestionBeat, Result, RoundHeader, Verdict, useBriefRound } from "@s/components/game-shell";
 import { play } from "@s/lib/audio";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
+import { usePlay } from "@s/lib/play-text";
 import { takeDeck, awardPartial } from "@s/lib/play";
 import type { Difficulty } from "@s/lib/play";
-import { roundTone, scoreLine } from "@s/lib/feedback";
+import { roundTone } from "@s/lib/feedback";
 import { cn } from "@s/lib/utils";
 
 type Round = {
+  id: string;
   tier: Difficulty;
   context: string;
   question: string;
@@ -28,6 +30,7 @@ type Round = {
 const ROUNDS_DATA: Round[] = [
   {
     tier: "easy",
+    id: "client",
     context: "Une ligne = un client.",
     question: "Quelle colonne identifie le client ?",
     table: {
@@ -44,6 +47,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "easy",
+    id: "daystore",
     context: "Ventes par jour, un magasin.",
     question: "Tape la clé du fait quotidien.",
     table: {
@@ -60,6 +64,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "easy",
+    id: "sessions",
     context: "Sessions web.",
     question: "Quelle clé pour compter les visites ?",
     table: {
@@ -76,6 +81,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "lines",
     context: "Lignes de commande e-commerce.",
     question: "Tape les en-têtes qui forment la clé. La table se plie toute seule.",
     table: {
@@ -93,6 +99,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "stock",
     context: "Snapshot de stock, un cliché par nuit.",
     question: "Le même SKU existe à Lyon et Nantes. Quelle clé n’invente pas de stock ?",
     table: {
@@ -110,6 +117,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "ca-month",
     context: "On te demande un mart « CA par client par mois ».",
     question: "Tape la clé de cette agrégation. Le mois est dans la question.",
     table: {
@@ -127,6 +135,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "poison",
     context: "Quelqu'un a collé le total commande sur chaque ligne produit.",
     question: "Arrache la colonne poison — celle qui va doubler le CA. Le reste reste sain.",
     table: {
@@ -146,6 +155,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "conv",
     context: "Sessions web pour un taux de conversion.",
     question: "Quelle clé pour compter les visites sans les écraser ?",
     table: {
@@ -163,6 +173,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "seats",
     context: "Abonnement : un contrat, plusieurs sièges, un mois de facture.",
     question: "Mart « MRR par compte ». Quelle clé ? Attention au siège.",
     table: {
@@ -180,6 +191,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "events",
     context: "Pageviews + commandes collés dans une même table « events ».",
     question: "Arrache la colonne qui n’a rien à faire au grain pageview.",
     table: {
@@ -199,6 +211,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "conv-store",
     context: "Taux de conversion magasin × jour × canal.",
     question: "Quelle clé pour ne pas mélanger SEA et magasin ?",
     table: {
@@ -216,6 +229,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "scd2",
     context: "SCD2 client : Léa a deux versions d’adresse.",
     question: "Pour joindre un fait à la bonne version, quelle clé ?",
     table: {
@@ -232,6 +246,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "panier-poison",
     context: "Panier moyen : on a collé le CA commande sur chaque SKU du ticket.",
     question: "Arrache ce qui va exploser un AVG.",
     table: {
@@ -290,6 +305,7 @@ function poisonSum(rows: string[][], headers: string[], yanked: string[]) {
 
 export function GrainGame({ onFinish }: { onFinish: (score: number) => void }) {
   const { rounds: total, maxScore, difficulty } = usePlaySession();
+  const playI18n = usePlay("grain");
   const deck = useMemo(() => takeDeck(ROUNDS_DATA, difficulty), [difficulty]);
   const [phase, setPhase] = useState<"intro" | "play" | "done">("intro");
   const [index, setIndex] = useState(0);
@@ -297,7 +313,8 @@ export function GrainGame({ onFinish }: { onFinish: (score: number) => void }) {
   const [picked, setPicked] = useState<string[]>([]);
   const [locked, setLocked] = useState(false);
 
-  const round = deck[index];
+  const { brief, go } = useBriefRound(index, phase === "play");
+  const round = playI18n.overlay(deck[index]);
   const headers = round?.table.headers ?? [];
   const fold = useMemo(
     () => (round?.poison ? null : foldByKeys(headers, round?.table.rows ?? [], picked)),
@@ -338,8 +355,7 @@ export function GrainGame({ onFinish }: { onFinish: (score: number) => void }) {
   if (phase === "intro") {
     return (
       <Intro
-        title="Grain"
-        how="Tape les en-têtes : la table se plie sur ta clé. Trop peu de colonnes, des lignes s’écrasent. Une colonne poison, tu l’arraches — sinon le SUM explose."
+        slug="grain"
         onStart={() => {
           setPicked([]);
           setPhase("play");
@@ -351,10 +367,9 @@ export function GrainGame({ onFinish }: { onFinish: (score: number) => void }) {
   if (phase === "done") {
     return (
       <Result
-        title="Grain"
+        slug="grain"
         score={score}
         max={maxScore}
-        line={scoreLine(score, maxScore)}
         onReplay={() => {
           setPhase("intro");
           setIndex(0);
@@ -366,10 +381,19 @@ export function GrainGame({ onFinish }: { onFinish: (score: number) => void }) {
     );
   }
 
+  if (brief) {
+    return (
+      <GameShell slug="grain" round={index} total={total} score={score} maxScore={maxScore}>
+        <QuestionBeat context={round.context} question={round.question} onGo={go} />
+      </GameShell>
+    );
+  }
+
   return (
-    <GameShell title="Grain" round={index} total={total} score={score} maxScore={maxScore}>
+    <GameShell slug="grain" round={index} total={total} score={score} maxScore={maxScore}>
       <RoundHeader context={round.context} question={round.question} />
-      <div className="mt-5">
+      <PlayStage slug="grain" className="mt-5">
+      <div>
         <MiniTable
           name={round.table.name}
           headers={round.table.headers}
@@ -390,17 +414,17 @@ export function GrainGame({ onFinish }: { onFinish: (score: number) => void }) {
           )}
         >
           {sum === null
-            ? "Colonne poison arrachée. Le SUM redevient honnête."
-            : `SUM poison = ${sum} ${sum > 63 ? "— ça double." : ""}`}
+            ? playI18n.ui.grain.yanked
+            : playI18n.ui.grain.poison(sum, sum > 63)}
         </p>
       ) : fold ? (
         <div className="mt-3 space-y-1.5">
           <p className="text-center font-mono text-xs text-muted-foreground">
             {picked.length === 0
-              ? "Tape une colonne-clé. La table te montrera ce qui fusionne."
+              ? playI18n.ui.grain.tapKey
               : fold.crushed === 0
-                ? `${fold.unique} lignes uniques — rien ne s’écrase.`
-                : `${fold.crushed} ligne${fold.crushed > 1 ? "s" : ""} écrasée${fold.crushed > 1 ? "s" : ""} · ${fold.unique} grain${fold.unique > 1 ? "s" : ""} restant${fold.unique > 1 ? "s" : ""}.`}
+                ? playI18n.ui.grain.unique(fold.unique)
+                : playI18n.ui.grain.crush(fold.crushed, fold.unique)}
           </p>
           {fold.crushed > 0
             ? fold.groups
@@ -410,24 +434,25 @@ export function GrainGame({ onFinish }: { onFinish: (score: number) => void }) {
                     key={g.map((r) => r.join("-")).join("|")}
                     className="fold-crush rounded-lg border border-anomaly/40 bg-anomaly/10 px-3 py-1.5 text-center font-mono text-[11px] text-anomaly"
                   >
-                    {g.length} lignes → 1 sur {picked.join(" × ")}
+                    {playI18n.ui.grainFold(g.length, picked.join(" × "))}
                   </p>
                 ))
             : null}
         </div>
       ) : null}
+      </PlayStage>
       {locked ? (
         <Verdict
           tone={roundTone(roundPoints)}
-          title={grainOk ? "Bon grain." : roundPoints > 0 ? "Presque le grain." : "Grain faux."}
+          title={grainOk ? playI18n.punch(true) : roundPoints > 0 ? playI18n.ui.punchMid.grain : playI18n.punch(false)}
           lesson={grainOk ? round.ok : round.miss}
           onNext={next}
-          nextLabel={index + 1 >= total ? "Voir le score" : "Manche suivante"}
+          isLast={index + 1 >= total}
         />
       ) : (
         <LockBar
           disabled={picked.length === 0}
-          label={round.poison ? "Verrouiller l’arrachement" : "Verrouiller le grain"}
+          label={round.poison ? playI18n.ui.yank : playI18n.ui.lockGrain}
           onLock={() => {
             setLocked(true);
             setScore((s) => s + roundPoints);

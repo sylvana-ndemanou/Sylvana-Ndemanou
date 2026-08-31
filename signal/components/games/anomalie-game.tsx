@@ -3,14 +3,15 @@
 
 import { useMemo, useState } from "react";
 import { BarChart, weekLabels } from "@s/components/mini-charts";
-import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
+import { GameShell, Intro, PlayStage, QuestionBeat, Result, RoundHeader, Verdict, useBriefRound } from "@s/components/game-shell";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
 import type { Difficulty } from "@s/lib/play";
 import { along, takeDeck } from "@s/lib/play";
-import { scoreLine } from "@s/lib/feedback";
+import { usePlay } from "@s/lib/play-text";
 
 type Round = {
+  id?: string;
   title: string;
   unit: string;
   values: number[];
@@ -21,7 +22,7 @@ type Round = {
   miss: string;
 };
 
-type Spec = Omit<Round, "values" | "labels" | "answer"> & { tier: Difficulty };
+type Spec = Omit<Round, "values" | "labels" | "answer"> & { id: string; tier: Difficulty };
 
 function neighbors(n: number, answer: number, radius: number) {
   const lo = Math.max(0, answer - radius);
@@ -96,6 +97,7 @@ function sealBreak(values: number[], answer: number, step: number, difficulty: D
 function makeRounds(rng: () => number, difficulty: Difficulty, total: number): Round[] {
   const specs: Spec[] = [
     {
+      id: "ca-shop",
       tier: "easy",
       title: "CA hebdo — boutique en ligne",
       unit: "k€",
@@ -105,6 +107,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
     },
     {
       tier: "easy",
+      id: "conv-landing",
       title: "Taux de conversion — landing",
       unit: "%",
       kind: "dip",
@@ -113,6 +116,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
     },
     {
       tier: "easy",
+      id: "tickets",
       title: "Tickets support — file unique",
       unit: "vol.",
       kind: "spike",
@@ -121,6 +125,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
     },
     {
       tier: "hard",
+      id: "ca-market",
       title: "CA hebdo — marketplace",
       unit: "k€",
       kind: "spike",
@@ -129,6 +134,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
     },
     {
       tier: "hard",
+      id: "conv-funnel",
       title: "Taux de conversion — tunnel 4 étapes",
       unit: "%",
       kind: "dip",
@@ -137,6 +143,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
     },
     {
       tier: "hard",
+      id: "panier-mix",
       title: "Panier moyen — mix canaux",
       unit: "€",
       kind: "dip",
@@ -145,6 +152,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
     },
     {
       tier: "hard",
+      id: "nps",
       title: "NPS — vagues mensuelles",
       unit: "pts",
       kind: "spike",
@@ -153,6 +161,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
     },
     {
       tier: "hard",
+      id: "dau-app",
       title: "Utilisateurs actifs — app",
       unit: "k",
       kind: "break",
@@ -161,6 +170,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
     },
     {
       tier: "brutal",
+      id: "marge",
       title: "Marge brute — SKU mixés",
       unit: "%",
       kind: "dip",
@@ -169,6 +179,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
     },
     {
       tier: "brutal",
+      id: "sessions-track",
       title: "Sessions — après refonte tracking",
       unit: "k",
       kind: "break",
@@ -177,6 +188,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
     },
     {
       tier: "brutal",
+      id: "delay-3pl",
       title: "Délai livraison — 3PL",
       unit: "j",
       kind: "spike",
@@ -185,6 +197,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
     },
     {
       tier: "brutal",
+      id: "open-rate",
       title: "Taux d’ouverture — 18 envois",
       unit: "%",
       kind: "dip",
@@ -193,6 +206,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
     },
     {
       tier: "brutal",
+      id: "ca-daily",
       title: "CA quotidien — 14 jours",
       unit: "k€",
       kind: "break",
@@ -250,6 +264,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
 }
 
 export function AnomalieGame({ onFinish }: { onFinish: (score: number) => void }) {
+  const playI18n = usePlay("anomalie");
   const { rounds: total, maxScore, rng, difficulty } = usePlaySession();
   const rounds = useMemo(
     () => makeRounds(rng, difficulty, total).slice(0, total),
@@ -260,17 +275,19 @@ export function AnomalieGame({ onFinish }: { onFinish: (score: number) => void }
   const [score, setScore] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [revealed, setRevealed] = useState(false);
+  const { brief, go } = useBriefRound(index, phase === "play");
 
-  const round = rounds[index];
-  const correct = picked === round?.answer;
+  const raw = rounds[index];
+  const round = playI18n.overlay(raw);
+  const correct = picked === raw?.answer;
   const question =
-    difficulty === "easy" && round
-      ? round.kind === "spike"
-        ? "Où est le pic ?"
-        : round.kind === "dip"
-          ? "Où est le creux ?"
-          : "Où la série change-t-elle de régime ?"
-      : "Où est l’intrus ?";
+    difficulty === "easy" && raw
+      ? raw.kind === "spike"
+        ? playI18n.ui.anomalieQ.spike
+        : raw.kind === "dip"
+          ? playI18n.ui.anomalieQ.dip
+          : playI18n.ui.anomalieQ.break
+      : playI18n.ui.anomalieQ.intruder;
   const helpers = {
     showValues: difficulty === "easy",
     showMean: difficulty === "easy",
@@ -280,7 +297,7 @@ export function AnomalieGame({ onFinish }: { onFinish: (score: number) => void }
     if (revealed || picked !== null) return;
     setPicked(i);
     setRevealed(true);
-    setScore((s) => s + (i === round.answer ? POINTS_PER_ROUND : 0));
+    setScore((s) => s + (i === raw.answer ? POINTS_PER_ROUND : 0));
   }
 
   function next() {
@@ -304,25 +321,25 @@ export function AnomalieGame({ onFinish }: { onFinish: (score: number) => void }
   }
 
   if (phase === "intro") {
-    return (
-      <Intro
-        title="Anomalie"
-        how="Un graphique, un intrus. Touche la barre qui n'appartient pas à la série — spike, creux, ou rupture."
-        onStart={() => setPhase("play")}
-      />
-    );
+    return <Intro slug="anomalie" onStart={() => setPhase("play")} />;
   }
 
   if (phase === "done") {
+    return <Result slug="anomalie" score={score} max={maxScore} onReplay={replay} />;
+  }
+
+  if (brief) {
     return (
-      <Result title="Anomalie" score={score} max={maxScore} line={scoreLine(score, maxScore)} onReplay={replay} />
+      <GameShell slug="anomalie" round={index} total={total} score={score} maxScore={maxScore}>
+        <QuestionBeat context={round.title} question={question} onGo={go} />
+      </GameShell>
     );
   }
 
   return (
-    <GameShell title="Anomalie" round={index} total={total} score={score} maxScore={maxScore}>
+    <GameShell slug="anomalie" round={index} total={total} score={score} maxScore={maxScore}>
       <RoundHeader context={round.title} question={question} />
-      <div className="mt-8">
+      <PlayStage slug="anomalie" className="mt-8">
         <BarChart
           values={round.values}
           labels={round.labels}
@@ -335,18 +352,18 @@ export function AnomalieGame({ onFinish }: { onFinish: (score: number) => void }
           showValues={helpers.showValues}
           showMean={helpers.showMean}
         />
-      </div>
+      </PlayStage>
       {revealed ? (
         <Verdict
           tone={correct ? "ok" : "miss"}
-          title={correct ? "Vu." : "À côté."}
+          title={playI18n.punch(correct)}
           lesson={correct ? round.ok : round.miss}
           onNext={next}
-          nextLabel={index + 1 >= total ? "Voir le score" : "Manche suivante"}
+          isLast={index + 1 >= total}
         />
       ) : (
         <p className="mt-8 text-center text-sm text-muted-foreground">
-          Unité : {round.unit}. {difficulty === "easy" ? "Touche une barre." : "Compare barre à barre."}
+          {difficulty === "easy" ? playI18n.ui.unit(round.unit) : playI18n.ui.compareBars}
         </p>
       )}
     </GameShell>

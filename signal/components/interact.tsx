@@ -25,6 +25,9 @@ export function Chip({
       type="button"
       disabled={disabled}
       onClick={onClick}
+      onPointerEnter={(event) => {
+        if (event.pointerType === "mouse") play("hover");
+      }}
       className={cn(
         "rounded-xl border px-3 py-2 font-mono text-xs transition duration-200",
         "hover:-translate-y-px hover:border-primary/50",
@@ -67,7 +70,13 @@ export function ChoiceTile({
       disabled={disabled}
       onClick={() => {
         if (selected && onConfirm) onConfirm();
-        else onClick?.();
+        else {
+          play("tap");
+          onClick?.();
+        }
+      }}
+      onPointerEnter={(event) => {
+        if (event.pointerType === "mouse") play("hover");
       }}
       className={cn(
         "rounded-2xl border px-3 py-3 text-left transition duration-200",
@@ -125,10 +134,12 @@ export function LockBar({
   disabled,
   onLock,
   label,
+  idleLabel,
 }: {
   disabled?: boolean;
   onLock: () => void;
   label?: string;
+  idleLabel?: string;
 }) {
   const { t } = useI18n();
   const [mounted, setMounted] = useState(false);
@@ -160,7 +171,6 @@ export function LockBar({
       return;
     }
     play("lock");
-    play("lock");
     onLock();
   }
 
@@ -179,7 +189,7 @@ export function LockBar({
           shake && "lock-shake"
         )}
       >
-        {ready ? (label ?? t.shell.lock) : t.shell.lockIdle}
+        {ready ? (label ?? t.shell.lock) : idleLabel ?? t.shell.lockIdle}
       </button>
     </div>
   );

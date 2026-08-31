@@ -161,6 +161,8 @@ export function JoinVenn({
   rightCount,
   outCount,
   chips,
+  hint,
+  outLabel,
 }: {
   mode?: "inner" | "left" | "full" | "anti" | null;
   leftLabel: string;
@@ -169,6 +171,8 @@ export function JoinVenn({
   rightCount: number;
   outCount?: number;
   chips?: string[];
+  hint?: string;
+  outLabel?: (n: number) => string;
 }) {
   return (
     <div className={cn("join-arena flex flex-col items-center gap-2", mode && `join-mode-${mode}`)}>
@@ -190,7 +194,7 @@ export function JoinVenn({
       </div>
       <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
         {leftCount} + {rightCount}
-        {typeof outCount === "number" ? ` → ${outCount} ligne${outCount > 1 ? "s" : ""}` : " · glisse une lentille"}
+        {typeof outCount === "number" ? ` → ${outLabel ? outLabel(outCount) : outCount}` : ` · ${hint ?? ""}`}
       </p>
     </div>
   );

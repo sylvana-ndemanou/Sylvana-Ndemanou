@@ -2,14 +2,14 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
+import { GameShell, Intro, PlayStage, QuestionBeat, Result, RoundHeader, Verdict, useBriefRound } from "@s/components/game-shell";
+import { VoyageTram } from "@s/components/voyage-tram";
 import { ChoiceTile, LockBar } from "@s/components/interact";
-import { play } from "@s/lib/audio";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
 import { countAlong, takeDeck } from "@s/lib/play";
 import type { Difficulty } from "@s/lib/play";
-import { scoreLine } from "@s/lib/feedback";
+import { usePlay } from "@s/lib/play-text";
 import { cn } from "@s/lib/utils";
 
 type Action = "at" | "undrop" | "failsafe" | "now";
@@ -17,6 +17,7 @@ type Action = "at" | "undrop" | "failsafe" | "now";
 type Event = { t: number; label: string; rows?: string };
 
 type Round = {
+  id: string;
   tier: Difficulty;
   context: string;
   question: string;
@@ -29,6 +30,7 @@ type Round = {
 
 const ROUNDS_DATA: Round[] = [
   {
+    id: "lea-easy",
     tier: "easy",
     context: "Léa habite Lyon. À 10:00, un UPDATE la met à Nantes. Le rapport de 09:00 doit encore dire Lyon.",
     question: "Rebobine avant l’UPDATE, puis lis.",
@@ -43,6 +45,7 @@ const ROUNDS_DATA: Round[] = [
     miss: "Si la tête est après 10:00, tu lis Nantes.",
   },
   {
+    id: "drop-easy",
     tier: "easy",
     context: "Quelqu’un a DROP la table il y a deux heures. Rétention : 1 jour.",
     question: "Quelle commande ramène la table ?",
@@ -57,6 +60,7 @@ const ROUNDS_DATA: Round[] = [
     miss: "CREATE TABLE ne ramène pas l’histoire. UNDROP, si.",
   },
   {
+    id: "fail-easy",
     tier: "easy",
     context: "DROP il y a 9 jours. Rétention 1 jour, Fail-safe 7 jours. On est trop loin.",
     question: "Peux-tu encore UNDROP ?",
@@ -71,6 +75,7 @@ const ROUNDS_DATA: Round[] = [
     miss: "Time Travel ≠ archive infinie. J+9, c’est perdu.",
   },
   {
+    id: "lea",
     tier: "hard",
     context: "Léa passe de Lyon à Nantes à 10:00. Les commandes de 09:00 doivent rester Lyon.",
     question: "Place la tête AVANT l’UPDATE, puis SELECT AT.",
@@ -85,6 +90,7 @@ const ROUNDS_DATA: Round[] = [
     miss: "Si la tête est après 10:00, tu lis Nantes. Time Travel, ce n’est pas un backup : c’est la version immuable des micro-partitions d’avant le DML.",
   },
   {
+    id: "drop",
     tier: "hard",
     context: "Quelqu’un a DROP TABLE fact_ventes il y a deux heures. Rétention Standard : 1 jour.",
     question: "La table est dans Time Travel. Quelle commande la ramène ?",
@@ -99,6 +105,7 @@ const ROUNDS_DATA: Round[] = [
     miss: "CREATE TABLE ne ramène pas l’histoire. UNDROP, c’est l’extension SQL de Time Travel pour les objets dropped.",
   },
   {
+    id: "fail",
     tier: "hard",
     context: "Rétention 1 jour. On est J+9. La table dropped n’est plus dans Time Travel.",
     question: "Où sont les octets ? Et peux-tu UNDROP ?",
@@ -114,6 +121,7 @@ const ROUNDS_DATA: Round[] = [
     miss: "J+9, Fail-safe est fini. Ce n’est plus récupérable. Time Travel ≠ archive infinie.",
   },
   {
+    id: "zero-tt",
     tier: "hard",
     context: "Enterprise : tu peux monter DATA_RETENTION_TIME_IN_DAYS jusqu’à 90. Transient : max 1 jour.",
     question: "Pour un mart jetable, tu veux 0 jour de Time Travel. Quel effet ?",
@@ -128,6 +136,7 @@ const ROUNDS_DATA: Round[] = [
     miss: "0 n’est pas « Fail-safe plus court ». Ça coupe AT/BEFORE/UNDROP. Les transients n’ont de toute façon pas de Fail-safe.",
   },
   {
+    id: "clone-at",
     tier: "hard",
     context: "CLONE historique : CREATE TABLE dev CLONE prod AT (TIMESTAMP => …).",
     question: "La tête est sur 09:00. Quelle action crée le clone à cet instant ?",
@@ -142,6 +151,7 @@ const ROUNDS_DATA: Round[] = [
     miss: "UNDROP restaure un objet dropped, ça ne clone pas un passé vivant. CLONE AT, c’est le voyage + la copie logique.",
   },
   {
+    id: "transient",
     tier: "brutal",
     context: "Transient table dropped il y a 3 jours. Pas de Fail-safe sur transient.",
     question: "UNDROP ? Fail-safe ? Ou trop tard, tout court ?",
@@ -156,6 +166,7 @@ const ROUNDS_DATA: Round[] = [
     miss: "Fail-safe n’existe pas sur transient. J+3, l’objet est parti.",
   },
   {
+    id: "truncate",
     tier: "brutal",
     context: "TRUNCATE il y a 20 minutes. La table existe encore.",
     question: "Ce n’est pas un DROP. Quelle action relit les lignes ?",
@@ -170,6 +181,7 @@ const ROUNDS_DATA: Round[] = [
     miss: "UNDROP c’est pour DROP. Ici la table est là, vide. AT, pas UNDROP.",
   },
   {
+    id: "ent-90",
     tier: "brutal",
     context: "Enterprise 90j. DROP J-40. Toujours dans Time Travel.",
     question: "La table est dropped mais dans la fenêtre. Quelle commande ?",
@@ -184,6 +196,7 @@ const ROUNDS_DATA: Round[] = [
     miss: "Ce n’est pas trop tard. Rétention 90j, UNDROP marche. Fail-safe serait plus tard, et sans SQL.",
   },
   {
+    id: "clone-drop",
     tier: "brutal",
     context: "CLONE AT d’avant un DROP. La table source n’existe plus « maintenant ».",
     question: "La tête est sur v1, avant le DROP. Quelle action ?",
@@ -198,6 +211,7 @@ const ROUNDS_DATA: Round[] = [
     miss: "UNDROP restaure le nom dropped. CLONE AT copie un passé, éventuellement sous un autre nom.",
   },
   {
+    id: "zero-drop",
     tier: "brutal",
     context: "Rétention 0 sur un mart. DROP accidentel il y a 4 minutes.",
     question: "Zero Time Travel. Que reste-t-il ?",
@@ -213,27 +227,23 @@ const ROUNDS_DATA: Round[] = [
   },
 ];
 
-const ACTIONS: { id: Action; label: string; hint: string }[] = [
-  { id: "at", label: "SELECT / CLONE AT", hint: "lire ce timestamp" },
-  { id: "undrop", label: "UNDROP", hint: "objet dropped" },
-  { id: "failsafe", label: "Fail-safe", hint: "plus d’accès SQL" },
-  { id: "now", label: "Pas de Time Travel", hint: "rétention 0" },
-];
+const ACTION_IDS: Action[] = ["at", "undrop", "failsafe", "now"];
 
 function actionsFor(difficulty: Difficulty, roundIndex: number, totalRounds: number, answer: Action) {
   const n = Math.max(
     2,
-    countAlong(difficulty, roundIndex, totalRounds, [2, 2], [3, 3], [ACTIONS.length, ACTIONS.length])
+    countAlong(difficulty, roundIndex, totalRounds, [2, 2], [3, 3], [ACTION_IDS.length, ACTION_IDS.length])
   );
   const keep = new Set<Action>([answer]);
-  for (const action of ACTIONS) {
+  for (const id of ACTION_IDS) {
     if (keep.size >= n) break;
-    keep.add(action.id);
+    keep.add(id);
   }
-  return ACTIONS.filter((action) => keep.has(action.id));
+  return ACTION_IDS.filter((id) => keep.has(id));
 }
 
 export function VoyageGame({ onFinish }: { onFinish: (score: number) => void }) {
+  const playI18n = usePlay("voyage");
   const { rounds: total, maxScore, difficulty } = usePlaySession();
   const deck = useMemo(() => takeDeck(ROUNDS_DATA, difficulty), [difficulty]);
   const [phase, setPhase] = useState<"intro" | "play" | "done">("intro");
@@ -242,20 +252,32 @@ export function VoyageGame({ onFinish }: { onFinish: (score: number) => void }) 
   const [head, setHead] = useState(0);
   const [act, setAct] = useState<Action | null>(null);
   const [locked, setLocked] = useState(false);
+  const [touchedHead, setTouchedHead] = useState(false);
   const sealed = useRef(false);
+  const { brief, go } = useBriefRound(index, phase === "play");
 
-  const round = deck[index];
-  const actions = round ? actionsFor(difficulty, index, total, round.answer) : ACTIONS;
-  const needHead = round?.head;
-  const headOk = head === needHead;
-  const headRequired = difficulty === "brutal" || round?.answer === "at";
-  const correct = act === round?.answer && (!headRequired || headOk);
+  const raw = deck[index];
+  const round = playI18n.overlay(raw);
+  const actions = raw ? actionsFor(difficulty, index, total, raw.answer) : ACTION_IDS;
+  const headRequired = Boolean(raw && (difficulty === "brutal" || raw.answer === "at"));
+  const defaultHead = (raw?.events.length ?? 1) - 1;
+  const mustRewind = Boolean(raw && headRequired && raw.head !== defaultHead);
+  const headOk = head === raw?.head;
+  const correct = act === raw?.answer && (!headRequired || headOk);
+  const canLock = Boolean(act) && (!mustRewind || touchedHead);
+
+  function moveHead(i: number) {
+    if (locked) return;
+    setHead(i);
+    setTouchedHead(true);
+  }
 
   function lockAct() {
-    if (sealed.current || !act) return;
+    if (sealed.current || !canLock) return;
     sealed.current = true;
     setLocked(true);
-    setScore((s) => s + (act === round.answer && (!headRequired || head === round.head) ? POINTS_PER_ROUND : 0));
+    const earned = act === round.answer && (!headRequired || head === round.head);
+    setScore((s) => s + (earned ? POINTS_PER_ROUND : 0));
   }
 
   function next() {
@@ -269,14 +291,14 @@ export function VoyageGame({ onFinish }: { onFinish: (score: number) => void }) 
     setHead(deck[n].events.length - 1);
     setAct(null);
     setLocked(false);
+    setTouchedHead(false);
     sealed.current = false;
   }
 
   if (phase === "intro") {
     return (
       <Intro
-        title="Voyage"
-        how="Time Travel est allumé par défaut (1 jour). Enterprise : jusqu’à 90. Tu rebobines la bande, tu entends le défilement, tu décides AT, UNDROP, ou tu acceptes Fail-safe."
+        slug="voyage"
         onStart={() => {
           setHead(deck[0].events.length - 1);
           setPhase("play");
@@ -288,111 +310,83 @@ export function VoyageGame({ onFinish }: { onFinish: (score: number) => void }) 
   if (phase === "done") {
     return (
       <Result
-        title="Voyage"
+        slug="voyage"
         score={score}
         max={maxScore}
-        line={scoreLine(score, maxScore)}
         onReplay={() => {
           setPhase("intro");
           setIndex(0);
           setScore(0);
           setAct(null);
           setLocked(false);
+          setTouchedHead(false);
           sealed.current = false;
         }}
       />
     );
   }
 
+  if (brief) {
+    return (
+      <GameShell slug="voyage" round={index} total={total} score={score} maxScore={maxScore}>
+        <QuestionBeat context={round.context} question={round.question} onGo={go} />
+      </GameShell>
+    );
+  }
+
   return (
-    <GameShell title="Voyage" round={index} total={total} score={score} maxScore={maxScore}>
+    <GameShell slug="voyage" round={index} total={total} score={score} maxScore={maxScore}>
       <RoundHeader context={round.context} question={round.question} />
-      <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-card p-4">
-        <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Bande · Time Travel</p>
-        <div className="relative mt-5">
-          <div className="absolute left-3 right-3 top-3 h-0.5 bg-foreground/15" />
-          <div className="relative flex justify-between gap-1">
-            {round.events.map((ev, i) => {
-              const lost = /perdu|trop tard|0 jour/i.test(ev.label);
-              const fail = /fail-safe|failsafe/i.test(ev.label);
-              return (
-                <button
-                  key={ev.label}
-                  type="button"
-                  disabled={locked}
-                  onClick={() => {
-                    setHead(i);
-                    play("rewind");
-                  }}
-                  className="relative z-[1] flex flex-1 flex-col items-center gap-2"
-                >
-                  <span
-                    className={cn(
-                      "size-3 rounded-full border-2 transition",
-                      i === head && "tape-head size-4 border-primary bg-primary shadow-[0_0_14px_color-mix(in_oklch,var(--primary)_55%,transparent)]",
-                      i !== head && lost && "border-anomaly bg-anomaly/40",
-                      i !== head && fail && !lost && "border-chart-3 bg-chart-3/50",
-                      i !== head && !lost && !fail && "border-border bg-muted"
-                    )}
-                  />
-                  <span
-                    className={cn(
-                      "w-full rounded-lg px-1 py-2 font-mono text-[10px] leading-tight",
-                      i === head ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                    )}
-                  >
-                    {ev.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        <input
-          type="range"
-          min={0}
-          max={round.events.length - 1}
-          value={head}
-          disabled={locked}
-          onChange={(e) => {
-            const v = Number(e.target.value);
-            setHead(v);
-            play("rewind");
-          }}
-          className="mt-4 w-full accent-[var(--primary)]"
+      <PlayStage slug="voyage" className="mt-6">
+        <VoyageTram
+          events={round.events}
+          head={head}
+          locked={locked}
+          onHead={moveHead}
+          kicker={playI18n.ui.voyage.band}
+          ticket={playI18n.ui.voyage.ticket}
+          rewindHint={playI18n.ui.voyage.rewind}
         />
-        {round.events[head]?.rows ? (
-          <p className="mt-3 font-heading text-2xl">{round.events[head].rows}</p>
-        ) : (
-          <p className="mt-3 font-mono text-xs text-muted-foreground">Tête de lecture · événement {head + 1}/{round.events.length}</p>
-        )}
-      </div>
+      </PlayStage>
       <div className="scene-opts mt-4 grid grid-cols-2 gap-2">
-        {actions.map((a) => (
-          <ChoiceTile
-            key={a.id}
-            title={a.label}
-            hint={a.hint}
-            selected={act === a.id}
-            locked={locked}
-            isAnswer={a.id === round.answer}
-            isWrong={act === a.id && a.id !== round.answer}
-            disabled={locked}
-            onClick={() => setAct(a.id)}
-            onConfirm={lockAct}
-          />
-        ))}
+        {actions.map((id) => {
+          const meta = playI18n.ui.voyage.actions[id];
+          return (
+            <ChoiceTile
+              key={id}
+              title={meta.label}
+              hint={meta.hint}
+              selected={act === id}
+              locked={locked}
+              isAnswer={id === round.answer}
+              isWrong={act === id && id !== round.answer}
+              disabled={locked}
+              onClick={() => setAct(id)}
+              onConfirm={lockAct}
+            />
+          );
+        })}
       </div>
+      {mustRewind && act === "at" && !headOk && !locked ? (
+        <p className={cn("mt-3 text-center font-mono text-[11px] uppercase tracking-[0.14em] text-signal")}>
+          {playI18n.ui.lockHead}
+        </p>
+      ) : null}
       {locked ? (
         <Verdict
           tone={correct ? "ok" : "miss"}
-          title={correct ? "Le passé tient." : "Mauvais instant."}
+          title={playI18n.punch(correct)}
           lesson={correct ? round.ok : round.miss}
           onNext={next}
-          nextLabel={index + 1 >= total ? "Voir le score" : "Manche suivante"}
+          isLast={index + 1 >= total}
         />
       ) : (
-        <LockBar disabled={!act} label="Exécuter" onLock={lockAct} />
+        <LockBar
+          disabled={!canLock}
+          label={playI18n.ui.execute}
+          idleLabel={!act ? undefined : playI18n.ui.lockHead}
+          onLock={lockAct}
+        />
       )}
     </GameShell>
   );

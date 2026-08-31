@@ -2,15 +2,19 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { GameShell, Intro, Result, Verdict } from "@s/components/game-shell";
+import { GameShell, Intro, PlayStage, QuestionBeat, Result, Verdict, useBriefRound } from "@s/components/game-shell";
 import { LockBar } from "@s/components/interact";
 import { Button } from "@s/components/ui/button";
 import { play } from "@s/lib/audio";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
+import { usePlay } from "@s/lib/play-text";
 import { along, awardPartial, lookSecondsAt, optionCapAt } from "@s/lib/play";
 import type { Difficulty } from "@s/lib/play";
-import { roundTone, scoreLine } from "@s/lib/feedback";
+import type { Locale } from "@s/lib/locale";
+import { PLAY_ROUNDS, PLAY_UI } from "@s/lib/play-copy";
+import { useI18n } from "@s/lib/i18n";
+import { roundTone } from "@s/lib/feedback";
 import { cn } from "@s/lib/utils";
 
 type Dash = {
@@ -23,17 +27,25 @@ type Dash = {
   reconstruct?: boolean;
 };
 
-function fmt(n: number, kind: "€" | "%" | "k" | "n") {
-  if (kind === "€") return `${n.toLocaleString("fr-FR")} €`;
+function fmt(n: number, kind: "€" | "%" | "k" | "n", locale: Locale = "fr") {
+  const loc = locale === "en" ? "en-US" : "fr-FR";
+  if (kind === "€") return locale === "en" ? `€${n.toLocaleString(loc)}` : `${n.toLocaleString(loc)} €`;
   if (kind === "%") return `${n.toFixed(1)} %`;
   if (kind === "k") return `${n.toFixed(1)} k`;
-  return n.toLocaleString("fr-FR");
+  return n.toLocaleString(loc);
 }
 
-function makeDashboards(count: number, rng: () => number, difficulty: Difficulty): Dash[] {
-  const easyFilters = ["France", "Mobile", "Retail"];
-  const hardFilters = ["UE", "Nouveau client", "Abonnés", "SEA", "App"];
-  const brutalFilters = ["Cohorte S12", "iOS 18+", "VIP 90j", "B2B Nord", "Retours 14j", "Affiliés"];
+function makeDashboards(count: number, rng: () => number, difficulty: Difficulty, locale: Locale = "fr"): Dash[] {
+  const pack = PLAY_ROUNDS[locale]?.memoire ?? {};
+  const easyFilters = locale === "en" ? ["France", "Mobile", "Retail"] : ["France", "Mobile", "Retail"];
+  const hardFilters =
+    locale === "en"
+      ? ["EU", "New customer", "Subscribers", "SEA", "App"]
+      : ["UE", "Nouveau client", "Abonnés", "SEA", "App"];
+  const brutalFilters =
+    locale === "en"
+      ? ["Cohort W12", "iOS 18+", "VIP 90d", "B2B North", "14-day returns", "Affiliates"]
+      : ["Cohorte S12", "iOS 18+", "VIP 90j", "B2B Nord", "Retours 14j", "Affiliés"];
   const filters =
     difficulty === "easy" ? easyFilters : difficulty === "hard" ? hardFilters : brutalFilters;
 
@@ -57,12 +69,12 @@ function makeDashboards(count: number, rng: () => number, difficulty: Difficulty
     const redAt = round % 4;
     deltas[redAt] = -Math.abs(deltas[redAt] || 8) - 7;
     const kpisAll = [
-      { label: "CA", value: fmt(ca, "€"), delta: deltas[0] },
-      { label: "Conversion", value: fmt(conv, "%"), delta: deltas[1] },
-      { label: "Panier moyen", value: fmt(panier, "€"), delta: deltas[2] },
+      { label: locale === "en" ? "Revenue" : "CA", value: fmt(ca, "€", locale), delta: deltas[0] },
+      { label: "Conversion", value: fmt(conv, "%", locale), delta: deltas[1] },
+      { label: locale === "en" ? "Avg. basket" : "Panier moyen", value: fmt(panier, "€", locale), delta: deltas[2] },
       { label: "NPS", value: String(nps), delta: deltas[3] },
-      { label: "Sessions", value: fmt(sessions, "k"), delta: deltas[4] },
-      { label: "Bounce", value: fmt(bounce, "%"), delta: deltas[5] },
+      { label: "Sessions", value: fmt(sessions, "k", locale), delta: deltas[4] },
+      { label: "Bounce", value: fmt(bounce, "%", locale), delta: deltas[5] },
     ];
     const kpiCount = Math.round(along(difficulty, round, count, [3, 3], [4, 5], [6, 6]));
     const kpis = kpisAll.slice(0, kpiCount);
@@ -71,19 +83,20 @@ function makeDashboards(count: number, rng: () => number, difficulty: Difficulty
     const caGap = Math.round(along(difficulty, round, count, [42000, 28000], [9000, 4500], [1400, 600]));
     const convGap = along(difficulty, round, count, [1.8, 1.2], [0.45, 0.22], [0.1, 0.05]);
 
+    const ui = PLAY_UI[locale];
     const easyKinds: Array<() => Dash> = [
       () => ({
         kpis,
         filter,
-        question: "Quel filtre était actif ?",
+        question: pack.filter?.question ?? ui.memoire.qFilter,
         options: shuffleUnique([filter, ...filters.filter((f) => f !== filter)]).slice(0, cap),
         answer: filter,
-        lesson: "Le filtre est écrit en grand. En Facile, on ancre ça d’abord — le reste du dashboard vient après.",
+        lesson: pack.filter?.lesson ?? "Le filtre est écrit en grand. En Facile, on ancre ça d’abord — le reste du dashboard vient après.",
       }),
       () => ({
         kpis,
         filter,
-        question: "Quel indicateur était dans le rouge ?",
+        question: pack.red?.question ?? ui.memoire.qRed,
         options: shuffleUnique([worst.label, ...kpis.filter((k) => k.label !== worst.label).map((k) => k.label)]).slice(0, cap),
         answer: worst.label,
         lesson: "On mémorise d'abord ce qui va mal. En comité, c'est souvent le seul chiffre qu'on te redemandera.",
@@ -91,10 +104,10 @@ function makeDashboards(count: number, rng: () => number, difficulty: Difficulty
       () => ({
         kpis,
         filter,
-        question: "Qui progressait le plus ?",
+        question: pack.best?.question ?? ui.memoire.qBest,
         options: shuffleUnique([best.label, ...kpis.filter((k) => k.label !== best.label).map((k) => k.label)]).slice(0, cap),
         answer: best.label,
-        lesson: "La pastille verte, c’est le signal. Note-la avant que le slide se ferme.",
+        lesson: pack.best?.lesson ?? "La pastille verte, c’est le signal. Note-la avant que le slide se ferme.",
       }),
     ];
 
@@ -102,12 +115,12 @@ function makeDashboards(count: number, rng: () => number, difficulty: Difficulty
       () => ({
         kpis,
         filter,
-        question: "Quel était le CA affiché ?",
+        question: pack.ca?.question ?? ui.memoire.qCa,
         options: shuffleUnique([
           kpis[0].value,
-          fmt(ca + caGap, "€"),
-          fmt(ca - Math.round(caGap * 0.7), "€"),
-          fmt(Math.round(ca * 1.08), "€"),
+          fmt(ca + caGap, "€", locale),
+          fmt(ca - Math.round(caGap * 0.7), "€", locale),
+          fmt(Math.round(ca * 1.08), "€", locale),
         ]).slice(0, cap),
         answer: kpis[0].value,
         lesson: "L'ordre de grandeur compte plus que le centime. Si tu te trompes d'un zéro, le reste du dashboard est décoratif.",
@@ -115,7 +128,7 @@ function makeDashboards(count: number, rng: () => number, difficulty: Difficulty
       () => ({
         kpis,
         filter,
-        question: "Quel filtre était actif ?",
+        question: pack.filter2?.question ?? ui.memoire.qFilter,
         options: shuffleUnique([filter, ...hardFilters.filter((f) => f !== filter), "France"]).slice(0, cap),
         answer: filter,
         lesson: "Un KPI sans filtre, c'est une moyenne qui ment. Le grain et le segment, c'est la moitié de la vérité.",
@@ -123,7 +136,7 @@ function makeDashboards(count: number, rng: () => number, difficulty: Difficulty
       () => ({
         kpis,
         filter,
-        question: "Qui progressait le plus ?",
+        question: pack.best2?.question ?? ui.memoire.qBest,
         options: shuffleUnique([best.label, ...kpis.filter((k) => k.label !== best.label).map((k) => k.label)]).slice(0, cap),
         answer: best.label,
         lesson: "Une hausse isolée n'est pas une stratégie. Note-la, puis demande : volume, mix, ou prix ?",
@@ -131,7 +144,7 @@ function makeDashboards(count: number, rng: () => number, difficulty: Difficulty
       () => ({
         kpis,
         filter,
-        question: "Quel indicateur était dans le rouge ?",
+        question: pack.red?.question ?? ui.memoire.qRed,
         options: shuffleUnique([worst.label, ...kpis.filter((k) => k.label !== worst.label).map((k) => k.label)]).slice(0, cap),
         answer: worst.label,
         lesson: "On mémorise d'abord ce qui va mal. En comité, c'est souvent le seul chiffre qu'on te redemandera.",
@@ -139,31 +152,40 @@ function makeDashboards(count: number, rng: () => number, difficulty: Difficulty
       () => ({
         kpis,
         filter,
-        question: "Conversion : c'était lequel ?",
+        question: pack.conv?.question ?? ui.memoire.qConv,
         options: shuffleUnique([
-          kpis[1]?.value ?? fmt(conv, "%"),
-          fmt(conv + convGap, "%"),
-          fmt(Math.max(0.4, conv - convGap * 0.75), "%"),
-          fmt(conv + convGap * 1.4, "%"),
+          kpis[1]?.value ?? fmt(conv, "%", locale),
+          fmt(conv + convGap, "%", locale),
+          fmt(Math.max(0.4, conv - convGap * 0.75), "%", locale),
+          fmt(conv + convGap * 1.4, "%", locale),
         ]).slice(0, cap),
-        answer: kpis[1]?.value ?? fmt(conv, "%"),
+        answer: kpis[1]?.value ?? fmt(conv, "%", locale),
         lesson: "Les taux se ressemblent. D'où l'intérêt d'ancrer un ordre de grandeur avant de parler de +0,2 point.",
       }),
     ];
 
-    const brutalLessons = [
-      "Brutal : tu reconstruis le slide. Le filtre d’abord — sans segment, les six tuiles sont une moyenne qui ment.",
-      "Chaque tuile a une place. Échanger CA et conversion, c’est déjà mentir au comité.",
-      "Le rouge a une coordonnée. Si tu le poses ailleurs, tu as mémorisé « un truc va mal », pas le dashboard.",
-      "Les montants se ressemblent. Ancre la tuile, pas l’ambiance « autour de 130k ».",
-      "Six tuiles, un filtre. Une seule erreur, et en Brutal ça ne compte pas.",
-    ];
+    const brutalLessons =
+      locale === "en"
+        ? [
+            "Brutal: you rebuild the slide. Filter first — without a segment, six tiles are an average that lies.",
+            "Every tile has a place. Swapping revenue and conversion already lies to the committee.",
+            "The red KPI has coordinates. Put it elsewhere and you memorized “something’s wrong”, not the dashboard.",
+            "Amounts look alike. Anchor the tile, not the “around 130k” vibe.",
+            "Six tiles, one filter. One miss, and on Brutal it doesn’t count.",
+          ]
+        : [
+            "Brutal : tu reconstruis le slide. Le filtre d’abord — sans segment, les six tuiles sont une moyenne qui ment.",
+            "Chaque tuile a une place. Échanger CA et conversion, c’est déjà mentir au comité.",
+            "Le rouge a une coordonnée. Si tu le poses ailleurs, tu as mémorisé « un truc va mal », pas le dashboard.",
+            "Les montants se ressemblent. Ancre la tuile, pas l’ambiance « autour de 130k ».",
+            "Six tuiles, un filtre. Une seule erreur, et en Brutal ça ne compte pas.",
+          ];
 
     const brutalKinds: Array<() => Dash> = [
       () => ({
         kpis,
         filter,
-        question: "Le slide est fermé. Remets chaque tuile à sa place, et le filtre.",
+        question: pack.rebuild?.question ?? ui.memoire.qRebuild,
         options: [],
         answer: "",
         reconstruct: true,
@@ -186,12 +208,14 @@ function shuffleUnique(items: string[]) {
 }
 
 function DashboardPreview({ dash, blurred }: { dash: Dash; blurred?: boolean }) {
+  const { locale } = useI18n();
+  const filterLabel = PLAY_UI[locale].memoire.filter;
   return (
     <div className={cn("space-y-3", blurred && "pointer-events-none select-none blur-md")}>
       <p className="text-center">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 font-mono text-xs text-primary">
           <span className="pulse-dot size-1.5 rounded-full bg-primary" />
-          Filtre · {dash.filter}
+          {filterLabel} · {dash.filter}
         </span>
       </p>
       <div className="grid grid-cols-2 gap-3">
@@ -227,7 +251,11 @@ function DashboardPreview({ dash, blurred }: { dash: Dash; blurred?: boolean }) 
 
 export function MemoireGame({ onFinish }: { onFinish: (score: number) => void }) {
   const { rounds: total, maxScore, rng, difficulty } = usePlaySession();
-  const rounds = useMemo(() => makeDashboards(total, rng, difficulty), [difficulty, rng, total]);
+  const playI18n = usePlay("memoire");
+  const rounds = useMemo(
+    () => makeDashboards(total, rng, difficulty, playI18n.locale),
+    [difficulty, rng, total, playI18n.locale]
+  );
   const [phase, setPhase] = useState<"intro" | "play" | "done">("intro");
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -240,7 +268,8 @@ export function MemoireGame({ onFinish }: { onFinish: (score: number) => void })
   const [held, setHeld] = useState<string | null>(null);
   const [points, setPoints] = useState(0);
 
-  const round = rounds[index];
+  const { brief, go } = useBriefRound(index, phase === "play");
+  const round = playI18n.overlay(rounds[index]);
   const reconstructing = Boolean(round?.reconstruct);
   const correct = reconstructing ? points === POINTS_PER_ROUND : picked === round?.answer;
   const idleLabels = round
@@ -248,15 +277,13 @@ export function MemoireGame({ onFinish }: { onFinish: (score: number) => void })
     : [];
   const filterPool = useMemo(() => {
     if (!round?.reconstruct) return [];
-    const decoys = ["Cohorte S12", "iOS 18+", "VIP 90j", "B2B Nord", "Retours 14j", "Affiliés"].filter(
-      (item) => item !== round.filter
-    );
+    const decoys = playI18n.ui.decoys.filter((item) => item !== round.filter);
     const pickedDecoys = shuffleUnique(decoys).slice(0, 3);
     return shuffleUnique([round.filter, ...pickedDecoys]);
   }, [index, round?.filter, round?.reconstruct]);
 
   useEffect(() => {
-    if (phase !== "play" || mode !== "flash") return;
+    if (phase !== "play" || mode !== "flash" || brief) return;
     const started = Date.now();
     const tick = window.setInterval(() => {
       const remaining = Math.max(0, look - Math.floor((Date.now() - started) / 1000));
@@ -267,7 +294,7 @@ export function MemoireGame({ onFinish }: { onFinish: (score: number) => void })
       }
     }, 250);
     return () => window.clearInterval(tick);
-  }, [phase, mode, index, look]);
+  }, [phase, mode, index, look, brief]);
 
   useEffect(() => {
     if (mode !== "ask" || !round?.reconstruct) return;
@@ -351,8 +378,7 @@ export function MemoireGame({ onFinish }: { onFinish: (score: number) => void })
   if (phase === "intro") {
     return (
       <Intro
-        title="Mémoire"
-        how="Un tableau de bord, quelques secondes. En Facile, une question. En Brutal, le slide se vide : tu le reconstruis tuile par tuile."
+        slug="memoire"
         onStart={() => {
           setLeft(look);
           setPhase("play");
@@ -364,10 +390,9 @@ export function MemoireGame({ onFinish }: { onFinish: (score: number) => void })
   if (phase === "done") {
     return (
       <Result
-        title="Mémoire"
+        slug="memoire"
         score={score}
         max={maxScore}
-        line={scoreLine(score, maxScore)}
         onReplay={() => {
           setPhase("intro");
           setIndex(0);
@@ -384,8 +409,17 @@ export function MemoireGame({ onFinish }: { onFinish: (score: number) => void })
     );
   }
 
+  if (brief) {
+    return (
+      <GameShell slug="memoire" round={index} total={total} score={score} maxScore={maxScore}>
+        <QuestionBeat context={round.filter} question={round.question} onGo={go} />
+      </GameShell>
+    );
+  }
+
   return (
-    <GameShell title="Mémoire" round={index} total={total} score={score} maxScore={maxScore}>
+    <GameShell slug="memoire" round={index} total={total} score={score} maxScore={maxScore}>
+      <PlayStage slug="memoire" className="mt-2">
       {mode === "flash" ? (
         <>
           <p
@@ -398,7 +432,7 @@ export function MemoireGame({ onFinish }: { onFinish: (score: number) => void })
             <span className="ml-1 font-mono text-sm uppercase tracking-[0.18em] text-muted-foreground">s</span>
           </p>
           <p className="mt-1 text-center font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-            grave-le
+            {playI18n.ui.memoireLook}
           </p>
           <div className="mx-auto mt-3 h-1.5 max-w-xs overflow-hidden rounded-full bg-foreground/10">
             <span
@@ -413,11 +447,11 @@ export function MemoireGame({ onFinish }: { onFinish: (score: number) => void })
         </>
       ) : reconstructing ? (
         <>
-          <p className="text-center text-sm text-muted-foreground">Le slide est fermé. Reconstruis-le.</p>
+          <p className="text-center text-sm text-muted-foreground">{playI18n.ui.memoireClosed}</p>
           <h2 className="mt-2 text-center font-heading text-2xl sm:text-3xl">{round.question}</h2>
           <div className="mt-5 space-y-3">
             <div className="flex flex-wrap items-center justify-center gap-2">
-              <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Filtre</span>
+              <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{playI18n.ui.memoire.filter}</span>
               {filterPool.map((item) => (
                 <button
                   key={item}
@@ -481,22 +515,22 @@ export function MemoireGame({ onFinish }: { onFinish: (score: number) => void })
           {mode === "verdict" ? (
             <Verdict
               tone={roundTone(points)}
-              title={correct ? "Slide recréé." : "Le slide a gagné."}
+              title={correct ? playI18n.punch(true) : playI18n.punch(false)}
               lesson={round.lesson}
               onNext={next}
-              nextLabel={index + 1 >= total ? "Voir le score" : "Manche suivante"}
+              isLast={index + 1 >= total}
             />
           ) : (
             <LockBar
               disabled={placements.some((p) => !p) || !filterPick}
               onLock={lockReconstruct}
-              label="Verrouiller le slide"
+              label={playI18n.ui.lockSlide}
             />
           )}
         </>
       ) : (
         <>
-          <p className="text-center text-sm text-muted-foreground">Le slide est fermé.</p>
+          <p className="text-center text-sm text-muted-foreground">{playI18n.ui.memoireClosed}</p>
           <h2 className="mt-2 text-center font-heading text-2xl sm:text-3xl">{round.question}</h2>
           <div className="mt-4">
             <DashboardPreview dash={round} blurred />
@@ -526,14 +560,15 @@ export function MemoireGame({ onFinish }: { onFinish: (score: number) => void })
           {mode === "verdict" ? (
             <Verdict
               tone={correct ? "ok" : "miss"}
-              title={correct ? "Ancré." : "Le slide a gagné."}
+              title={correct ? playI18n.punch(true) : playI18n.punch(false)}
               lesson={round.lesson}
               onNext={next}
-              nextLabel={index + 1 >= total ? "Voir le score" : "Manche suivante"}
+              isLast={index + 1 >= total}
             />
           ) : null}
         </>
       )}
+      </PlayStage>
     </GameShell>
   );
 }

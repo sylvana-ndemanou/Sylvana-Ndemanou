@@ -1,6 +1,7 @@
 import { SignalApp } from "@/components/signal/signal-app";
 import { routing } from "@/i18n/routing";
 import { createMetadata } from "@/lib/metadata";
+import { MESSAGES } from "@s/lib/messages";
 import { GAMES, getGame, type GameSlug } from "@s/lib/games";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -23,9 +24,10 @@ export async function generateMetadata({
   const { locale, slug } = await params;
   const t = await getTranslations({ locale, namespace: "Metadata" });
   const game = getGame(slug);
+  const copy = locale === "en" || locale === "fr" ? MESSAGES[locale].games[slug as GameSlug] : null;
   return createMetadata({
-    title: game ? `${game.name} — ${t("signalTitle")}` : t("signalTitle"),
-    description: game?.tagline ?? t("signalDescription"),
+    title: copy ? `${copy.name} — ${t("signalTitle")}` : t("signalTitle"),
+    description: copy?.tagline ?? game?.tagline ?? t("signalDescription"),
     path: `/${locale}/signal/play/${slug}`,
   });
 }

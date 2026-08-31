@@ -5,17 +5,18 @@ import { useMemo, useRef, useState } from "react";
 import { Sparkline } from "@s/components/mini-charts";
 import { DragBoard, Draggable, DropSlot } from "@s/components/drag-kit";
 import { ChoiceTile, LockBar } from "@s/components/interact";
-import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
+import { GameShell, Intro, PlayStage, QuestionBeat, Result, RoundHeader, Verdict, useBriefRound } from "@s/components/game-shell";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
+import { usePlay } from "@s/lib/play-text";
 import { along, optionCapAt, takeDeck } from "@s/lib/play";
 import type { Difficulty } from "@s/lib/play";
-import { scoreLine } from "@s/lib/feedback";
 import { cn } from "@s/lib/utils";
 
 type Label = "tendance" | "saison" | "bruit" | "rupture";
 
 type Round = {
+  id: string;
   tier: Difficulty;
   title: string;
   values: number[];
@@ -40,6 +41,7 @@ function series(points: number, fn: (i: number) => number) {
 const ROUNDS_DATA: Round[] = [
   {
     tier: "easy",
+    id: "visites",
     title: "Visites, 12 semaines — ça grimpe clairement",
     values: series(12, (i) => 40 + i * 4),
     from: 8,
@@ -50,6 +52,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "easy",
+    id: "noel",
     title: "CA mensuel — Noël revient",
     values: series(24, (i) => 80 + (i % 12 === 11 ? 50 : 0)),
     from: 11,
@@ -60,6 +63,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "easy",
+    id: "dent",
     title: "Taux d’ouverture — une dent, puis plus rien",
     values: series(14, (i) => 22 + (i === 7 ? 14 : 0)),
     from: 6,
@@ -70,6 +74,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "org",
     title: "Visites organiques, 24 semaines",
     values: series(24, (i) => 80 + i * 2.4 + Math.sin(i / 2) * 2),
     from: 16,
@@ -80,6 +85,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "ca3y",
     title: "CA mensuel, 3 ans",
     values: series(36, (i) => 100 + (i % 12 === 10 ? 48 : i % 12 === 11 ? 62 : i % 12 === 0 ? 20 : 8) + i * 0.4),
     from: 22,
@@ -90,6 +96,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "open",
     title: "Taux d'ouverture e-mail, 20 envois",
     values: series(20, (i) => 22 + (i === 13 ? 9 : (i % 3) - 1.2)),
     from: 12,
@@ -100,6 +107,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "delay",
     title: "Délai de livraison, 18 semaines",
     values: series(18, (i) => (i < 9 ? 2.4 + (i % 2) * 0.15 : 4.6 + (i % 2) * 0.12)),
     from: 8,
@@ -110,6 +118,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "nps",
     title: "NPS, 16 vagues",
     values: series(16, (i) => 32 + i * 0.15 + (i === 7 ? -14 : 0) + Math.sin(i) * 1.2),
     from: 6,
@@ -120,6 +129,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "paid",
     title: "Sessions paid, 28 jours — pente faible sous le bruit",
     values: series(28, (i) => 100 + i * 0.35 + Math.sin(i) * 4.2),
     from: 18,
@@ -130,6 +140,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "summer",
     title: "Tickets, 36 mois — été calme, pas une crise",
     values: series(36, (i) => 40 + (i % 12 >= 6 && i % 12 <= 7 ? -11 : 0) + i * 0.12),
     from: 18,
@@ -140,6 +151,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "jeudi",
     title: "Panier moyen, 22 semaines — un jeudi pourri",
     values: series(22, (i) => 54 + Math.sin(i / 3) * 1.4 + (i === 14 ? -3.2 : 0)),
     from: 13,
@@ -150,6 +162,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "checkout",
     title: "Conversion, 20 semaines — nouveau checkout, palier +0,4 pt",
     values: series(20, (i) => (i < 11 ? 2.4 + (i % 2) * 0.04 : 2.82 + (i % 2) * 0.04)),
     from: 10,
@@ -160,6 +173,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "dau",
     title: "DAU, 30 jours — weekend vs semaine, pas une tendance",
     values: series(30, (i) => 80 + (i % 7 === 5 || i % 7 === 6 ? -18 : 0) + i * 0.08),
     from: 19,
@@ -195,6 +209,7 @@ function stampsFor(answer: Label, difficulty: Difficulty, roundIndex: number, to
 
 export function BruitGame({ onFinish }: { onFinish: (score: number) => void }) {
   const { rounds: total, maxScore, difficulty } = usePlaySession();
+  const playI18n = usePlay("bruit");
   const deck = useMemo(
     () => takeDeck(ROUNDS_DATA, difficulty).map((r, i) => scaleBruit(r, difficulty, i, total)),
     [difficulty, total]
@@ -206,7 +221,8 @@ export function BruitGame({ onFinish }: { onFinish: (score: number) => void }) {
   const [locked, setLocked] = useState(false);
   const sealed = useRef(false);
 
-  const round = deck[index];
+  const { brief, go } = useBriefRound(index, phase === "play");
+  const round = playI18n.overlay(deck[index]);
   const labels = round ? stampsFor(round.answer, difficulty, index, total) : [];
   const correct = stamp === round?.answer;
 
@@ -241,8 +257,7 @@ export function BruitGame({ onFinish }: { onFinish: (score: number) => void }) {
   if (phase === "intro") {
     return (
       <Intro
-        title="Bruit"
-        how="Glisse un calque sur la courbe. Tendance, saison, rupture, ou une dent. Retape pour sceller."
+        slug="bruit"
         onStart={() => setPhase("play")}
       />
     );
@@ -251,10 +266,9 @@ export function BruitGame({ onFinish }: { onFinish: (score: number) => void }) {
   if (phase === "done") {
     return (
       <Result
-        title="Bruit"
+        slug="bruit"
         score={score}
         max={maxScore}
-        line={scoreLine(score, maxScore)}
         onReplay={() => {
           setPhase("intro");
           setIndex(0);
@@ -267,12 +281,20 @@ export function BruitGame({ onFinish }: { onFinish: (score: number) => void }) {
     );
   }
 
+  if (brief) {
+    return (
+      <GameShell slug="bruit" round={index} total={total} score={score} maxScore={maxScore}>
+        <QuestionBeat context={round.title} question={playI18n.ui.bruitQ} onGo={go} />
+      </GameShell>
+    );
+  }
+
   return (
-    <GameShell title="Bruit" round={index} total={total} score={score} maxScore={maxScore}>
-      <RoundHeader context={round.title} question="Glisse un calque. Qu’est-ce que c’est, la zone marquée ?" />
+    <GameShell slug="bruit" round={index} total={total} score={score} maxScore={maxScore}>
+      <RoundHeader context={round.title} question={playI18n.ui.bruitQ} />
+      <PlayStage slug="bruit" className="mt-6">
       <DragBoard
         disabled={locked}
-        className="mt-6"
         onDrop={(piece, zone) => {
           if (zone === "series" && LABELS.some((l) => l.id === piece)) pickStamp(piece as Label);
         }}
@@ -291,20 +313,20 @@ export function BruitGame({ onFinish }: { onFinish: (score: number) => void }) {
           />
           {stamp ? (
             <p className="mt-2 text-center font-mono text-[10px] uppercase tracking-[0.16em] text-signal">
-              calque · {labels.find((l) => l.id === stamp)?.name}
+              {playI18n.ui.bruitLayer(playI18n.ui.noise[stamp])}
             </p>
           ) : (
             <p className="mt-2 text-center font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-              glisse un calque · {round.to - round.from + 1} points
+              {playI18n.ui.bruitDrag(round.to - round.from + 1)}
             </p>
           )}
         </DropSlot>
         <div className={cn("scene-opts mt-4 grid gap-2", labels.length <= 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4")}>
           {labels.map((lab) => (
-            <Draggable key={lab.id} id={lab.id} label={lab.name} disabled={locked}>
+            <Draggable key={lab.id} id={lab.id} label={playI18n.ui.noise[lab.id]} disabled={locked}>
               <ChoiceTile
-                title={lab.name}
-                hint={lab.hint}
+                title={playI18n.ui.noise[lab.id]}
+                hint={playI18n.ui.noiseHint[lab.id]}
                 selected={stamp === lab.id}
                 locked={locked}
                 isAnswer={lab.id === round.answer}
@@ -317,16 +339,17 @@ export function BruitGame({ onFinish }: { onFinish: (score: number) => void }) {
           ))}
         </div>
       </DragBoard>
+      </PlayStage>
       {locked ? (
         <Verdict
           tone={correct ? "ok" : "miss"}
-          title={correct ? "Lecture juste." : "Fausse alerte."}
+          title={playI18n.punch(correct)}
           lesson={correct ? round.ok : round.miss}
           onNext={next}
-          nextLabel={index + 1 >= total ? "Voir le score" : "Manche suivante"}
+          isLast={index + 1 >= total}
         />
       ) : (
-        <LockBar disabled={!stamp} label="Sceller cette lecture" onLock={lockIn} />
+        <LockBar disabled={!stamp} label={playI18n.ui.sealRead} onLock={lockIn} />
       )}
     </GameShell>
   );

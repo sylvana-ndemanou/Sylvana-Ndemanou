@@ -2,17 +2,18 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
+import { GameShell, Intro, PlayStage, QuestionBeat, Result, RoundHeader, Verdict, useBriefRound } from "@s/components/game-shell";
 import { Button } from "@s/components/ui/button";
 import { play } from "@s/lib/audio";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
+import { usePlay } from "@s/lib/play-text";
 import { beatWindowMsAt, takeDeck, tempoScaleAt } from "@s/lib/play";
 import type { Difficulty } from "@s/lib/play";
-import { scoreLine } from "@s/lib/feedback";
 import { cn } from "@s/lib/utils";
 
 type Round = {
+  id: string;
   tier: Difficulty;
   context: string;
   question: string;
@@ -26,6 +27,7 @@ type Round = {
 const ROUNDS_DATA: Round[] = [
   {
     tier: "easy",
+    id: "hasdata",
     context: "Le stream a des INSERT. Task : WHEN SYSTEM$STREAM_HAS_DATA.",
     question: "Tape DML sur le beat, seulement s’il y a des lignes.",
     bpm: 72,
@@ -36,6 +38,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "easy",
+    id: "empty",
     context: "Personne n’a écrit. Le stream est calme.",
     question: "Le beat tourne. Tu ne dois PAS consommer.",
     bpm: 76,
@@ -46,6 +49,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "easy",
+    id: "select",
     context: "Le stream a des lignes. Tu fais SELECT * FROM s.",
     question: "L’offset n’avance pas. Tape DML pour vraiment consommer.",
     bpm: 70,
@@ -56,6 +60,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "hasdata-hard",
     context: "CREATE STREAM s ON TABLE brut. Des INSERT arrivent. Task : WHEN SYSTEM$STREAM_HAS_DATA.",
     question: "Tape sur le beat, seulement s’il y a des lignes dans le stream.",
     bpm: 88,
@@ -66,6 +71,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "empty-hard",
     context: "Personne n’a écrit dans brut. Le stream est calme.",
     question: "Le beat tourne. Tu ne dois PAS consommer.",
     bpm: 96,
@@ -76,6 +82,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "select-hard",
     context: "Le stream a des lignes. Tu fais SELECT * FROM s.",
     question: "L’offset avance-t-il ? Tape DML pour vraiment consommer, pas SELECT.",
     bpm: 80,
@@ -86,6 +93,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "burst",
     context: "Burst CDC. Tu dois tout avaler d’un coup — un MERGE, un beat.",
     question: "Un tap pile sur la mesure, stream plein. C’est le consume transactionnel.",
     bpm: 100,
@@ -96,6 +104,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "child",
     context: "Task enfant après la task parent. Le graphe a un rythme : parent, puis child.",
     question: "Laisse passer le beat parent (auto), tape seulement le beat enfant après le flash.",
     bpm: 84,
@@ -106,6 +115,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "append",
     context: "Stream APPEND_ONLY. Des UPDATE arrivent sur la table source.",
     question: "Les UPDATE ne sont pas dans l’append-only. N’avale que s’il y a de vrais inserts.",
     bpm: 110,
@@ -116,6 +126,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "two",
     context: "Deux tasks lisent le même stream. La première a déjà MERGÉ.",
     question: "L’offset a bougé. La seconde ne doit PAS retaper.",
     bpm: 118,
@@ -126,6 +137,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "stale",
     context: "SHOW STREAMS : stale after 14 days without consume. Le stream a dormi.",
     question: "Il a des lignes « anciennes ». Recréer / recréer l’offset, pas SELECT.",
     bpm: 104,
@@ -136,6 +148,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "parent-fail",
     context: "Task graph : parent fail, child ne doit pas partir. Le beat parent clignote rouge.",
     question: "N’avale l’enfant que si le parent a commité — ici, non.",
     bpm: 122,
@@ -146,6 +159,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "merge",
     context: "MERGE … WHEN MATCHED. Stream plein, beat serré. Un tap pile.",
     question: "C’est le consume. SELECT serait un aperçu. Empty serait un mensonge.",
     bpm: 128,
@@ -158,6 +172,7 @@ const ROUNDS_DATA: Round[] = [
 
 export function FluxGame({ onFinish }: { onFinish: (score: number) => void }) {
   const { rounds: total, maxScore, difficulty } = usePlaySession();
+  const playI18n = usePlay("flux");
   const deck = useMemo(
     () =>
       takeDeck(ROUNDS_DATA, difficulty).map((r, i) => ({
@@ -177,11 +192,12 @@ export function FluxGame({ onFinish }: { onFinish: (score: number) => void }) {
   const beatRef = useRef(0);
   const lastBeat = useRef(0);
 
-  const round = deck[index];
+  const { brief, go } = useBriefRound(index, phase === "play");
+  const round = playI18n.overlay(deck[index]);
   const interval = 60000 / (round?.bpm ?? 90);
 
   useEffect(() => {
-    if (phase !== "play" || locked) return;
+    if (phase !== "play" || locked || brief) return;
     setDots(round.needData ? 3 + (index % 3) : 0);
     setOkHit(false);
     setChildGo(false);
@@ -192,7 +208,7 @@ export function FluxGame({ onFinish }: { onFinish: (score: number) => void }) {
       play("beat");
       setPulse(true);
       window.setTimeout(() => setPulse(false), 120);
-      if (round.context.includes("enfant") && beatRef.current === 2) {
+      if (round.id === "child" && beatRef.current === 2) {
         setChildGo(true);
       }
       if (!round.needData && Math.random() < 0.08) {
@@ -202,7 +218,7 @@ export function FluxGame({ onFinish }: { onFinish: (score: number) => void }) {
     const t0 = start;
     void t0;
     return () => window.clearInterval(id);
-  }, [phase, locked, index, interval, round.needData, round.context]);
+  }, [phase, locked, index, interval, round.needData, round.context, brief]);
 
   function tap(kind: "dml" | "select") {
     if (locked) return;
@@ -214,7 +230,7 @@ export function FluxGame({ onFinish }: { onFinish: (score: number) => void }) {
     if (round.consume === "empty") {
       good = false;
     } else if (round.consume === "dml") {
-      good = kind === "dml" && has && onBeat && (!round.context.includes("enfant") || childGo);
+      good = kind === "dml" && has && onBeat && (round.id !== "child" || childGo);
     }
     if (round.consume === "empty") {
       setLocked(true);
@@ -261,8 +277,7 @@ export function FluxGame({ onFinish }: { onFinish: (score: number) => void }) {
   if (phase === "intro") {
     return (
       <Intro
-        title="Flux"
-        how="Attrape les paquets sur le beat — tape l’orbe. Un stream vide, tu ne tends pas la main."
+        slug="flux"
         onStart={() => setPhase("play")}
       />
     );
@@ -271,10 +286,9 @@ export function FluxGame({ onFinish }: { onFinish: (score: number) => void }) {
   if (phase === "done") {
     return (
       <Result
-        title="Flux"
+        slug="flux"
         score={score}
         max={maxScore}
-        line={scoreLine(score, maxScore)}
         onReplay={() => {
           setPhase("intro");
           setIndex(0);
@@ -285,10 +299,19 @@ export function FluxGame({ onFinish }: { onFinish: (score: number) => void }) {
     );
   }
 
+  if (brief) {
+    return (
+      <GameShell slug="flux" round={index} total={total} score={score} maxScore={maxScore}>
+        <QuestionBeat context={round.context} question={round.question} onGo={go} />
+      </GameShell>
+    );
+  }
+
   return (
-    <GameShell title="Flux" round={index} total={total} score={score} maxScore={maxScore}>
+    <GameShell slug="flux" round={index} total={total} score={score} maxScore={maxScore}>
       <RoundHeader context={round.context} question={round.question} />
-      <div className="mt-6 flex flex-col items-center">
+      <PlayStage slug="flux" className="mt-6">
+      <div className="flex flex-col items-center">
         <button
           type="button"
           disabled={locked}
@@ -318,7 +341,7 @@ export function FluxGame({ onFinish }: { onFinish: (score: number) => void }) {
           <span className="relative font-heading text-3xl tabular-nums">{round.bpm}</span>
         </button>
         <p className="mt-2 font-mono text-xs text-muted-foreground">
-          BPM task · {childGo ? "enfant prêt" : "parent"} · fenêtre {beatWindowMsAt(difficulty, index, total)} ms
+          {playI18n.ui.flux.bpm} · {childGo ? playI18n.ui.flux.child : playI18n.ui.flux.parent} · {beatWindowMsAt(difficulty, index, total)} ms
         </p>
         <div className="mt-4 flex min-h-10 items-center gap-2">
           {Array.from({ length: dots }).map((_, i) => (
@@ -330,33 +353,34 @@ export function FluxGame({ onFinish }: { onFinish: (score: number) => void }) {
           ))}
           {dots === 0 ? (
             <span className="rounded-full border border-border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-              stream vide · HAS_DATA = false
+              {playI18n.ui.flux.empty}
             </span>
           ) : (
             <span className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-signal">
-              HAS_DATA = true
+              {playI18n.ui.flux.hasData}
             </span>
           )}
         </div>
       </div>
+      </PlayStage>
       {locked ? (
         <Verdict
           tone={okHit ? "ok" : "miss"}
-          title={okHit ? "Offset avancé." : "Mauvais temps."}
+          title={okHit ? playI18n.punch(true) : playI18n.punch(false)}
           lesson={okHit ? round.ok : round.miss}
           onNext={next}
-          nextLabel={index + 1 >= total ? "Voir le score" : "Manche suivante"}
+          isLast={index + 1 >= total}
         />
       ) : (
         <div className="mt-6 grid gap-2 sm:grid-cols-3">
-          <Button size="lg" className="h-14" onClick={() => tap("dml")}>
-            MERGE / INSERT SELECT
+          <Button size="lg" className="h-14" onClick={() => tap("dml")} onPointerEnter={(e) => e.pointerType === "mouse" && play("hover")}>
+            {playI18n.ui.flux.dml}
           </Button>
-          <Button size="lg" variant="outline" className="h-14" onClick={() => tap("select")}>
-            SELECT FROM stream
+          <Button size="lg" variant="outline" className="h-14" onClick={() => tap("select")} onPointerEnter={(e) => e.pointerType === "mouse" && play("hover")}>
+            {playI18n.ui.flux.select}
           </Button>
-          <Button size="lg" variant="ghost" className="h-14" onClick={hold}>
-            Ne rien lancer
+          <Button size="lg" variant="ghost" className="h-14" onClick={hold} onPointerEnter={(e) => e.pointerType === "mouse" && play("hover")}>
+            {playI18n.ui.flux.hold}
           </Button>
         </div>
       )}

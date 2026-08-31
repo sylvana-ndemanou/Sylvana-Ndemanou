@@ -3,17 +3,22 @@
 
 import { SignalLink } from "@s/components/signal-link";
 import { ArrowLeft } from "lucide-react";
-import { useEffect, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { GameLobby } from "@s/components/game-lobby";
 import { BoardCapture } from "@s/components/ranked-board";
 import { Button } from "@s/components/ui/button";
 import { play, setAudioPalette } from "@s/lib/audio";
 import { useI18n } from "@s/lib/i18n";
 import { usePlaySession } from "@s/components/play-session";
+import type { GameSlug } from "@s/lib/games";
+import { scoreLine } from "@s/lib/feedback";
+import { PLAY_UI } from "@s/lib/play-copy";
+import { PlayWorld } from "@s/components/play-world";
 import { heat } from "@s/lib/play";
 import { cn } from "@s/lib/utils";
 
 export function GameShell({
+  slug,
   title,
   round,
   total,
@@ -22,7 +27,8 @@ export function GameShell({
   children,
   footer,
 }: {
-  title: string;
+  slug?: GameSlug;
+  title?: string;
   round: number;
   total: number;
   score: number;
@@ -31,6 +37,7 @@ export function GameShell({
   footer?: ReactNode;
 }) {
   const { t } = useI18n();
+  const heading = title ?? (slug ? t.games[slug].name : "");
   const session = usePlaySession();
   const pressure = heat(session.difficulty, round, total);
   useEffect(() => {
@@ -51,7 +58,7 @@ export function GameShell({
           <ArrowLeft />
           {t.shell.games}
         </Button>
-        <p className="font-heading text-xl tracking-tight sm:text-2xl">{title}</p>
+        <p className="font-heading text-xl tracking-tight sm:text-2xl">{heading}</p>
         <p className="font-mono text-sm text-muted-foreground">
           <span key={score} className="score-pop text-foreground">
             {score}
@@ -139,14 +146,17 @@ export function Verdict({
   lesson,
   onNext,
   nextLabel,
+  isLast,
 }: {
   tone: "ok" | "mid" | "miss";
   title: string;
   lesson: string;
   onNext: () => void;
   nextLabel?: string;
+  isLast?: boolean;
 }) {
   const { t } = useI18n();
+  const label = nextLabel ?? (isLast ? t.shell.score : t.shell.next);
   useEffect(() => {
     play(tone);
   }, [tone, title]);
@@ -167,38 +177,51 @@ export function Verdict({
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{lesson}</p>
       </div>
       <Button size="lg" className="h-11 w-full text-base" onClick={onNext}>
-        {nextLabel ?? t.shell.next}
+        {label}
       </Button>
     </div>
   );
 }
 
 export function Intro({
+  slug,
   title,
   how,
   onStart,
 }: {
-  title: string;
-  how: string;
+  slug?: GameSlug;
+  title?: string;
+  how?: string;
   onStart: () => void;
 }) {
-  return <GameLobby title={title} how={how} onStart={onStart} />;
+  const { t } = useI18n();
+  return (
+    <GameLobby
+      title={title ?? (slug ? t.games[slug].name : "")}
+      how={how ?? (slug ? t.games[slug].how : "")}
+      onStart={onStart}
+    />
+  );
 }
 
 export function Result({
+  slug,
   title,
   score,
   max,
   line,
   onReplay,
 }: {
-  title: string;
+  slug?: GameSlug;
+  title?: string;
   score: number;
   max: number;
-  line: string;
+  line?: string;
   onReplay: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const heading = title ?? (slug ? t.games[slug].name : "");
+  const blurb = line ?? scoreLine(score, max, locale);
   const session = usePlaySession();
   const pct = max > 0 ? Math.round((score / max) * 100) : 0;
   const diffLabel =
@@ -219,7 +242,7 @@ export function Result({
         </Button>
       </header>
       <div className="flex flex-1 flex-col items-center justify-center px-6 pb-16 text-center">
-        <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">{title}</p>
+        <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">{heading}</p>
         <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.18em] text-signal">
           {diffLabel} · {t.lobby.rounds(session.rounds)}
         </p>
@@ -230,7 +253,7 @@ export function Result({
         <div className="mt-4 h-1.5 w-40 overflow-hidden rounded-full bg-foreground/10">
           <span className="score-fill block h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
         </div>
-        <p className="mt-6 max-w-md text-lg leading-relaxed text-foreground/90">{line}</p>
+        <p className="mt-6 max-w-md text-lg leading-relaxed text-foreground/90">{blurb}</p>
         <BoardCapture score={score} max={max} />
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Button size="lg" className="h-12 px-8 text-base" onClick={onReplay}>
@@ -241,6 +264,77 @@ export function Result({
           </Button>
         </div>
       </div>
+    </div>
+  );
+}
+
+export function useBriefRound(index: number, active: boolean) {
+  const [brief, setBrief] = useState(true);
+  useEffect(() => {
+    if (!active) return;
+    setBrief(true);
+  }, [index, active]);
+  const go = useCallback(() => setBrief(false), []);
+  return { brief: Boolean(active && brief), go };
+}
+
+export function QuestionBeat({
+  context,
+  question,
+  onGo,
+  kicker,
+}: {
+  context?: string;
+  question: string;
+  onGo: () => void;
+  kicker?: string;
+}) {
+  const { t, locale } = useI18n();
+  const session = usePlaySession();
+  const ui = PLAY_UI[locale];
+  useEffect(() => {
+    play("tick");
+    const id = window.setTimeout(onGo, 4200);
+    return () => window.clearTimeout(id);
+  }, [onGo, question]);
+  return (
+    <button
+      type="button"
+      onClick={onGo}
+      className={cn(
+        "question-beat mx-auto flex min-h-[52vh] w-full max-w-xl flex-col items-center justify-center px-4 text-center",
+        session.slug && `question-beat-${session.slug}`
+      )}
+    >
+      <p className="scene-context-kicker flex items-center justify-center gap-2 font-mono text-[10px] uppercase tracking-[0.28em] text-signal">
+        <span className="pulse-dot size-1.5 rounded-full bg-primary" />
+        {kicker ?? t.shell.situation}
+      </p>
+      {context ? (
+        <p className="mt-5 max-w-lg text-sm leading-relaxed text-muted-foreground">{context}</p>
+      ) : null}
+      <h2 className="font-heading mt-6 max-w-xl text-[clamp(1.45rem,4.2vw,2.35rem)] leading-tight">{question}</h2>
+      <p className="mt-10 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">{ui.briefHint}</p>
+      <span className="mt-3 inline-flex items-center rounded-full border border-primary/35 bg-primary/10 px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.16em] text-signal">
+        {ui.briefContinue}
+      </span>
+    </button>
+  );
+}
+
+export function PlayStage({
+  slug,
+  children,
+  className,
+}: {
+  slug: GameSlug;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn("play-stage", `play-stage-${slug}`, className)}>
+      <PlayWorld slug={slug} />
+      <div className="relative z-[1]">{children}</div>
     </div>
   );
 }
