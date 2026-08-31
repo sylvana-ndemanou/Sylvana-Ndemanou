@@ -1,7 +1,6 @@
 // @ts-nocheck
 "use client";
 
-import { Suspense } from "react";
 import { AnomalieGame } from "@s/components/games/anomalie-game";
 import { GraphiqueGame } from "@s/components/games/graphique-game";
 import { EntonnoirGame } from "@s/components/games/entonnoir-game";
@@ -20,13 +19,26 @@ import { PlaySessionRoot } from "@s/components/play-session";
 import { recordScore } from "@s/lib/scores";
 import type { GameSlug } from "@s/lib/games";
 
-export function GamePlayer({ slug }: { slug: GameSlug }) {
+export function GamePlayer({
+  slug,
+  initialMode,
+  initialDifficulty,
+  initialSeed,
+}: {
+  slug: GameSlug;
+  initialMode?: string | null;
+  initialDifficulty?: string | null;
+  initialSeed?: string | null;
+}) {
   return (
-    <Suspense>
-      <PlaySessionRoot slug={slug}>
-        <GameSwitch slug={slug} />
-      </PlaySessionRoot>
-    </Suspense>
+    <PlaySessionRoot
+      slug={slug}
+      initialMode={initialMode}
+      initialDifficulty={initialDifficulty}
+      initialSeed={initialSeed}
+    >
+      <GameSwitch slug={slug} />
+    </PlaySessionRoot>
   );
 }
 

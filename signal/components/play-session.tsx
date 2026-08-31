@@ -9,7 +9,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { GameSlug } from "@s/lib/games";
 import {
   dailyKey,
@@ -43,45 +42,55 @@ const PlaySessionContext = createContext<PlaySession | null>(null);
 export function PlaySessionRoot({
   slug,
   children,
+  initialMode,
+  initialDifficulty,
+  initialSeed,
 }: {
   slug: GameSlug;
   children: ReactNode;
+  initialMode?: string | null;
+  initialDifficulty?: string | null;
+  initialSeed?: string | null;
 }) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const params = useSearchParams();
-  const [mode, setModeState] = useState<PlayMode>(() => parseMode(params.get("mode")));
+  const [mode, setModeState] = useState<PlayMode>(() => parseMode(initialMode ?? null));
   const [difficulty, setDifficultyState] = useState<Difficulty>(() =>
-    parseDifficulty(params.get("d"), slug)
+    parseDifficulty(initialDifficulty ?? null, slug)
   );
   const [seed, setSeed] = useState(() => {
-    const given = params.get("seed");
-    if (given) return given;
-    if (parseMode(params.get("mode")) === "daily") return dailyKey(slug);
+    if (initialSeed) return initialSeed;
+    if (parseMode(initialMode ?? null) === "daily") return dailyKey(slug);
     return `solo-${slug}`;
   });
 
   const writeUrl = useCallback(
     (nextMode: PlayMode, nextDifficulty: Difficulty, nextSeed: string) => {
+      if (typeof window === "undefined") return;
       const query = new URLSearchParams();
       if (nextMode !== "solo") query.set("mode", nextMode);
       if (nextDifficulty !== defaultDifficulty(slug)) query.set("d", nextDifficulty);
       if (nextMode === "multi" && nextSeed) query.set("seed", nextSeed);
       const suffix = query.toString();
-      router.replace(suffix ? `${pathname}?${suffix}` : pathname, { scroll: false });
+      const path = window.location.pathname;
+      window.history.replaceState(null, "", suffix ? `${path}?${suffix}` : path);
     },
-    [pathname, router, slug]
+    [slug]
   );
 
   const setMode = useCallback(
     (next: PlayMode) => {
       const nextSeed =
-        next === "daily" ? dailyKey(slug) : next === "multi" && !params.get("seed") ? makeRoomCode() : seed;
+        next === "daily"
+          ? dailyKey(slug)
+          : next === "multi" && !seed.startsWith("solo-") && !seed.startsWith("daily-")
+            ? seed
+            : next === "multi"
+              ? makeRoomCode()
+              : seed;
       setModeState(next);
       setSeed(nextSeed);
       writeUrl(next, difficulty, nextSeed);
     },
-    [difficulty, params, seed, slug, writeUrl]
+    [difficulty, seed, slug, writeUrl]
   );
 
   const setDifficulty = useCallback(
@@ -104,8 +113,8 @@ export function PlaySessionRoot({
   const inviteUrl = useMemo(() => {
     if (typeof window === "undefined") return "";
     const query = new URLSearchParams({ mode: "multi", d: difficulty, seed });
-    return `${window.location.origin}${pathname}?${query.toString()}`;
-  }, [difficulty, pathname, seed]);
+    return `${window.location.origin}${window.location.pathname}?${query.toString()}`;
+  }, [difficulty, seed]);
 
   const value = useMemo<PlaySession>(
     () => ({

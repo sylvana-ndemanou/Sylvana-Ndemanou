@@ -32,10 +32,13 @@ export async function generateMetadata({
 
 export default async function SignalPlayPage({
   params,
+  searchParams,
 }: {
   params: Promise<Params>;
+  searchParams: Promise<{ mode?: string; d?: string; seed?: string }>;
 }): Promise<ReactNode> {
   const { locale, slug } = await params;
+  const query = await searchParams;
   setRequestLocale(locale);
 
   const game = getGame(slug);
@@ -50,6 +53,9 @@ export default async function SignalPlayPage({
         locale={locale}
         basePath={`/${locale}/signal`}
         slug={slug as GameSlug}
+        initialMode={query.mode}
+        initialDifficulty={query.d}
+        initialSeed={query.seed}
       />
     </main>
   );

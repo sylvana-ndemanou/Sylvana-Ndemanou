@@ -23,11 +23,21 @@ export async function generateMetadata({
 
 export default async function PlayPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ mode?: string; d?: string; seed?: string }>;
 }) {
   const { slug } = await params;
+  const query = await searchParams;
   const game = getGame(slug);
   if (!game) notFound();
-  return <GamePlayer slug={slug as GameSlug} />;
+  return (
+    <GamePlayer
+      slug={slug as GameSlug}
+      initialMode={query.mode}
+      initialDifficulty={query.d}
+      initialSeed={query.seed}
+    />
+  );
 }

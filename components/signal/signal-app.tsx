@@ -14,10 +14,16 @@ export function SignalApp({
   locale,
   basePath,
   slug,
+  initialMode,
+  initialDifficulty,
+  initialSeed,
 }: {
   locale: string;
   basePath: string;
   slug?: GameSlug;
+  initialMode?: string | null;
+  initialDifficulty?: string | null;
+  initialSeed?: string | null;
 }): ReactNode {
   const signalLocale: Locale = locale === "en" ? "en" : "fr";
 
@@ -27,7 +33,16 @@ export function SignalApp({
         <SignalBasePathProvider basePath={basePath}>
           <AudioRoot />
           <PlayHoverRoot>
-            {slug ? <GamePlayer slug={slug} /> : <GamesHub />}
+            {slug ? (
+              <GamePlayer
+                slug={slug}
+                initialMode={initialMode}
+                initialDifficulty={initialDifficulty}
+                initialSeed={initialSeed}
+              />
+            ) : (
+              <GamesHub />
+            )}
           </PlayHoverRoot>
         </SignalBasePathProvider>
       </SignalLocaleProvider>

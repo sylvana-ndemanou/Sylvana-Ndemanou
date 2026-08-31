@@ -36,14 +36,14 @@ export function GameLobby({
 
   function startSolo() {
     session.setMode("solo");
-    play("start");
     onStart();
+    play("start");
   }
 
   function startDaily() {
     session.setMode("daily");
-    play("start");
     onStart();
+    play("start");
   }
 
   function openMulti() {
@@ -88,7 +88,7 @@ export function GameLobby({
           <p className="mt-3 font-mono text-[11px] text-signal">
             {t.lobby.rounds(session.rounds)} · {labels[session.difficulty]}
           </p>
-          <div className="mt-6 min-h-0 flex-1">
+          <div className="pointer-events-none mt-6 min-h-0 flex-1">
             <GamePreview slug={session.slug} className="h-full min-h-[11rem] rounded-2xl" />
           </div>
 
@@ -123,7 +123,7 @@ export function GameLobby({
               </button>
             </div>
           ) : (
-            <div className="mt-8 space-y-5">
+            <div className="relative z-20 mt-8 space-y-5">
               <div>
                 <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
                   {t.lobby.mode}
@@ -182,9 +182,10 @@ export function GameLobby({
 
               <button
                 type="button"
+                data-signal-start
                 className={cn(
                   buttonVariants({ variant: "default", size: "lg" }),
-                  "relative z-10 h-12 w-full text-base"
+                  "relative z-20 h-12 w-full text-base"
                 )}
                 onClick={() => {
                   if (session.mode === "daily") startDaily();
