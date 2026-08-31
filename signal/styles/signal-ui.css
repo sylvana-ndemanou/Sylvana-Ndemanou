@@ -1230,10 +1230,10 @@
 
 .part-range {
   position: relative;
-  height: 0.4rem;
+  height: 0.55rem;
   overflow: hidden;
   border-radius: 999px;
-  background: color-mix(in oklch, var(--foreground) 8%, transparent);
+  background: color-mix(in oklch, var(--foreground) 12%, transparent);
 }
 
 .part-range-fill {
