@@ -270,13 +270,15 @@ export function Result({
 }
 
 export function useBriefRound(index: number, active: boolean) {
-  const [brief, setBrief] = useState(true);
-  useEffect(() => {
-    if (!active) return;
-    setBrief(true);
-  }, [index, active]);
-  const go = useCallback(() => setBrief(false), []);
-  return { brief: Boolean(active && brief), go };
+  const key = active ? `play-${index}` : "idle";
+  const [state, setState] = useState({ key, open: true });
+  if (state.key !== key) {
+    setState({ key, open: true });
+  }
+  const go = useCallback(() => {
+    setState((s) => (s.open ? { ...s, open: false } : s));
+  }, []);
+  return { brief: Boolean(active && state.open), go };
 }
 
 export function QuestionBeat({
