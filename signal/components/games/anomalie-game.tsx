@@ -226,6 +226,25 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
       );
       sealBreak(values, answer, step, difficulty);
     }
+    if (difficulty === "brutal") {
+      const others = values.filter((_, i) => i !== answer);
+      const lo = Math.min(...others);
+      const hi = Math.max(...others);
+      const spread = hi - lo;
+      const cap = Math.max(4, Math.round(start * 0.06));
+      if (spread > cap) {
+        const mid = (lo + hi) / 2;
+        for (let i = 0; i < values.length; i += 1) {
+          if (i === answer) continue;
+          values[i] = Math.round(mid + ((values[i] - mid) * cap) / spread);
+        }
+        if (spec.kind === "spike") {
+          values[answer] = Math.max(...values.filter((_, i) => i !== answer)) + 1;
+        } else if (spec.kind === "dip") {
+          values[answer] = Math.max(3, Math.min(...values.filter((_, i) => i !== answer)) - 1);
+        }
+      }
+    }
     return { ...spec, values, labels, answer };
   });
 }

@@ -565,7 +565,7 @@ function GrainStage() {
     ["04-02", "A", "9"],
   ];
   return (
-    <div className="grain-preview flex h-full min-w-0 items-center px-3 py-3">
+    <div className="grain-preview box-border flex h-full min-w-0 items-center px-4 py-3">
       <div className="grid w-full min-w-0 overflow-hidden rounded-xl border border-border bg-background/70 font-mono text-[10px] shadow-[0_10px_24px_-16px_oklch(0.3_0.04_118_/_0.5)]">
         <div className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)_minmax(0,0.6fr)] border-b border-border bg-primary/18 text-primary">
           <span className="truncate px-2 py-1.5">🔑 date</span>
