@@ -88,9 +88,6 @@ export function GameLobby({
           <p className="mt-3 font-mono text-[11px] text-signal">
             {t.lobby.rounds(session.rounds)} · {labels[session.difficulty]}
           </p>
-          <p className="mt-1 max-w-sm text-[12px] leading-5 text-muted-foreground">
-            {t.lobby.diffHint[session.difficulty]}
-          </p>
           <div className="mt-6 min-h-0 flex-1">
             <GamePreview slug={session.slug} className="h-full min-h-[11rem] rounded-2xl" />
           </div>
@@ -126,14 +123,51 @@ export function GameLobby({
               </button>
             </div>
           ) : (
-            <div className="mt-8 flex w-full flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <ModeOrb label={t.lobby.solo} active={session.mode === "solo"} onClick={startSolo}>
-                  <User />
-                </ModeOrb>
-                <ModeOrb label={t.lobby.multi} active={session.mode === "multi"} onClick={openMulti}>
-                  <Users />
-                </ModeOrb>
+            <div className="mt-8 space-y-5">
+              <div>
+                <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                  {t.lobby.mode}
+                </p>
+                <div className="mt-2 flex items-center gap-3">
+                  <ModeOrb
+                    label={t.lobby.solo}
+                    active={session.mode === "solo"}
+                    onClick={() => {
+                      play("tap");
+                      session.setMode("solo");
+                    }}
+                  >
+                    <User />
+                  </ModeOrb>
+                  <ModeOrb label={t.lobby.multi} active={session.mode === "multi"} onClick={openMulti}>
+                    <Users />
+                  </ModeOrb>
+                  <ModeOrb
+                    label={t.lobby.daily}
+                    active={session.mode === "daily"}
+                    featured
+                    onClick={() => {
+                      play("tap");
+                      session.setMode("daily");
+                    }}
+                  >
+                    <CalendarDays />
+                  </ModeOrb>
+                  <BoardOrb
+                    label={t.board.open}
+                    onClick={() => {
+                      play("tap");
+                      setBoardOpen(true);
+                    }}
+                  />
+                </div>
+                <p className="mt-2 text-[12px] leading-5 text-muted-foreground">
+                  {session.mode === "daily"
+                    ? t.lobby.dailyHint(new Date().toISOString().slice(0, 10))
+                    : session.mode === "multi"
+                      ? t.lobby.multiHint
+                      : t.lobby.soloHint}
+                </p>
               </div>
 
               <DifficultyStrip
@@ -146,23 +180,16 @@ export function GameLobby({
                 }}
               />
 
-              <div className="flex items-center gap-3">
-                <ModeOrb
-                  label={t.lobby.daily}
-                  active={session.mode === "daily"}
-                  featured
-                  onClick={startDaily}
-                >
-                  <CalendarDays />
-                </ModeOrb>
-                <BoardOrb
-                  label={t.board.open}
-                  onClick={() => {
-                    play("tap");
-                    setBoardOpen(true);
-                  }}
-                />
-              </div>
+              <Button
+                size="lg"
+                className="h-12 w-full text-base"
+                onClick={() => {
+                  if (session.mode === "daily") startDaily();
+                  else startSolo();
+                }}
+              >
+                {t.lobby.start}
+              </Button>
             </div>
           )}
         </div>
@@ -223,7 +250,6 @@ function DifficultyStrip({
 }) {
   const { t } = useI18n();
   const index = Math.max(0, levels.indexOf(value));
-  const slot = 1.125;
 
   function move(delta: number) {
     const next = levels[index + delta];
@@ -231,12 +257,14 @@ function DifficultyStrip({
   }
 
   return (
-    <div className="flex items-center gap-2.5">
+    <div>
+      <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+        {t.lobby.difficulty}
+      </p>
       <div
         role="radiogroup"
         aria-label={t.lobby.difficulty}
-        className="relative isolate h-[1.375rem] rounded-full border border-foreground/40 p-px"
-        style={{ width: `calc(${levels.length} * ${slot}rem + 2px)` }}
+        className="mt-2 grid grid-cols-3 gap-2"
         onKeyDown={(event) => {
           if (event.key === "ArrowRight" || event.key === "ArrowUp") {
             event.preventDefault();
@@ -248,38 +276,52 @@ function DifficultyStrip({
           }
         }}
       >
-        <span
-          aria-hidden
-          className="pointer-events-none absolute top-px rounded-full bg-foreground transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
-          style={{
-            width: `${slot}rem`,
-            height: `${slot}rem`,
-            transform: `translateX(${index * slot}rem)`,
-          }}
-        />
-        <div className="relative z-10 flex h-full">
-          {levels.map((level, i) => (
+        {levels.map((level) => {
+          const on = level === value;
+          return (
             <button
               key={level}
               type="button"
               role="radio"
-              aria-checked={level === value}
+              aria-checked={on}
               aria-label={labels[level]}
               onClick={() => onChange(level)}
-              className="grid place-items-center"
-              style={{ width: `${slot}rem` }}
+              className={cn(
+                "rounded-2xl border px-3 py-2.5 text-left transition duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                on && "border-primary bg-primary/12 shadow-[0_0_22px_color-mix(in_oklch,var(--primary)_22%,transparent)]",
+                !on && "border-border bg-muted/30 hover:border-primary/40",
+                on && level === "brutal" && "border-anomaly bg-anomaly/10 shadow-[0_0_22px_color-mix(in_oklch,var(--anomaly)_28%,transparent)]"
+              )}
             >
+              <span className="block text-[13px] font-medium leading-none tracking-tight">{labels[level]}</span>
               <span
                 className={cn(
-                  "size-[3px] rounded-full bg-foreground/35 transition-opacity duration-200",
-                  i === index && "opacity-0"
+                  "mt-1.5 block font-mono text-[10px] uppercase tracking-wider",
+                  on ? "text-foreground/70" : "text-muted-foreground"
                 )}
-              />
+              >
+                {t.lobby.diffRounds[level]}
+              </span>
+              <span className="mt-2 flex gap-0.5" aria-hidden>
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <span
+                    key={i}
+                    className={cn(
+                      "h-1 flex-1 rounded-full",
+                      i <= (level === "easy" ? 0 : level === "hard" ? 1 : 2)
+                        ? level === "brutal"
+                          ? "bg-anomaly"
+                          : "bg-primary"
+                        : "bg-foreground/12"
+                    )}
+                  />
+                ))}
+              </span>
             </button>
-          ))}
-        </div>
+          );
+        })}
       </div>
-      <span className="text-[13px] leading-none tracking-tight">{labels[value]}</span>
+      <p className="mt-2 text-[12px] leading-5 text-muted-foreground">{t.lobby.diffHint[value]}</p>
     </div>
   );
 }

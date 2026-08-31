@@ -373,8 +373,14 @@ export function MemoireGame({ onFinish }: { onFinish: (score: number) => void })
     <GameShell title="Mémoire" round={index} total={total} score={score} maxScore={maxScore}>
       {mode === "flash" ? (
         <>
-          <p className="text-center font-mono text-sm text-primary">{left}s — grave-le</p>
-          <div className="mx-auto mt-2 h-1 max-w-xs overflow-hidden rounded-full bg-foreground/10">
+          <p className="text-center font-heading text-4xl tabular-nums tracking-tight text-primary sm:text-5xl">
+            {left}
+            <span className="ml-1 font-mono text-sm uppercase tracking-[0.18em] text-muted-foreground">s</span>
+          </p>
+          <p className="mt-1 text-center font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+            grave-le
+          </p>
+          <div className="mx-auto mt-3 h-1.5 max-w-xs overflow-hidden rounded-full bg-foreground/10">
             <span
               key={index}
               className="look-tick block h-full rounded-full bg-primary"

@@ -48,6 +48,8 @@ export type Messages = {
     replay: string;
     all: string;
     situation: string;
+    pressure: string;
+    touchBar: string;
   };
   lobby: {
     solo: string;
@@ -61,7 +63,10 @@ export type Messages = {
     brutal: string;
     difficulty: string;
     diffHint: Record<Difficulty, string>;
+    diffRounds: Record<Difficulty, string>;
     play: string;
+    start: string;
+    mode: string;
     copyLink: string;
     copied: string;
     inviteTitle: string;
@@ -120,6 +125,8 @@ export const MESSAGES: Record<Locale, Messages> = {
       replay: "Rejouer",
       all: "Tous les jeux",
       situation: "Situation",
+      pressure: "Pression",
+      touchBar: "Touche une barre.",
     },
     lobby: {
       solo: "Solo",
@@ -133,11 +140,18 @@ export const MESSAGES: Record<Locale, Messages> = {
       brutal: "Brutal",
       difficulty: "Difficulté",
       diffHint: {
-        easy: "Trois manches propres à Facile — pas celles de Costaud. Signal large, peu de leurres.",
-        hard: "Cinq autres situations. Plus de leurres, moins de marge, et ça se resserre à chaque manche.",
-        brutal: "Cinq manches encore différentes. Écart minuscule dès la première. Ensuite ça empire.",
+        easy: "Signal large, peu de leurres. L’intrus se montre.",
+        hard: "Plus de leurres, moins de marge. Ça se resserre à chaque manche.",
+        brutal: "Écart minuscule dès la première. Ensuite ça empire.",
+      },
+      diffRounds: {
+        easy: "3 manches",
+        hard: "5 manches",
+        brutal: "5 manches",
       },
       play: "Jouer",
+      start: "Lancer la partie",
+      mode: "Mode",
       copyLink: "Copier le lien",
       copied: "Lien copié",
       inviteTitle: "Lien de défi",
@@ -298,6 +312,8 @@ export const MESSAGES: Record<Locale, Messages> = {
       replay: "Play again",
       all: "All games",
       situation: "Situation",
+      pressure: "Pressure",
+      touchBar: "Tap a bar.",
     },
     lobby: {
       solo: "Solo",
@@ -311,11 +327,18 @@ export const MESSAGES: Record<Locale, Messages> = {
       brutal: "Brutal",
       difficulty: "Difficulty",
       diffHint: {
-        easy: "Three Easy-only rounds — not the Hard set. Wide signal, few decoys.",
-        hard: "Five different situations. More decoys, less slack, tighter each round.",
-        brutal: "Five more unique rounds. Tiny gap from the first beat. Then it gets worse.",
+        easy: "Wide signal, few decoys. The odd one out shows itself.",
+        hard: "More decoys, less slack. It tightens every round.",
+        brutal: "Tiny gap from the first beat. Then it gets worse.",
+      },
+      diffRounds: {
+        easy: "3 rounds",
+        hard: "5 rounds",
+        brutal: "5 rounds",
       },
       play: "Play",
+      start: "Start the run",
+      mode: "Mode",
       copyLink: "Copy link",
       copied: "Link copied",
       inviteTitle: "Challenge link",

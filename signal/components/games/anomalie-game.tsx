@@ -173,6 +173,18 @@ export function AnomalieGame({ onFinish }: { onFinish: (score: number) => void }
 
   const round = rounds[index];
   const correct = picked === round?.answer;
+  const question =
+    difficulty === "easy" && round
+      ? round.kind === "spike"
+        ? "Où est le pic ?"
+        : round.kind === "dip"
+          ? "Où est le creux ?"
+          : "Où la série change-t-elle de régime ?"
+      : "Où est l’intrus ?";
+  const helpers = {
+    showValues: difficulty === "easy",
+    showMean: difficulty !== "brutal",
+  };
 
   function pick(i: number) {
     if (revealed || picked !== null) return;
@@ -219,7 +231,7 @@ export function AnomalieGame({ onFinish }: { onFinish: (score: number) => void }
 
   return (
     <GameShell title="Anomalie" round={index} total={total} score={score} maxScore={maxScore}>
-      <RoundHeader context={round.title} question="Où est l’intrus ?" />
+      <RoundHeader context={round.title} question={question} />
       <div className="mt-8">
         <BarChart
           values={round.values}
@@ -228,6 +240,10 @@ export function AnomalieGame({ onFinish }: { onFinish: (score: number) => void }
           revealed={revealed ? round.answer : null}
           onSelect={pick}
           disabled={revealed}
+          unit={round.unit}
+          kind={round.kind}
+          showValues={helpers.showValues}
+          showMean={helpers.showMean}
         />
       </div>
       {revealed ? (
@@ -240,7 +256,7 @@ export function AnomalieGame({ onFinish }: { onFinish: (score: number) => void }
         />
       ) : (
         <p className="mt-8 text-center text-sm text-muted-foreground">
-          Unité : {round.unit}. Touche une barre.
+          Unité : {round.unit}. {difficulty === "brutal" ? "Compare barre à barre." : "Touche une barre."}
         </p>
       )}
     </GameShell>

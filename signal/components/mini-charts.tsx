@@ -21,6 +21,10 @@ type BarChartProps = {
   disabled?: boolean;
   className?: string;
   color?: string;
+  unit?: string;
+  showValues?: boolean;
+  showMean?: boolean;
+  kind?: "spike" | "dip" | "break";
 };
 
 export function BarChart({
@@ -32,18 +36,30 @@ export function BarChart({
   disabled,
   className,
   color = "var(--primary)",
+  unit,
+  showValues = false,
+  showMean = false,
+  kind = "spike",
 }: BarChartProps) {
   const max = Math.max(...values, 1);
+  const mean = values.reduce((a, b) => a + b, 0) / Math.max(values.length, 1);
   const interactive = Boolean(onSelect) && !disabled;
+  const minPct = showValues ? 12 : 5;
 
   return (
-    <div className={cn("w-full", className)}>
-      <div className="flex h-52 items-stretch gap-1.5 sm:h-64 sm:gap-2">
+    <div className={cn("chart-stage w-full", className)}>
+      <div className="relative flex h-52 items-stretch gap-1 sm:h-64 sm:gap-1.5">
+        {showMean ? (
+          <span
+            className="chart-mean pointer-events-none absolute inset-x-0 z-[1] border-t border-dashed border-foreground/25"
+            style={{ bottom: `calc(${(mean / max) * 100}% + 1.35rem)` }}
+          />
+        ) : null}
         {values.map((value, index) => {
           const isSelected = selected === index;
           const isReveal = revealed === index;
           const isWrong = isSelected && revealed !== null && revealed !== index;
-          const pct = Math.max(10, (value / max) * 100);
+          const pct = Math.max(minPct, (value / max) * 100);
           return (
             <button
               key={`${index}-${value}`}
@@ -55,24 +71,43 @@ export function BarChart({
                 interactive && "cursor-pointer"
               )}
             >
+              {showValues ? (
+                <span className="pointer-events-none absolute top-0 z-[2] font-mono text-[9px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 sm:text-[10px]">
+                  {value}
+                  {unit ? ` ${unit}` : ""}
+                </span>
+              ) : null}
               <span className="relative flex min-h-0 w-full flex-1 items-end">
                 <span
                   className={cn(
-                    "w-full min-h-3 rounded-t-md transition-all duration-200",
-                    interactive && "group-hover:brightness-125",
+                    "bar-grow w-full min-h-3 rounded-t-md transition-[filter,box-shadow,opacity] duration-200",
+                    interactive && "group-hover:brightness-125 group-hover:translate-y-[-2px]",
                     isSelected && revealed === null && "ring-2 ring-primary ring-offset-2 ring-offset-background",
-                    isReveal && "bg-anomaly",
-                    isWrong && "opacity-40"
+                    isReveal && kind === "dip" && "bg-chart-2",
+                    isReveal && kind === "break" && "bg-chart-5",
+                    isReveal && kind === "spike" && "bg-anomaly",
+                    isWrong && "bar-miss opacity-45"
                   )}
                   style={{
                     height: `${pct}%`,
                     backgroundColor: isReveal ? undefined : color,
+                    animationDelay: `${index * 45}ms`,
                   }}
                 />
               </span>
               {labels?.[index] ? (
-                <span className="font-mono text-[10px] text-muted-foreground sm:text-xs">
+                <span
+                  className={cn(
+                    "font-mono text-[10px] text-muted-foreground sm:text-xs",
+                    isReveal && "font-semibold text-foreground"
+                  )}
+                >
                   {labels[index]}
+                </span>
+              ) : null}
+              {isReveal ? (
+                <span className="pointer-events-none absolute -top-0.5 font-mono text-[8px] uppercase tracking-[0.14em] text-anomaly">
+                  {kind === "dip" ? "creux" : kind === "break" ? "rupture" : "spike"}
                 </span>
               ) : null}
             </button>

@@ -299,12 +299,13 @@ export function GraphiqueGame({ onFinish }: { onFinish: (score: number) => void 
             points={round.points}
           />
         ) : (
-          <p className="flex h-40 items-center justify-center text-sm text-muted-foreground">
-            Choisis un outil. La série se redessine.
-          </p>
+          <div className="relative flex h-40 items-center justify-center overflow-hidden rounded-xl bg-muted/20">
+            <span className="chart-grid pointer-events-none absolute inset-3 opacity-50" />
+            <p className="relative text-sm text-muted-foreground">Choisis un outil. La série se redessine.</p>
+          </div>
         )}
       </div>
-      <div className={cn("mt-4 grid gap-2", tools.length <= 2 ? "grid-cols-2" : "grid-cols-4")}>
+      <div className={cn("scene-opts mt-4 grid gap-2", tools.length <= 2 ? "grid-cols-2" : "grid-cols-4")}>
         {tools.map((kind) => (
           <button
             key={kind}
@@ -312,8 +313,8 @@ export function GraphiqueGame({ onFinish }: { onFinish: (score: number) => void 
             disabled={locked}
             onClick={() => setTool(kind)}
             className={cn(
-              "flex flex-col items-center gap-1 rounded-2xl border px-1 py-3 transition",
-              tool === kind && "border-primary bg-primary/15",
+              "flex flex-col items-center gap-1 rounded-2xl border px-1 py-3 transition duration-200",
+              tool === kind && "border-primary bg-primary/15 shadow-[0_0_18px_color-mix(in_oklch,var(--primary)_22%,transparent)]",
               tool !== kind && "border-border bg-card hover:border-primary/40",
               locked && kind === round.answer && "border-ok bg-ok/15",
               locked && tool === kind && kind !== round.answer && "border-anomaly bg-anomaly/10"
