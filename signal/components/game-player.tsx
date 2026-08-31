@@ -33,9 +33,9 @@ export function GamePlayer({
   return (
     <PlaySessionRoot
       slug={slug}
-      initialMode={initialMode}
-      initialDifficulty={initialDifficulty}
-      initialSeed={initialSeed}
+      initialMode={initialMode ?? null}
+      initialDifficulty={initialDifficulty ?? null}
+      initialSeed={initialSeed ?? null}
     >
       <GameSwitch slug={slug} />
     </PlaySessionRoot>

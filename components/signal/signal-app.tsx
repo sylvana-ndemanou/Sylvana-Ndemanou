@@ -36,9 +36,9 @@ export function SignalApp({
             {slug ? (
               <GamePlayer
                 slug={slug}
-                initialMode={initialMode}
-                initialDifficulty={initialDifficulty}
-                initialSeed={initialSeed}
+                initialMode={initialMode ?? null}
+                initialDifficulty={initialDifficulty ?? null}
+                initialSeed={initialSeed ?? null}
               />
             ) : (
               <GamesHub />

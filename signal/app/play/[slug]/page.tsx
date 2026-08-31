@@ -35,9 +35,9 @@ export default async function PlayPage({
   return (
     <GamePlayer
       slug={slug as GameSlug}
-      initialMode={query.mode}
-      initialDifficulty={query.d}
-      initialSeed={query.seed}
+      initialMode={query.mode ?? null}
+      initialDifficulty={query.d ?? null}
+      initialSeed={query.seed ?? null}
     />
   );
 }
