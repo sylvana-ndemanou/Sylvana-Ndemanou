@@ -124,11 +124,10 @@ export function SignalNavItem({
         itemRef?.(el);
       }}
       className="relative"
-      onPointerEnter={() => {
-        if (canHover()) {
-          cancelLeave();
-          setOpen(true);
-        }
+      onPointerEnter={(event) => {
+        if (event.pointerType === "touch") return;
+        cancelLeave();
+        setOpen(true);
       }}
       onPointerLeave={(event) => {
         if (event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget)) {

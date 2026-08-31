@@ -151,7 +151,7 @@ export function Verdict({
     play(tone);
   }, [tone, title]);
   return (
-    <div className="verdict-card reveal-up mt-8 shrink-0 space-y-5 rounded-2xl border border-border bg-card p-5 shadow-[0_12px_40px_-18px_color-mix(in_oklch,var(--foreground)_22%,transparent),0_0_0_1px_color-mix(in_oklch,var(--primary)_12%,transparent)]">
+    <div className="verdict-card reveal-up mt-10 shrink-0 space-y-5 rounded-2xl border border-border bg-card p-5 shadow-[0_12px_40px_-18px_color-mix(in_oklch,var(--foreground)_22%,transparent),0_0_0_1px_color-mix(in_oklch,var(--primary)_12%,transparent)]">
       <div className={cn("verdict-tone", `verdict-tone-${tone}`)} />
       <div>
         <p

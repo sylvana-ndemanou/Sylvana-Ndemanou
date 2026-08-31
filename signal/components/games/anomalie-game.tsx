@@ -23,73 +23,60 @@ type Round = {
 
 type Spec = Omit<Round, "values" | "labels" | "answer"> & { tier: Difficulty };
 
-function shuffleIndex(n: number, rng: () => number) {
-  const idxs = Array.from({ length: n }, (_, i) => i);
-  for (let i = idxs.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(rng() * (i + 1));
-    [idxs[i], idxs[j]] = [idxs[j], idxs[i]];
-  }
-  return idxs;
+function neighbors(n: number, answer: number, radius: number) {
+  const lo = Math.max(0, answer - radius);
+  const hi = Math.min(n - 1, answer + radius);
+  return Array.from({ length: hi - lo + 1 }, (_, i) => lo + i).filter((i) => i !== answer);
 }
 
-function decoysNear(n: number, answer: number, count: number, rng: () => number) {
-  return shuffleIndex(n, rng)
-    .filter((i) => i !== answer)
-    .slice(0, Math.max(0, count));
+function capExcept(values: number[], answer: number, limit: number, kind: "spike" | "dip") {
+  for (let i = 0; i < values.length; i += 1) {
+    if (i === answer) continue;
+    if (kind === "spike" && values[i] >= limit) values[i] = limit;
+    if (kind === "dip" && values[i] <= limit) values[i] = limit;
+  }
 }
 
 function sealSpike(values: number[], answer: number, difficulty: Difficulty, rng: () => number) {
-  const others = values.filter((_, i) => i !== answer);
-  const peak = Math.max(...others);
+  const n = values.length;
   if (difficulty === "easy") {
+    const peak = Math.max(...values.filter((_, i) => i !== answer));
     values[answer] = Math.round(peak * 1.78);
     return;
   }
+  const local = neighbors(n, answer, difficulty === "hard" ? 1 : 2);
+  const base = Math.round(local.reduce((sum, i) => sum + values[i], 0) / Math.max(local.length, 1));
   if (difficulty === "hard") {
-    const decoy = decoysNear(values.length, answer, 1, rng)[0];
-    const gap = Math.max(3, Math.round(peak * 0.08));
-    if (decoy != null) values[decoy] = peak;
-    values[answer] = peak + gap;
-    for (let i = 0; i < values.length; i += 1) {
-      if (i === answer || i === decoy) continue;
-      if (values[i] >= values[answer] - 1) values[i] = peak - gap;
-    }
+    const gap = Math.max(3, Math.round(base * 0.08));
+    for (const i of local) values[i] = base;
+    values[answer] = base + gap;
+    capExcept(values, answer, values[answer] - 1, "spike");
     return;
   }
-  const near = decoysNear(values.length, answer, 2, rng);
-  for (const i of near) values[i] = peak;
-  values[answer] = peak + 1;
-  for (let i = 0; i < values.length; i += 1) {
-    if (i === answer) continue;
-    if (values[i] >= values[answer]) values[i] = peak;
-  }
+  for (const i of local) values[i] = base + (rng() < 0.5 ? 0 : 1);
+  values[answer] = base + 2;
+  capExcept(values, answer, values[answer] - 1, "spike");
 }
 
 function sealDip(values: number[], answer: number, difficulty: Difficulty, rng: () => number) {
-  const others = values.filter((_, i) => i !== answer);
-  const floor = Math.min(...others);
+  const n = values.length;
   if (difficulty === "easy") {
+    const floor = Math.min(...values.filter((_, i) => i !== answer));
     values[answer] = Math.max(3, Math.round(floor * 0.38));
     return;
   }
+  const local = neighbors(n, answer, difficulty === "hard" ? 1 : 2);
+  const base = Math.round(local.reduce((sum, i) => sum + values[i], 0) / Math.max(local.length, 1));
   if (difficulty === "hard") {
-    const decoy = decoysNear(values.length, answer, 1, rng)[0];
-    const gap = Math.max(3, Math.round(floor * 0.08));
-    if (decoy != null) values[decoy] = floor;
-    values[answer] = Math.max(3, floor - gap);
-    for (let i = 0; i < values.length; i += 1) {
-      if (i === answer || i === decoy) continue;
-      if (values[i] <= values[answer] + 1) values[i] = floor + gap;
-    }
+    const gap = Math.max(3, Math.round(base * 0.08));
+    for (const i of local) values[i] = base;
+    values[answer] = Math.max(3, base - gap);
+    capExcept(values, answer, values[answer] + 1, "dip");
     return;
   }
-  const near = decoysNear(values.length, answer, 2, rng);
-  for (const i of near) values[i] = floor;
-  values[answer] = Math.max(3, floor - 1);
-  for (let i = 0; i < values.length; i += 1) {
-    if (i === answer) continue;
-    if (values[i] <= values[answer]) values[i] = floor;
-  }
+  for (const i of local) values[i] = base - (rng() < 0.5 ? 0 : 1);
+  values[answer] = Math.max(3, base - 2);
+  capExcept(values, answer, values[answer] + 1, "dip");
 }
 
 function sealBreak(values: number[], answer: number, step: number, difficulty: Difficulty) {

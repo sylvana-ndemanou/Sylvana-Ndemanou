@@ -1177,7 +1177,8 @@
 }
 
 .chart-axis {
-  min-height: 1.1rem;
+  min-height: 1.25rem;
+  padding-bottom: 0.15rem;
 }
 
 .chart-axis-dense {
