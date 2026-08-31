@@ -159,11 +159,13 @@ export function LockBar({
       window.setTimeout(() => setShake(false), 420);
       return;
     }
+    play("lock");
+    play("lock");
     onLock();
   }
 
   const bar = (
-    <div className="lock-dock pointer-events-none fixed inset-x-0 bottom-0 z-[90] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-10">
+    <div className="lock-dock pointer-events-none fixed inset-x-0 bottom-0 z-[90] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-14">
       <button
         type="button"
         data-signal-lock
@@ -184,7 +186,7 @@ export function LockBar({
 
   return (
     <>
-      <div className="h-24 shrink-0" aria-hidden />
+      <div className="h-28 shrink-0" aria-hidden />
       <p className="sr-only">{t.shell.lockHint}</p>
       {mounted ? createPortal(bar, document.body) : bar}
     </>

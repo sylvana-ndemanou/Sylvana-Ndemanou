@@ -7,7 +7,7 @@ import { useEffect, type ReactNode } from "react";
 import { GameLobby } from "@s/components/game-lobby";
 import { BoardCapture } from "@s/components/ranked-board";
 import { Button } from "@s/components/ui/button";
-import { play } from "@s/lib/audio";
+import { play, setAudioPalette } from "@s/lib/audio";
 import { useI18n } from "@s/lib/i18n";
 import { usePlaySession } from "@s/components/play-session";
 import { heat } from "@s/lib/play";
@@ -33,6 +33,10 @@ export function GameShell({
   const { t } = useI18n();
   const session = usePlaySession();
   const pressure = heat(session.difficulty, round, total);
+  useEffect(() => {
+    setAudioPalette(session.slug);
+    return () => setAudioPalette(null);
+  }, [session.slug]);
   const diffLabel =
     session.difficulty === "easy"
       ? t.lobby.easy
@@ -41,14 +45,7 @@ export function GameShell({
         : t.lobby.brutal;
 
   return (
-    <div
-      className="flex min-h-full flex-1 flex-col"
-      onPointerDown={(event) => {
-        if (event.target instanceof HTMLElement && event.target.closest("button, a")) {
-          play("tap");
-        }
-      }}
-    >
+    <div className="flex min-h-full flex-1 flex-col">
       <header className="flex items-center justify-between gap-3 px-4 py-4 sm:px-8">
         <Button nativeButton={false} variant="ghost" size="sm" render={<SignalLink href="/" />}>
           <ArrowLeft />
@@ -100,7 +97,7 @@ export function GameShell({
       </div>
       <div
         key={round}
-        className="scene-round mx-auto flex w-full max-w-3xl flex-1 flex-col px-4 py-6 sm:px-6"
+        className="scene-round mx-auto flex w-full max-w-3xl flex-1 flex-col overflow-y-auto px-4 py-6 sm:px-6"
       >
         {children}
       </div>
@@ -154,7 +151,7 @@ export function Verdict({
     play(tone);
   }, [tone, title]);
   return (
-    <div className="verdict-card reveal-up mt-auto space-y-5 rounded-2xl border border-border bg-card/80 p-5 shadow-[0_0_0_1px_color-mix(in_oklch,var(--primary)_12%,transparent)] backdrop-blur">
+    <div className="verdict-card reveal-up mt-8 shrink-0 space-y-5 rounded-2xl border border-border bg-card p-5 shadow-[0_12px_40px_-18px_color-mix(in_oklch,var(--foreground)_22%,transparent),0_0_0_1px_color-mix(in_oklch,var(--primary)_12%,transparent)]">
       <div className={cn("verdict-tone", `verdict-tone-${tone}`)} />
       <div>
         <p

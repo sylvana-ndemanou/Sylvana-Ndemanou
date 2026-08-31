@@ -8,7 +8,7 @@ import { Button } from "@s/components/ui/button";
 import { play } from "@s/lib/audio";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
-import { awardPartial, heat, lookSecondsAt, optionCapAt, scaleByHeat } from "@s/lib/play";
+import { along, awardPartial, lookSecondsAt, optionCapAt } from "@s/lib/play";
 import type { Difficulty } from "@s/lib/play";
 import { roundTone, scoreLine } from "@s/lib/feedback";
 import { cn } from "@s/lib/utils";
@@ -38,7 +38,6 @@ function makeDashboards(count: number, rng: () => number, difficulty: Difficulty
     difficulty === "easy" ? easyFilters : difficulty === "hard" ? hardFilters : brutalFilters;
 
   return Array.from({ length: count }).map((_, round) => {
-    const h = heat(difficulty, round, count);
     const cap = optionCapAt(difficulty, 4, round, count);
     const filter = filters[round % filters.length];
     const ca = difficulty === "brutal" ? 128400 + round * 2300 + Math.round(rng() * 900) : 120000 + round * 17000 + Math.round(rng() * 8000);
@@ -65,12 +64,12 @@ function makeDashboards(count: number, rng: () => number, difficulty: Difficulty
       { label: "Sessions", value: fmt(sessions, "k"), delta: deltas[4] },
       { label: "Bounce", value: fmt(bounce, "%"), delta: deltas[5] },
     ];
-    const kpiCount = Math.round(scaleByHeat(3, 6, h));
+    const kpiCount = Math.round(along(difficulty, round, count, [3, 3], [4, 5], [6, 6]));
     const kpis = kpisAll.slice(0, kpiCount);
     const worst = kpis.reduce((a, b) => (a.delta < b.delta ? a : b));
     const best = kpis.reduce((a, b) => (a.delta > b.delta ? a : b));
-    const caGap = Math.round(scaleByHeat(42000, 900, h));
-    const convGap = scaleByHeat(1.8, 0.08, h);
+    const caGap = Math.round(along(difficulty, round, count, [42000, 28000], [9000, 4500], [1400, 600]));
+    const convGap = along(difficulty, round, count, [1.8, 1.2], [0.45, 0.22], [0.1, 0.05]);
 
     const easyKinds: Array<() => Dash> = [
       () => ({

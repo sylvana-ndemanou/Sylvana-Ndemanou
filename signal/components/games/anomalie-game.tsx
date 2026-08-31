@@ -7,7 +7,7 @@ import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/ga
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
 import type { Difficulty } from "@s/lib/play";
-import { lerp, takeDeck } from "@s/lib/play";
+import { along, takeDeck } from "@s/lib/play";
 import { scoreLine } from "@s/lib/feedback";
 
 type Round = {
@@ -23,27 +23,87 @@ type Round = {
 
 type Spec = Omit<Round, "values" | "labels" | "answer"> & { tier: Difficulty };
 
-function along(
-  difficulty: Difficulty,
-  round: number,
-  total: number,
-  easy: readonly [number, number],
-  hard: readonly [number, number],
-  brutal: readonly [number, number]
-) {
-  const t = total <= 1 ? 0 : Math.min(1, round / (total - 1));
-  const pair = difficulty === "easy" ? easy : difficulty === "hard" ? hard : brutal;
-  return lerp(pair[0], pair[1], t);
+function shuffleIndex(n: number, rng: () => number) {
+  const idxs = Array.from({ length: n }, (_, i) => i);
+  for (let i = idxs.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(rng() * (i + 1));
+    [idxs[i], idxs[j]] = [idxs[j], idxs[i]];
+  }
+  return idxs;
 }
 
-function uniqueExtremum(values: number[], answer: number, kind: "spike" | "dip", minGap: number) {
-  if (kind === "spike") {
-    const othersMax = Math.max(...values.filter((_, i) => i !== answer));
-    if (values[answer] < othersMax + minGap) values[answer] = othersMax + minGap;
+function decoysNear(n: number, answer: number, count: number, rng: () => number) {
+  return shuffleIndex(n, rng)
+    .filter((i) => i !== answer)
+    .slice(0, Math.max(0, count));
+}
+
+function sealSpike(values: number[], answer: number, difficulty: Difficulty, rng: () => number) {
+  const others = values.filter((_, i) => i !== answer);
+  const peak = Math.max(...others);
+  if (difficulty === "easy") {
+    values[answer] = Math.round(peak * 1.78);
     return;
   }
-  const othersMin = Math.min(...values.filter((_, i) => i !== answer));
-  values[answer] = Math.max(3, Math.min(values[answer], othersMin - minGap));
+  if (difficulty === "hard") {
+    const decoy = decoysNear(values.length, answer, 1, rng)[0];
+    const gap = Math.max(3, Math.round(peak * 0.08));
+    if (decoy != null) values[decoy] = peak;
+    values[answer] = peak + gap;
+    for (let i = 0; i < values.length; i += 1) {
+      if (i === answer || i === decoy) continue;
+      if (values[i] >= values[answer] - 1) values[i] = peak - gap;
+    }
+    return;
+  }
+  const near = decoysNear(values.length, answer, 2, rng);
+  for (const i of near) values[i] = peak;
+  values[answer] = peak + 1;
+  for (let i = 0; i < values.length; i += 1) {
+    if (i === answer) continue;
+    if (values[i] >= values[answer]) values[i] = peak;
+  }
+}
+
+function sealDip(values: number[], answer: number, difficulty: Difficulty, rng: () => number) {
+  const others = values.filter((_, i) => i !== answer);
+  const floor = Math.min(...others);
+  if (difficulty === "easy") {
+    values[answer] = Math.max(3, Math.round(floor * 0.38));
+    return;
+  }
+  if (difficulty === "hard") {
+    const decoy = decoysNear(values.length, answer, 1, rng)[0];
+    const gap = Math.max(3, Math.round(floor * 0.08));
+    if (decoy != null) values[decoy] = floor;
+    values[answer] = Math.max(3, floor - gap);
+    for (let i = 0; i < values.length; i += 1) {
+      if (i === answer || i === decoy) continue;
+      if (values[i] <= values[answer] + 1) values[i] = floor + gap;
+    }
+    return;
+  }
+  const near = decoysNear(values.length, answer, 2, rng);
+  for (const i of near) values[i] = floor;
+  values[answer] = Math.max(3, floor - 1);
+  for (let i = 0; i < values.length; i += 1) {
+    if (i === answer) continue;
+    if (values[i] <= values[answer]) values[i] = floor;
+  }
+}
+
+function sealBreak(values: number[], answer: number, step: number, difficulty: Difficulty) {
+  for (let i = answer; i < values.length; i += 1) {
+    values[i] = Math.round(values[i] + step);
+  }
+  if (difficulty !== "brutal") return;
+  const before = values[Math.max(0, answer - 1)] ?? values[answer];
+  const after = values[answer];
+  if (Math.abs(after - before) > Math.max(2, Math.round(Math.abs(before) * 0.06))) {
+    const target = before + (after > before ? 1 : -1) * Math.max(1, Math.round(Math.abs(before) * 0.04));
+    const delta = target - values[answer];
+    for (let i = answer; i < values.length; i += 1) values[i] = Math.round(values[i] + delta);
+  }
 }
 
 function makeRounds(rng: () => number, difficulty: Difficulty, total: number): Round[] {
@@ -155,36 +215,29 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
   ];
 
   return takeDeck(specs, difficulty).map((spec, round) => {
-    const n = Math.round(along(difficulty, round, total, [5, 7], [9, 12], [13, 16]));
+    const n = Math.round(along(difficulty, round, total, [5, 7], [9, 12], [14, 18]));
     const labels = weekLabels(n);
     const start = 42 + round * 6 + Math.round(rng() * 10);
     const slope =
       spec.kind === "break"
-        ? along(difficulty, round, total, [0.15, 0.1], [0.35, 0.22], [0.4, 0.28])
-        : along(difficulty, round, total, [0.35, 0.55], [1.05, 1.55], [1.3, 1.9]);
-    const noise = along(difficulty, round, total, [0.7, 1.4], [3.4, 5.8], [7.2, 11]);
+        ? along(difficulty, round, total, [0.15, 0.1], [0.28, 0.18], [0.22, 0.14])
+        : along(difficulty, round, total, [0.35, 0.55], [0.55, 0.85], [0.35, 0.5]);
+    const noise = along(difficulty, round, total, [0.55, 1.1], [2.2, 3.4], [3.8, 5.6]);
     const values = Array.from({ length: n }, (_, i) => {
       const trend = start + slope * i;
       return Math.max(4, Math.round(trend + (rng() - 0.5) * 2 * noise));
     });
     const edge = difficulty === "easy" ? 1 : 2;
     const answer = edge + Math.floor(rng() * Math.max(1, n - edge * 2));
-    const lift = along(difficulty, round, total, [0.88, 0.64], [0.22, 0.13], [0.1, 0.055]);
-    const minGap = Math.max(
-      2,
-      Math.round(start * along(difficulty, round, total, [0.38, 0.28], [0.1, 0.07], [0.045, 0.03]))
-    );
     if (spec.kind === "spike") {
-      values[answer] = Math.round(values[answer] * (1 + lift));
-      uniqueExtremum(values, answer, "spike", minGap);
+      sealSpike(values, answer, difficulty, rng);
     } else if (spec.kind === "dip") {
-      values[answer] = Math.max(3, Math.round(values[answer] * (1 - lift)));
-      uniqueExtremum(values, answer, "dip", minGap);
+      sealDip(values, answer, difficulty, rng);
     } else {
-      const step = Math.round(start * along(difficulty, round, total, [0.5, 0.38], [0.15, 0.1], [0.075, 0.045]));
-      for (let i = answer; i < n; i += 1) {
-        values[i] = Math.round(values[i] + step);
-      }
+      const step = Math.round(
+        start * along(difficulty, round, total, [0.48, 0.36], [0.12, 0.08], [0.045, 0.028])
+      );
+      sealBreak(values, answer, step, difficulty);
     }
     return { ...spec, values, labels, answer };
   });

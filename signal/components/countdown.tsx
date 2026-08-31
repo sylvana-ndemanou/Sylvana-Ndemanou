@@ -38,7 +38,7 @@ export function useCountdown(onGo: () => void) {
     fired.current = false;
     unlockAudio();
     setBeat(3);
-    play("tick");
+    play("count");
     const plan = [
       [BEAT_MS, 2],
       [BEAT_MS * 2, 1],
@@ -54,7 +54,7 @@ export function useCountdown(onGo: () => void) {
             return;
           }
           setBeat(next);
-          if (next !== "go") play("tick");
+          if (next !== "go") play("count");
         }, ms)
       );
     }

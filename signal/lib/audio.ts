@@ -11,6 +11,9 @@ export type Cue =
   | "score"
   | "grain"
   | "tick"
+  | "count"
+  | "lock"
+  | "catch"
   | "credit"
   | "rewind"
   | "prune"
@@ -24,7 +27,29 @@ export type Cue =
 let ctx: AudioContext | null = null;
 let muted = false;
 let hydrated = false;
+let palette = 1;
 const listeners = new Set<() => void>();
+
+const PALETTE: Record<string, number> = {
+  anomalie: 0.94,
+  graphique: 1.1,
+  entonnoir: 0.86,
+  memoire: 1.2,
+  bruit: 0.76,
+  schema: 1.02,
+  pipeline: 0.9,
+  jointure: 1.14,
+  grain: 1.24,
+  entrepot: 0.68,
+  elagage: 1.3,
+  voyage: 0.8,
+  clone: 1.06,
+  flux: 0.62,
+};
+
+export function setAudioPalette(slug: string | null) {
+  palette = slug && PALETTE[slug] ? PALETTE[slug] : 1;
+}
 
 function emit() {
   listeners.forEach((fn) => fn());
@@ -102,7 +127,7 @@ function playNoise(
   src.buffer = noiseBuffer(audio, duration);
   const filter = audio.createBiquadFilter();
   filter.type = type;
-  filter.frequency.value = freq;
+  filter.frequency.value = freq * palette;
   filter.Q.value = q;
   const g = audio.createGain();
   g.gain.setValueAtTime(gain, time);
@@ -127,8 +152,8 @@ function playTone(
 ) {
   const osc = audio.createOscillator();
   osc.type = type;
-  osc.frequency.setValueAtTime(freq, time);
-  if (slide) osc.frequency.exponentialRampToValueAtTime(Math.max(40, slide), time + duration);
+  osc.frequency.setValueAtTime(freq * palette, time);
+  if (slide) osc.frequency.exponentialRampToValueAtTime(Math.max(40, slide * palette), time + duration);
   const g = audio.createGain();
   g.gain.setValueAtTime(0.0001, time);
   g.gain.exponentialRampToValueAtTime(gain, time + 0.012);
@@ -148,12 +173,11 @@ export function play(cue: Cue) {
 
   switch (cue) {
     case "tap":
-      playNoise(audio, t, { duration: 0.03, freq: 1800, q: 8, gain: 0.045 });
-      playTone(audio, t, { freq: 210, duration: 0.04, gain: 0.03, type: "sine" });
+      playNoise(audio, t, { duration: 0.018, freq: 2100, q: 10, gain: 0.028 });
+      playTone(audio, t, { freq: 196, duration: 0.032, gain: 0.022, type: "sine" });
       break;
     case "hover":
-      playNoise(audio, t, { duration: 0.022, freq: 2400, q: 9, gain: 0.038 });
-      playTone(audio, t, { freq: 880, duration: 0.035, gain: 0.028, type: "sine" });
+      playTone(audio, t, { freq: 1480, duration: 0.028, gain: 0.016, type: "sine" });
       break;
     case "ok":
       playTone(audio, t, { freq: 392, duration: 0.11, gain: 0.06, type: "triangle" });
@@ -165,8 +189,8 @@ export function play(cue: Cue) {
       playNoise(audio, t, { duration: 0.06, freq: 700, q: 2.4, gain: 0.018 });
       break;
     case "miss":
-      playNoise(audio, t, { duration: 0.09, freq: 180, q: 1.2, gain: 0.06, type: "lowpass" });
-      playTone(audio, t, { freq: 164, duration: 0.18, gain: 0.05, slide: 92, type: "sine" });
+      playNoise(audio, t, { duration: 0.12, freq: 140, q: 0.9, gain: 0.07, type: "lowpass" });
+      playTone(audio, t, { freq: 146, duration: 0.22, gain: 0.055, slide: 72, type: "sawtooth" });
       break;
     case "start":
       playNoise(audio, t, { duration: 0.22, freq: 420, q: 2, gain: 0.05 });
@@ -179,10 +203,25 @@ export function play(cue: Cue) {
       playNoise(audio, t + 0.18, { duration: 0.12, freq: 2400, q: 1.4, gain: 0.015 });
       break;
     case "grain":
-      playNoise(audio, t, { duration: 0.018, freq: 3200, q: 10, gain: 0.012 });
+      playNoise(audio, t, { duration: 0.016, freq: 3400, q: 12, gain: 0.01 });
       break;
     case "tick":
-      playTone(audio, t, { freq: 880, duration: 0.04, gain: 0.03, type: "square" });
+      playTone(audio, t, { freq: 1320, duration: 0.028, gain: 0.022, type: "square" });
+      break;
+    case "count":
+      playNoise(audio, t, { duration: 0.04, freq: 280, q: 1.4, gain: 0.05, type: "lowpass" });
+      playTone(audio, t, { freq: 196, duration: 0.16, gain: 0.07, type: "triangle" });
+      playTone(audio, t + 0.05, { freq: 294, duration: 0.22, gain: 0.05, type: "sine" });
+      break;
+    case "lock":
+      playNoise(audio, t, { duration: 0.06, freq: 180, q: 1.6, gain: 0.055, type: "lowpass" });
+      playTone(audio, t, { freq: 110, duration: 0.09, gain: 0.06, type: "sine" });
+      playTone(audio, t + 0.04, { freq: 220, duration: 0.12, gain: 0.04, type: "triangle" });
+      break;
+    case "catch":
+      playNoise(audio, t, { duration: 0.05, freq: 620, q: 4, gain: 0.05 });
+      playTone(audio, t, { freq: 330, duration: 0.08, gain: 0.06, slide: 620, type: "sine" });
+      playTone(audio, t + 0.06, { freq: 784, duration: 0.14, gain: 0.045, type: "triangle" });
       break;
     case "credit":
       playTone(audio, t, { freq: 196, duration: 0.07, gain: 0.04, type: "sine" });
@@ -193,7 +232,8 @@ export function play(cue: Cue) {
       playNoise(audio, t, { duration: 0.22, freq: 900, q: 1.2, gain: 0.03 });
       break;
     case "prune":
-      playTone(audio, t, { freq: 523, duration: 0.05, gain: 0.028, type: "sine" });
+      playTone(audio, t, { freq: 698, duration: 0.04, gain: 0.03, type: "sine" });
+      playNoise(audio, t, { duration: 0.03, freq: 1800, q: 8, gain: 0.02 });
       break;
     case "copy":
       playNoise(audio, t, { duration: 0.35, freq: 700, q: 1.8, gain: 0.04 });

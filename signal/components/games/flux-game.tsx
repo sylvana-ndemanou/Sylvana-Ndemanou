@@ -223,7 +223,7 @@ export function FluxGame({ onFinish }: { onFinish: (score: number) => void }) {
       return;
     }
     if (good) {
-      play("ok");
+      play("catch");
       setOkHit(true);
       setDots(0);
       setLocked(true);

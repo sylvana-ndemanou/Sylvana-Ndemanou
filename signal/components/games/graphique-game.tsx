@@ -8,7 +8,7 @@ import { LockBar } from "@s/components/interact";
 import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
-import { heat, optionCapAt, takeDeck } from "@s/lib/play";
+import { optionCapAt, takeDeck } from "@s/lib/play";
 import type { Difficulty } from "@s/lib/play";
 import { scoreLine } from "@s/lib/feedback";
 import { cn } from "@s/lib/utils";
@@ -223,13 +223,12 @@ const COUSINS: Record<ChartKind, ChartKind[]> = {
 };
 
 function toolsFor(round: Round, difficulty: Difficulty, roundIndex: number, totalRounds: number): ChartKind[] {
-  const h = heat(difficulty, roundIndex, totalRounds);
   const cap = optionCapAt(difficulty, 4, roundIndex, totalRounds);
-  if (h < 0.22) {
+  if (difficulty === "easy") {
     const wrong = round.tools.find((kind) => kind !== round.answer) ?? COUSINS[round.answer][1];
     return [round.answer, wrong];
   }
-  if (h < 0.7) {
+  if (difficulty === "hard") {
     return Array.from(new Set([round.answer, ...round.tools])).slice(0, cap);
   }
   return COUSINS[round.answer].slice(0, cap);

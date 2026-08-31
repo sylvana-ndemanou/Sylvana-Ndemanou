@@ -8,7 +8,7 @@ import { ChoiceTile, LockBar } from "@s/components/interact";
 import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
-import { heat, scaleByHeat, takeDeck } from "@s/lib/play";
+import { countAlong, takeDeck } from "@s/lib/play";
 import type { Difficulty } from "@s/lib/play";
 import { scoreLine } from "@s/lib/feedback";
 import { cn } from "@s/lib/utils";
@@ -388,7 +388,10 @@ function lensesFor(
   totalRounds: number,
   answer: JoinKind
 ): typeof LENSES {
-  const n = Math.max(2, Math.round(scaleByHeat(2, LENSES.length, heat(difficulty, roundIndex, totalRounds))));
+  const n = Math.max(
+    2,
+    countAlong(difficulty, roundIndex, totalRounds, [2, 2], [3, 3], [LENSES.length, LENSES.length])
+  );
   const keep = new Set<JoinKind>([answer]);
   for (const lens of LENSES) {
     if (keep.size >= n) break;

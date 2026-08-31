@@ -2,14 +2,19 @@
 import { cn } from "@s/lib/utils";
 
 const MONTHS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun", "Jul", "Aoû", "Sep", "Oct", "Nov", "Déc"];
-const WEEKS = ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10", "S11", "S12"];
 
 export function weekLabels(n: number) {
-  return WEEKS.slice(0, n);
+  const count = Math.max(0, Math.round(n));
+  return Array.from({ length: count }, (_, i) => `S${i + 1}`);
 }
 
 export function monthLabels(n: number) {
-  return MONTHS.slice(0, n);
+  const count = Math.max(0, Math.round(n));
+  return Array.from({ length: count }, (_, i) => {
+    const month = MONTHS[i % 12];
+    const year = Math.floor(i / 12);
+    return year === 0 ? month : `${month}+${year}`;
+  });
 }
 
 type BarChartProps = {
@@ -46,13 +51,16 @@ export function BarChart({
   const interactive = Boolean(onSelect) && !disabled;
   const minPct = showValues ? 12 : 5;
 
+  const axis = labels && labels.length === values.length ? labels : values.map((_, i) => `S${i + 1}`);
+  const dense = values.length > 12;
+
   return (
     <div className={cn("chart-stage w-full", className)}>
-      <div className="relative flex h-52 items-stretch gap-1 sm:h-64 sm:gap-1.5">
+      <div className="chart-plot relative flex h-48 items-stretch gap-0.5 sm:h-56 sm:gap-1">
         {showMean ? (
           <span
             className="chart-mean pointer-events-none absolute inset-x-0 z-[1] border-t border-dashed border-foreground/25"
-            style={{ bottom: `calc(${(mean / max) * 100}% + 1.35rem)` }}
+            style={{ bottom: `${(mean / max) * 100}%` }}
           />
         ) : null}
         {values.map((value, index) => {
@@ -66,8 +74,10 @@ export function BarChart({
               type="button"
               disabled={!interactive}
               onClick={() => onSelect?.(index)}
+              aria-label={axis[index]}
+              title={axis[index]}
               className={cn(
-                "group relative flex h-full min-w-0 flex-1 flex-col items-center gap-2 border-0 bg-transparent p-0 appearance-none",
+                "group relative flex h-full min-w-0 flex-1 flex-col items-center gap-1 border-0 bg-transparent p-0 appearance-none",
                 interactive && "cursor-pointer"
               )}
             >
@@ -95,16 +105,6 @@ export function BarChart({
                   }}
                 />
               </span>
-              {labels?.[index] ? (
-                <span
-                  className={cn(
-                    "font-mono text-[10px] text-muted-foreground sm:text-xs",
-                    isReveal && "font-semibold text-foreground"
-                  )}
-                >
-                  {labels[index]}
-                </span>
-              ) : null}
               {isReveal ? (
                 <span className="pointer-events-none absolute -top-0.5 font-mono text-[8px] uppercase tracking-[0.14em] text-anomaly">
                   {kind === "dip" ? "creux" : kind === "break" ? "rupture" : "spike"}
@@ -113,6 +113,20 @@ export function BarChart({
             </button>
           );
         })}
+      </div>
+      <div className={cn("chart-axis mt-1.5 flex gap-0.5 sm:gap-1", dense && "chart-axis-dense")}>
+        {axis.map((label, index) => (
+          <span
+            key={`${label}-${index}`}
+            className={cn(
+              "min-w-0 flex-1 truncate text-center font-mono text-[9px] text-muted-foreground sm:text-[10px]",
+              revealed === index && "font-semibold text-foreground"
+            )}
+            title={label}
+          >
+            {label}
+          </span>
+        ))}
       </div>
     </div>
   );
@@ -580,10 +594,16 @@ export function FunnelShape({
             ) : null}
             <div
               className={cn(
-                "flex h-12 items-center justify-between gap-3 rounded-xl px-3 text-sm font-medium text-foreground",
-                worst ? "bg-anomaly/18 ring-1 ring-anomaly/40" : "bg-primary/15"
+                "funnel-band flex h-12 items-center justify-between gap-3 px-3 text-sm font-medium text-foreground",
+                worst ? "bg-anomaly/18 ring-1 ring-anomaly/40" : "bg-primary/18"
               )}
-              style={{ width: `${width}%` }}
+              style={{
+                width: `${width}%`,
+                clipPath:
+                  i === steps.length - 1
+                    ? "polygon(10% 0, 90% 0, 78% 100%, 22% 100%)"
+                    : "polygon(0 0, 100% 0, 90% 100%, 10% 100%)",
+              }}
             >
               <span className="truncate">{step}</span>
               <span className="font-mono text-[10px] tabular-nums text-muted-foreground">{remaining}%</span>

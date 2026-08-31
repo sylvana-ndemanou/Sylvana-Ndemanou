@@ -7,7 +7,7 @@ import { ChoiceTile, LockBar } from "@s/components/interact";
 import { play } from "@s/lib/audio";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
-import { heat, scaleByHeat, takeDeck } from "@s/lib/play";
+import { countAlong, takeDeck } from "@s/lib/play";
 import type { Difficulty } from "@s/lib/play";
 import { scoreLine } from "@s/lib/feedback";
 import { cn } from "@s/lib/utils";
@@ -221,7 +221,10 @@ const ACTIONS: { id: Action; label: string; hint: string }[] = [
 ];
 
 function actionsFor(difficulty: Difficulty, roundIndex: number, totalRounds: number, answer: Action) {
-  const n = Math.max(2, Math.round(scaleByHeat(2, ACTIONS.length, heat(difficulty, roundIndex, totalRounds))));
+  const n = Math.max(
+    2,
+    countAlong(difficulty, roundIndex, totalRounds, [2, 2], [3, 3], [ACTIONS.length, ACTIONS.length])
+  );
   const keep = new Set<Action>([answer]);
   for (const action of ACTIONS) {
     if (keep.size >= n) break;

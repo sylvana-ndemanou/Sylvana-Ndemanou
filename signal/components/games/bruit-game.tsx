@@ -8,7 +8,7 @@ import { ChoiceTile, LockBar } from "@s/components/interact";
 import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
-import { heat, optionCapAt, scaleByHeat, takeDeck } from "@s/lib/play";
+import { along, optionCapAt, takeDeck } from "@s/lib/play";
 import type { Difficulty } from "@s/lib/play";
 import { scoreLine } from "@s/lib/feedback";
 import { cn } from "@s/lib/utils";
@@ -176,13 +176,13 @@ function scaleBruit(
   roundIndex: number,
   totalRounds: number
 ): Round {
-  const h = heat(difficulty, roundIndex, totalRounds);
-  const noise = scaleByHeat(0, 1, h);
+  const noise = along(difficulty, roundIndex, totalRounds, [0, 0.12], [0.28, 0.48], [0.82, 1.18]);
   const values = round.values.map((v, i) =>
     Math.round((v + (((i * 17) % 7) - 3) * noise) * 10) / 10
   );
-  const span = Math.max(2, Math.round((round.to - round.from) * scaleByHeat(1, 0.52, h)));
+  const spanScale = along(difficulty, roundIndex, totalRounds, [1, 0.92], [0.78, 0.66], [0.55, 0.42]);
   const from = round.from;
+  const span = Math.max(2, Math.round((round.to - round.from) * spanScale));
   return { ...round, values, to: Math.min(values.length - 1, from + span) };
 }
 

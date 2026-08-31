@@ -7,7 +7,7 @@ import { LockBar } from "@s/components/interact";
 import { play } from "@s/lib/audio";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
-import { heat, scaleByHeat, takeDeck } from "@s/lib/play";
+import { countAlong, takeDeck } from "@s/lib/play";
 import type { Difficulty } from "@s/lib/play";
 import { sameSet } from "@s/components/drag-kit";
 import { scoreLine } from "@s/lib/feedback";
@@ -218,11 +218,13 @@ const ROUNDS_DATA: Round[] = [
 
 function scaleElagage(round: Round, difficulty: Difficulty, roundIndex: number, totalRounds: number): Round {
   if (round.tier) return round;
-  const h = heat(difficulty, roundIndex, totalRounds);
   const needed = round.parts.filter((part) => round.scan.includes(part.id));
   const decoys = round.parts.filter((part) => !round.scan.includes(part.id));
   if (decoys.length === 0) return round;
-  const decoyN = Math.max(1, Math.round(scaleByHeat(1, decoys.length, h)));
+  const decoyN = Math.max(
+    1,
+    countAlong(difficulty, roundIndex, totalRounds, [1, 1], [2, Math.min(3, decoys.length)], [decoys.length, decoys.length])
+  );
   const kept = new Set(needed.concat(decoys.slice(0, decoyN)).map((part) => part.id));
   return { ...round, parts: round.parts.filter((part) => kept.has(part.id)) };
 }

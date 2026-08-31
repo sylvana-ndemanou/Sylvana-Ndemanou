@@ -9,7 +9,7 @@ import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/ga
 import { Button } from "@s/components/ui/button";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
-import { heat, scaleByHeat, takeDeck } from "@s/lib/play";
+import { countAlong, takeDeck } from "@s/lib/play";
 import type { Difficulty } from "@s/lib/play";
 import { scoreLine } from "@s/lib/feedback";
 import { play, unlockAudio } from "@s/lib/audio";
@@ -228,9 +228,11 @@ const EXTRA_JUNK = ["email_client", "categorie_libelle", "pays"];
 
 function scaleSchema(round: Round, difficulty: Difficulty, roundIndex: number, totalRounds: number): Round {
   if (round.tier) return round;
-  const h = heat(difficulty, roundIndex, totalRounds);
   if (round.kind === "park") {
-    const n = Math.max(2, Math.round(scaleByHeat(2, round.zones.length, h)));
+    const n = Math.max(
+      2,
+      countAlong(difficulty, roundIndex, totalRounds, [2, 2], [3, 4], [round.zones.length, round.zones.length])
+    );
     const keep = new Set<string>([round.answer]);
     for (const zone of round.zones) {
       if (keep.size >= n) break;
@@ -241,8 +243,11 @@ function scaleSchema(round: Round, difficulty: Difficulty, roundIndex: number, t
   if (round.kind === "strip") {
     const junk = round.columns.filter((col) => col.junk);
     const keep = round.columns.filter((col) => !col.junk);
-    const junkN = Math.max(1, Math.round(scaleByHeat(1, junk.length, h)));
-    const extraN = Math.round(scaleByHeat(0, EXTRA_JUNK.length, h));
+    const junkN = Math.max(
+      1,
+      countAlong(difficulty, roundIndex, totalRounds, [1, 1], [2, Math.min(3, junk.length)], [junk.length, junk.length])
+    );
+    const extraN = countAlong(difficulty, roundIndex, totalRounds, [0, 0], [1, 2], [EXTRA_JUNK.length, EXTRA_JUNK.length]);
     const extras = EXTRA_JUNK.slice(0, extraN).map((name) => ({ name, junk: true }));
     return { ...round, columns: [...keep, ...junk.slice(0, junkN), ...extras] };
   }
