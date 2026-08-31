@@ -6,7 +6,7 @@ import { useState, type ReactNode } from "react";
 import { ArrowLeft, CalendarDays, Check, Link2, User, Users } from "lucide-react";
 import { GamePreview } from "@s/components/game-previews";
 import { BoardOrb, RankedBoard } from "@s/components/ranked-board";
-import { Button } from "@s/components/ui/button";
+import { Button, buttonVariants } from "@s/components/ui/button";
 import { usePlaySession } from "@s/components/play-session";
 import { play } from "@s/lib/audio";
 import { useI18n } from "@s/lib/i18n";
@@ -180,16 +180,19 @@ export function GameLobby({
                 }}
               />
 
-              <Button
-                size="lg"
-                className="h-12 w-full text-base"
+              <button
+                type="button"
+                className={cn(
+                  buttonVariants({ variant: "default", size: "lg" }),
+                  "relative z-10 h-12 w-full text-base"
+                )}
                 onClick={() => {
                   if (session.mode === "daily") startDaily();
                   else startSolo();
                 }}
               >
                 {t.lobby.start}
-              </Button>
+              </button>
             </div>
           )}
         </div>
