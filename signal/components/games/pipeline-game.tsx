@@ -283,10 +283,13 @@ export function PipelineGame({ onFinish }: { onFinish: (score: number) => void }
       />
       <div className="mt-6">
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Convoyeur</p>
-        <div className="mt-2 flex items-stretch gap-1.5 overflow-x-auto pb-1">
+        <div className="conveyor-rail mt-2 flex items-stretch gap-1 overflow-x-auto pb-1">
           {docks.map((id, di) => (
             <div key={di} className="flex min-w-[5.2rem] flex-1 flex-col items-center gap-1">
-              <span className="font-mono text-[11px] text-muted-foreground">{di + 1}</span>
+              <span className="font-mono text-[11px] text-muted-foreground">
+                {di + 1}
+                {di < n - 1 ? " →" : ""}
+              </span>
               <button
                 type="button"
                 disabled={busy}
@@ -295,7 +298,7 @@ export function PipelineGame({ onFinish }: { onFinish: (score: number) => void }
                   "flex h-[4.6rem] w-full items-center justify-center rounded-2xl border-2 border-dashed px-1.5 text-center text-[11px] leading-tight transition",
                   id ? "border-solid border-border bg-card" : "border-border/70 bg-muted/30",
                   held && !id && "border-primary bg-primary/10",
-                  boom === di && "border-anomaly bg-anomaly/20",
+                  boom === di && "border-anomaly bg-anomaly/20 bar-miss",
                   packetAt === di && boom !== di && "border-primary bg-primary/15"
                 )}
               >

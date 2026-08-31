@@ -304,22 +304,28 @@ export function ElagageGame({ onFinish }: { onFinish: (score: number) => void })
               disabled={locked}
               onClick={() => toggle(p.id)}
               className={cn(
-                "rounded-2xl border px-3 py-3 text-left transition",
+                "part-tile rounded-2xl border px-3 py-3 text-left transition",
                 on && !locked && "border-primary bg-primary/20",
                 !on && "border-border bg-card hover:border-primary/40",
                 locked && should && "border-ok bg-ok/15",
-                locked && on && !should && "border-anomaly bg-anomaly/15"
+                locked && on && !should && "border-anomaly bg-anomaly/15",
+                locked && !on && !should && "opacity-45"
               )}
             >
               <p className="font-mono text-[10px] text-muted-foreground">μ-part {i + 1}</p>
               <p className="mt-1 font-mono text-sm">{p.dates}</p>
               <p className="text-xs text-muted-foreground">{p.region}</p>
+              {locked ? (
+                <p className={cn("mt-1 font-mono text-[10px] uppercase", should ? "text-ok" : "text-muted-foreground")}>
+                  {should ? "scan" : "pruned"}
+                </p>
+              ) : null}
             </button>
           );
         })}
       </div>
       <p className="mt-3 text-center text-xs text-muted-foreground">
-        {scan.length} scannée{scan.length > 1 ? "s" : ""} · une note à chaque scan
+        {scan.length}/{round.parts.length} scannée{scan.length > 1 ? "s" : ""} · le silence, c’est du pruning
       </p>
       {locked ? (
         <Verdict

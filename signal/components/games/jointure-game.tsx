@@ -2,8 +2,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { MiniTable } from "@s/components/data-glyphs";
-import { LockBar } from "@s/components/interact";
+import { JoinVenn, MiniTable } from "@s/components/data-glyphs";
+import { ChoiceTile, LockBar } from "@s/components/interact";
 import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
@@ -449,29 +449,34 @@ export function JointureGame({ onFinish }: { onFinish: (score: number) => void }
         <MiniTable name={round.left.name} headers={round.left.headers} rows={round.left.rows} />
         <MiniTable name={round.right.name} headers={round.right.headers} rows={round.right.rows} />
       </div>
-      <div className={cn("mt-4 grid gap-2", lenses.length <= 2 ? "grid-cols-2" : "grid-cols-4")}>
+      <div className="mt-4 rounded-2xl border border-border bg-card/60 px-3 py-3">
+        <JoinVenn
+          mode={lens}
+          leftLabel={round.left.name}
+          rightLabel={round.right.name}
+          leftCount={round.left.rows.length}
+          rightCount={round.right.rows.length}
+          outCount={view?.rows.length}
+        />
+      </div>
+      <div className={cn("scene-opts mt-4 grid gap-2", lenses.length <= 2 ? "grid-cols-2" : "grid-cols-4")}>
         {lenses.map((l) => (
-          <button
+          <ChoiceTile
             key={l.id}
-            type="button"
+            title={l.label}
+            hint={l.hint}
+            selected={lens === l.id}
+            locked={locked}
+            isAnswer={l.id === round.answer}
+            isWrong={lens === l.id && l.id !== round.answer}
             disabled={locked}
             onClick={() => setLens(l.id)}
-            className={cn(
-              "rounded-2xl border px-1 py-3 text-center transition",
-              lens === l.id && "border-primary bg-primary/15",
-              lens !== l.id && "border-border bg-card hover:border-primary/40",
-              locked && l.id === round.answer && "border-ok bg-ok/15",
-              locked && lens === l.id && l.id !== round.answer && "border-anomaly bg-anomaly/10"
-            )}
-          >
-            <span className="block font-mono text-sm">{l.label}</span>
-            <span className="text-[10px] text-muted-foreground">{l.hint}</span>
-          </button>
+          />
         ))}
       </div>
       <div className="mt-4 min-h-24">
         {view ? (
-          <MiniTable name={`résultat · ${view.name}`} headers={view.headers} rows={view.rows} />
+          <MiniTable name={`résultat · ${view.name} · ${view.rows.length} ligne${view.rows.length > 1 ? "s" : ""}`} headers={view.headers} rows={view.rows} />
         ) : (
           <p className="rounded-2xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
             Pose une lentille. Les lignes survivent — ou pas.

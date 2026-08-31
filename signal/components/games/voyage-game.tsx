@@ -3,7 +3,7 @@
 
 import { useMemo, useState } from "react";
 import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
-import { Button } from "@s/components/ui/button";
+import { ChoiceTile, LockBar } from "@s/components/interact";
 import { play } from "@s/lib/audio";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
@@ -292,8 +292,47 @@ export function VoyageGame({ onFinish }: { onFinish: (score: number) => void }) 
   return (
     <GameShell title="Voyage" round={index} total={total} score={score} maxScore={maxScore}>
       <RoundHeader context={round.context} question={round.question} />
-      <div className="mt-6 rounded-2xl border border-border bg-card p-4">
+      <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-card p-4">
         <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Bande · Time Travel</p>
+        <div className="relative mt-5">
+          <div className="absolute left-3 right-3 top-3 h-0.5 bg-foreground/15" />
+          <div className="relative flex justify-between gap-1">
+            {round.events.map((ev, i) => {
+              const lost = /perdu|trop tard|0 jour/i.test(ev.label);
+              const fail = /fail-safe|failsafe/i.test(ev.label);
+              return (
+                <button
+                  key={ev.label}
+                  type="button"
+                  disabled={locked}
+                  onClick={() => {
+                    setHead(i);
+                    play("rewind");
+                  }}
+                  className="relative z-[1] flex flex-1 flex-col items-center gap-2"
+                >
+                  <span
+                    className={cn(
+                      "size-3 rounded-full border-2 transition",
+                      i === head && "tape-head size-4 border-primary bg-primary shadow-[0_0_14px_color-mix(in_oklch,var(--primary)_55%,transparent)]",
+                      i !== head && lost && "border-anomaly bg-anomaly/40",
+                      i !== head && fail && !lost && "border-chart-3 bg-chart-3/50",
+                      i !== head && !lost && !fail && "border-border bg-muted"
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "w-full rounded-lg px-1 py-2 font-mono text-[10px] leading-tight",
+                      i === head ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                    )}
+                  >
+                    {ev.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
         <input
           type="range"
           min={0}
@@ -307,45 +346,25 @@ export function VoyageGame({ onFinish }: { onFinish: (score: number) => void }) 
           }}
           className="mt-4 w-full accent-[var(--primary)]"
         />
-        <div className="mt-3 flex justify-between gap-1">
-          {round.events.map((ev, i) => (
-            <button
-              key={ev.label}
-              type="button"
-              disabled={locked}
-              onClick={() => {
-                setHead(i);
-                play("rewind");
-              }}
-              className={cn(
-                "flex-1 rounded-lg px-1 py-2 font-mono text-[10px] leading-tight",
-                i === head ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-              )}
-            >
-              {ev.label}
-            </button>
-          ))}
-        </div>
         {round.events[head]?.rows ? (
           <p className="mt-3 font-heading text-2xl">{round.events[head].rows}</p>
-        ) : null}
+        ) : (
+          <p className="mt-3 font-mono text-xs text-muted-foreground">Tête de lecture · événement {head + 1}/{round.events.length}</p>
+        )}
       </div>
-      <div className="mt-4 grid grid-cols-2 gap-2">
+      <div className="scene-opts mt-4 grid grid-cols-2 gap-2">
         {actions.map((a) => (
-          <button
+          <ChoiceTile
             key={a.id}
-            type="button"
+            title={a.label}
+            hint={a.hint}
+            selected={act === a.id}
+            locked={locked}
+            isAnswer={a.id === round.answer}
+            isWrong={act === a.id && a.id !== round.answer}
             disabled={locked}
             onClick={() => setAct(a.id)}
-            className={cn(
-              "rounded-2xl border px-3 py-3 text-left",
-              act === a.id && "border-primary bg-primary/15",
-              act !== a.id && "border-border bg-card hover:border-primary/40"
-            )}
-          >
-            <span className="block font-mono text-sm">{a.label}</span>
-            <span className="text-[11px] text-muted-foreground">{a.hint}</span>
-          </button>
+          />
         ))}
       </div>
       {locked ? (
@@ -357,17 +376,14 @@ export function VoyageGame({ onFinish }: { onFinish: (score: number) => void }) 
           nextLabel={index + 1 >= total ? "Voir le score" : "Manche suivante"}
         />
       ) : (
-        <Button
-          size="lg"
-          className="mt-6 h-11 w-full"
+        <LockBar
           disabled={!act}
-          onClick={() => {
+          label="Exécuter"
+          onLock={() => {
             setLocked(true);
             setScore((s) => s + (correct ? POINTS_PER_ROUND : 0));
           }}
-        >
-          Exécuter
-        </Button>
+        />
       )}
     </GameShell>
   );

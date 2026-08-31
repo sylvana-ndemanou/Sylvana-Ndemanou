@@ -267,11 +267,11 @@ export function CloneGame({ onFinish }: { onFinish: (score: number) => void }) {
           <div>
             <p className="font-mono text-[10px] uppercase text-muted-foreground">
               {zone === "clone"
-                ? "clone · pointeurs"
+                ? "clone · pointeurs · +0 To"
                 : zone === "ctas"
-                  ? "ctas · octets"
+                  ? "ctas · octets · copie pleine"
                   : zone === "dml"
-                    ? "clone + delta"
+                    ? "clone + delta · µ-parts neuves"
                     : "cible"}
             </p>
             <div className={cn("mt-2 grid grid-cols-4 gap-1", copying && "hold-rumble opacity-70")}>

@@ -1223,10 +1223,247 @@
   animation: tick-fill 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+@keyframes spark-draw {
+  from {
+    stroke-dashoffset: 640;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.spark-draw {
+  stroke-dasharray: 640;
+  animation: spark-draw 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.overlay-in {
+  transform-origin: center;
+  animation: overlay-in 0.35s ease both;
+}
+
+@keyframes bruit-ring {
+  0%,
+  100% {
+    r: 10;
+    opacity: 1;
+  }
+  50% {
+    r: 14;
+    opacity: 0.55;
+  }
+}
+
+.bruit-ring {
+  animation: bruit-ring 1.1s ease-in-out infinite;
+}
+
+@keyframes zone-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.72;
+  }
+}
+
+.zone-pulse {
+  animation: zone-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes sketch-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sketch-in {
+  animation: sketch-in 0.35s ease both;
+}
+
+@keyframes dot-pop {
+  from {
+    opacity: 0;
+    r: 0;
+  }
+  to {
+    opacity: 1;
+    r: 4;
+  }
+}
+
+.dot-pop {
+  animation: dot-pop 0.35s cubic-bezier(0.22, 1.4, 0.36, 1) both;
+}
+
+@keyframes funnel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scaleX(0.88);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleX(1);
+  }
+}
+
+.funnel-in {
+  animation: funnel-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes lock-ready {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in oklch, var(--primary) 18%, transparent);
+  }
+}
+
+.lock-ready {
+  animation: lock-ready 1.8s ease-in-out infinite;
+}
+
+@keyframes beat-ring {
+  0% {
+    transform: scale(0.72);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.28);
+    opacity: 0;
+  }
+}
+
+.beat-ring {
+  animation: beat-ring var(--beat, 0.8s) ease-out infinite;
+}
+
+@keyframes stream-flow {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  to {
+    transform: translateY(16px);
+    opacity: 0.15;
+  }
+}
+
+.stream-dot {
+  animation: stream-flow 0.9s ease-in-out infinite;
+}
+
+@keyframes tape-head {
+  from {
+    transform: scaleX(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+.tape-head {
+  transform-origin: center;
+  animation: tape-head 0.28s ease both;
+}
+
+@keyframes kpi-flash {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.kpi-flash {
+  animation: kpi-flash 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.look-urgent {
+  color: var(--anomaly);
+}
+
+.conveyor-rail {
+  position: relative;
+}
+
+.conveyor-rail::before {
+  content: "";
+  position: absolute;
+  left: 0.6rem;
+  right: 0.6rem;
+  top: 2.15rem;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklch, var(--primary) 45%, transparent),
+    transparent
+  );
+  pointer-events: none;
+}
+
+.part-tile {
+  position: relative;
+  overflow: hidden;
+}
+
+.part-tile::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--foreground) 18%, transparent) 0 6px,
+    transparent 6px 10px
+  );
+  opacity: 0.45;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .bar-grow,
   .bar-miss,
-  .score-fill {
+  .score-fill,
+  .spark-draw,
+  .overlay-in,
+  .bruit-ring,
+  .zone-pulse,
+  .sketch-in,
+  .dot-pop,
+  .funnel-in,
+  .lock-ready,
+  .beat-ring,
+  .stream-dot,
+  .tape-head,
+  .kpi-flash {
     animation: none;
   }
 }

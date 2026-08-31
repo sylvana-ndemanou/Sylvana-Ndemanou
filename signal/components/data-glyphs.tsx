@@ -139,6 +139,61 @@ export function JoinGlyph() {
   );
 }
 
+export function JoinVenn({
+  mode,
+  leftLabel,
+  rightLabel,
+  leftCount,
+  rightCount,
+  outCount,
+}: {
+  mode?: "inner" | "left" | "full" | "anti" | null;
+  leftLabel: string;
+  rightLabel: string;
+  leftCount: number;
+  rightCount: number;
+  outCount?: number;
+}) {
+  const fillL =
+    mode === "inner"
+      ? "transparent"
+      : mode === "anti"
+        ? "color-mix(in oklch, var(--anomaly) 35%, transparent)"
+        : mode === "left" || mode === "full"
+          ? "color-mix(in oklch, var(--chart-2) 32%, transparent)"
+          : "color-mix(in oklch, var(--chart-2) 10%, transparent)";
+  const fillR =
+    mode === "full"
+      ? "color-mix(in oklch, var(--primary) 28%, transparent)"
+      : "color-mix(in oklch, var(--primary) 10%, transparent)";
+  const fillM =
+    mode === "anti"
+      ? "transparent"
+      : mode
+        ? "color-mix(in oklch, var(--ok) 38%, transparent)"
+        : "color-mix(in oklch, var(--foreground) 6%, transparent)";
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <svg viewBox="0 0 220 92" className="h-[4.6rem] w-full max-w-xs" aria-hidden>
+        <circle cx="78" cy="46" r="38" fill={fillL} stroke="var(--chart-2)" strokeWidth="2" />
+        <circle cx="142" cy="46" r="38" fill={fillR} stroke="var(--primary)" strokeWidth="2" />
+        <ellipse cx="110" cy="46" rx="18" ry="32" fill={fillM} />
+        <text x="58" y="50" textAnchor="middle" fontSize="9" className="fill-muted-foreground">
+          {leftLabel}
+        </text>
+        <text x="162" y="50" textAnchor="middle" fontSize="9" className="fill-muted-foreground">
+          {rightLabel}
+        </text>
+      </svg>
+      <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+        {leftCount} + {rightCount}
+        {typeof outCount === "number" ? ` → ${outCount} ligne${outCount > 1 ? "s" : ""}` : ""}
+      </p>
+    </div>
+  );
+}
+
 export function GrainGlyph() {
   return (
     <div className="px-1 py-2">

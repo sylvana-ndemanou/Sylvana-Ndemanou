@@ -268,8 +268,10 @@ function foldByKeys(headers: string[], rows: string[][], keys: string[]) {
 }
 
 function poisonSum(rows: string[][], headers: string[], yanked: string[]) {
-  const i = headers.indexOf("total_commande");
-  if (i < 0 || yanked.includes("total_commande")) return null;
+  const names = ["total_commande", "ca_commande", "ca_ticket"];
+  const name = names.find((n) => headers.includes(n) && !yanked.includes(n));
+  if (!name) return null;
+  const i = headers.indexOf(name);
   return rows.reduce((acc, row) => acc + Number(row[i] || 0), 0);
 }
 
@@ -375,7 +377,7 @@ export function GrainGame({ onFinish }: { onFinish: (score: number) => void }) {
         >
           {sum === null
             ? "Colonne poison arrachée. Le SUM redevient honnête."
-            : `SUM(total_commande) = ${sum} € ${sum > 63 ? "— ça double." : ""}`}
+            : `SUM poison = ${sum} ${sum > 63 ? "— ça double." : ""}`}
         </p>
       ) : fold ? (
         <div className="mt-3 space-y-1.5">

@@ -3,7 +3,7 @@
 
 import { useMemo, useState } from "react";
 import { Sparkline } from "@s/components/mini-charts";
-import { LockBar } from "@s/components/interact";
+import { ChoiceTile, LockBar } from "@s/components/interact";
 import { GameShell, Intro, Result, RoundHeader, Verdict } from "@s/components/game-shell";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
@@ -250,32 +250,38 @@ export function BruitGame({ onFinish }: { onFinish: (score: number) => void }) {
   return (
     <GameShell title="Bruit" round={index} total={total} score={score} maxScore={maxScore}>
       <RoundHeader context={round.title} question="Pose un calque. Qu’est-ce que c’est, la zone marquée ?" />
-      <div className="mt-6 rounded-2xl border border-border bg-card p-4">
+      <div className="relative mt-6 overflow-hidden rounded-2xl border border-border bg-card p-4">
+        <span className="chart-grid pointer-events-none absolute inset-3 opacity-40" />
         <Sparkline
           values={round.values}
           highlightFrom={round.from}
           highlightTo={round.to}
           overlay={stamp}
+          showRange={difficulty !== "brutal"}
         />
+        {stamp ? (
+          <p className="mt-2 text-center font-mono text-[10px] uppercase tracking-[0.16em] text-signal">
+            calque · {labels.find((l) => l.id === stamp)?.name}
+          </p>
+        ) : (
+          <p className="mt-2 text-center font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+            zone marquée · {round.to - round.from + 1} points
+          </p>
+        )}
       </div>
-      <div className={cn("mt-4 grid gap-2", labels.length <= 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4")}>
+      <div className={cn("scene-opts mt-4 grid gap-2", labels.length <= 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4")}>
         {labels.map((lab) => (
-          <button
+          <ChoiceTile
             key={lab.id}
-            type="button"
+            title={lab.name}
+            hint={lab.hint}
+            selected={stamp === lab.id}
+            locked={locked}
+            isAnswer={lab.id === round.answer}
+            isWrong={stamp === lab.id && lab.id !== round.answer}
             disabled={locked}
             onClick={() => setStamp(lab.id)}
-            className={cn(
-              "rounded-2xl border px-2 py-3 text-left transition",
-              stamp === lab.id && "border-primary bg-primary/15",
-              stamp !== lab.id && "border-border bg-card hover:border-primary/40",
-              locked && lab.id === round.answer && "border-ok bg-ok/15",
-              locked && stamp === lab.id && lab.id !== round.answer && "border-anomaly bg-anomaly/10"
-            )}
-          >
-            <span className="block text-sm">{lab.name}</span>
-            <span className="text-[11px] text-muted-foreground">{lab.hint}</span>
-          </button>
+          />
         ))}
       </div>
       {locked ? (

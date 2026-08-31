@@ -289,7 +289,7 @@ export function GraphiqueGame({ onFinish }: { onFinish: (score: number) => void 
   return (
     <GameShell title="Graphique" round={index} total={total} score={score} maxScore={maxScore}>
       <RoundHeader context={round.context} question={round.question} />
-      <div className="mt-5 overflow-hidden rounded-2xl border border-border bg-card p-3">
+      <div className="relative mt-5 overflow-hidden rounded-2xl border border-border bg-card p-3">
         {tool ? (
           <LiveSketch
             kind={tool}

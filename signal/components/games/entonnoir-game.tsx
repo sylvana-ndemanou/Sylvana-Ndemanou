@@ -241,6 +241,9 @@ export function EntonnoirGame({ onFinish }: { onFinish: (score: number) => void 
   return (
     <GameShell title="Entonnoir" round={index} total={total} score={score} maxScore={maxScore}>
       <RoundHeader context={scenario.name} question="Empile le parcours. Le goulot se montre après." />
+      <p className="mt-1 text-center font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+        {n} étages · large → étroit
+      </p>
       {locked ? (
         <div className="relative mt-8">
           <FunnelShape steps={scenario.steps} rates={scenario.rates} />

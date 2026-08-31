@@ -2,7 +2,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Button } from "@s/components/ui/button";
+import { buttonVariants } from "@s/components/ui/button";
 import { cn } from "@s/lib/utils";
 
 export function Chip({
@@ -32,6 +32,48 @@ export function Chip({
       )}
     >
       {label}
+    </button>
+  );
+}
+
+export function ChoiceTile({
+  title,
+  hint,
+  selected,
+  locked,
+  isAnswer,
+  isWrong,
+  onClick,
+  disabled,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  selected?: boolean;
+  locked?: boolean;
+  isAnswer?: boolean;
+  isWrong?: boolean;
+  onClick?: () => void;
+  disabled?: boolean;
+  children?: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={cn(
+        "rounded-2xl border px-3 py-3 text-left transition duration-200",
+        "hover:-translate-y-0.5 hover:border-primary/40",
+        selected && "border-primary bg-primary/15 shadow-[0_0_18px_color-mix(in_oklch,var(--primary)_22%,transparent)]",
+        !selected && "border-border bg-card",
+        locked && isAnswer && "border-ok bg-ok/15",
+        locked && isWrong && "border-anomaly bg-anomaly/10"
+      )}
+    >
+      {children}
+      <span className="block font-mono text-sm">{title}</span>
+      {hint ? <span className="mt-0.5 block text-[11px] text-muted-foreground">{hint}</span> : null}
     </button>
   );
 }
@@ -82,8 +124,17 @@ export function LockBar({
   label?: string;
 }) {
   return (
-    <Button size="lg" className="mt-6 h-11 w-full text-base" disabled={disabled} onClick={onLock}>
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onLock}
+      className={cn(
+        buttonVariants({ variant: "default", size: "lg" }),
+        "relative z-10 mt-6 h-11 w-full text-base",
+        !disabled && "lock-ready"
+      )}
+    >
       {label}
-    </Button>
+    </button>
   );
 }

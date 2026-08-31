@@ -289,23 +289,39 @@ export function FluxGame({ onFinish }: { onFinish: (score: number) => void }) {
     <GameShell title="Flux" round={index} total={total} score={score} maxScore={maxScore}>
       <RoundHeader context={round.context} question={round.question} />
       <div className="mt-6 flex flex-col items-center">
-        <div
-          className={cn(
-            "flex size-28 items-center justify-center rounded-full border-4 transition",
-            pulse ? "scale-110 border-primary bg-primary/30" : "border-border bg-card"
-          )}
-        >
-          <span className="font-heading text-3xl">{round.bpm}</span>
+        <div className="relative flex size-32 items-center justify-center">
+          <span
+            className="beat-ring pointer-events-none absolute inset-0 rounded-full border-2 border-primary/50"
+            style={{ ["--beat" as string]: `${interval}ms` }}
+          />
+          <div
+            className={cn(
+              "flex size-28 items-center justify-center rounded-full border-4 transition",
+              pulse ? "scale-110 border-primary bg-primary/30" : "border-border bg-card"
+            )}
+          >
+            <span className="font-heading text-3xl tabular-nums">{round.bpm}</span>
+          </div>
         </div>
-        <p className="mt-2 font-mono text-xs text-muted-foreground">BPM task · {childGo ? "enfant prêt" : "parent"}</p>
-        <div className="mt-4 flex min-h-10 gap-2">
+        <p className="mt-2 font-mono text-xs text-muted-foreground">
+          BPM task · {childGo ? "enfant prêt" : "parent"} · fenêtre {beatWindowMsAt(difficulty, index, total)} ms
+        </p>
+        <div className="mt-4 flex min-h-10 items-center gap-2">
           {Array.from({ length: dots }).map((_, i) => (
-            <span key={i} className="size-4 rounded-full bg-primary shadow-[0_0_12px_var(--primary)]" />
+            <span
+              key={i}
+              className="stream-dot size-4 rounded-full bg-primary shadow-[0_0_12px_var(--primary)]"
+              style={{ animationDelay: `${i * 120}ms` }}
+            />
           ))}
           {dots === 0 ? (
-            <span className="font-mono text-xs text-muted-foreground">stream vide · HAS_DATA = false</span>
+            <span className="rounded-full border border-border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+              stream vide · HAS_DATA = false
+            </span>
           ) : (
-            <span className="font-mono text-xs text-signal">HAS_DATA = true</span>
+            <span className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-signal">
+              HAS_DATA = true
+            </span>
           )}
         </div>
       </div>

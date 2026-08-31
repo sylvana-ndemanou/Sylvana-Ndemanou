@@ -190,19 +190,35 @@ function DashboardPreview({ dash, blurred }: { dash: Dash; blurred?: boolean }) 
   return (
     <div className={cn("space-y-3", blurred && "pointer-events-none select-none blur-md")}>
       <p className="text-center">
-        <span className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 font-mono text-xs text-primary">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 font-mono text-xs text-primary">
+          <span className="pulse-dot size-1.5 rounded-full bg-primary" />
           Filtre · {dash.filter}
         </span>
       </p>
       <div className="grid grid-cols-2 gap-3">
-        {dash.kpis.map((kpi) => (
-          <div key={kpi.label} className="rounded-2xl border border-border bg-card p-4">
+        {dash.kpis.map((kpi, i) => (
+          <div
+            key={kpi.label}
+            className={cn(
+              "kpi-flash rounded-2xl border border-border bg-card p-4",
+              kpi.delta < 0 && "ring-1 ring-anomaly/30"
+            )}
+            style={{ animationDelay: `${i * 70}ms` }}
+          >
             <p className="text-xs uppercase tracking-wider text-muted-foreground">{kpi.label}</p>
             <p className="mt-1 font-heading text-2xl sm:text-3xl">{kpi.value}</p>
-            <p className={cn("mt-1 font-mono text-sm", kpi.delta >= 0 ? "text-ok" : "text-anomaly")}>
-              {kpi.delta >= 0 ? "+" : ""}
-              {kpi.delta} %
-            </p>
+            <div className="mt-2 flex items-center gap-2">
+              <p className={cn("font-mono text-sm", kpi.delta >= 0 ? "text-ok" : "text-anomaly")}>
+                {kpi.delta >= 0 ? "+" : ""}
+                {kpi.delta} %
+              </p>
+              <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-foreground/10">
+                <span
+                  className={cn("block h-full rounded-full", kpi.delta >= 0 ? "bg-ok" : "bg-anomaly")}
+                  style={{ width: `${Math.min(100, Math.abs(kpi.delta) * 3)}%` }}
+                />
+              </span>
+            </div>
           </div>
         ))}
       </div>
@@ -373,7 +389,12 @@ export function MemoireGame({ onFinish }: { onFinish: (score: number) => void })
     <GameShell title="Mémoire" round={index} total={total} score={score} maxScore={maxScore}>
       {mode === "flash" ? (
         <>
-          <p className="text-center font-heading text-4xl tabular-nums tracking-tight text-primary sm:text-5xl">
+          <p
+            className={cn(
+              "text-center font-heading text-4xl tabular-nums tracking-tight sm:text-5xl",
+              left <= 3 ? "look-urgent" : "text-primary"
+            )}
+          >
             {left}
             <span className="ml-1 font-mono text-sm uppercase tracking-[0.18em] text-muted-foreground">s</span>
           </p>
