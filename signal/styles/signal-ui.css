@@ -1542,15 +1542,14 @@
   justify-content: center;
   gap: 0.4rem;
   border: 0;
-  cursor: pointer;
+  cursor: default;
   background: color-mix(in oklch, var(--background) 78%, transparent);
   backdrop-filter: blur(18px) saturate(1.4);
   -webkit-backdrop-filter: blur(18px) saturate(1.4);
 }
 
-.countdown-armed {
-  pointer-events: none;
-  cursor: default;
+.countdown-go {
+  cursor: pointer;
 }
 
 .countdown-kicker {

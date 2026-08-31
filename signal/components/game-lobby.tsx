@@ -25,7 +25,7 @@ export function GameLobby({
 }) {
   const { t } = useI18n();
   const session = usePlaySession();
-  const { beat, arm, advance } = useCountdown(onStart);
+  const { beat, arm, fire } = useCountdown(onStart);
   const levels = difficultiesFor(session.slug);
   const [invite, setInvite] = useState(session.mode === "multi");
   const [copied, setCopied] = useState(false);
@@ -198,7 +198,7 @@ export function GameLobby({
         </div>
       </div>
       <RankedBoard open={boardOpen} onClose={() => setBoardOpen(false)} />
-      <CountdownOverlay beat={beat} onAdvance={advance} />
+      <CountdownOverlay beat={beat} onGo={fire} />
     </div>
   );
 }

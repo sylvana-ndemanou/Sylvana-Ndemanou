@@ -11,101 +11,87 @@ type Beat = 3 | 2 | 1 | "go";
 
 const BEAT_MS = 900;
 const GO_MS = 700;
-const ARM_GUARD_MS = 520;
 
 export function useCountdown(onGo: () => void) {
   const [beat, setBeat] = useState<Beat | null>(null);
   const fired = useRef(false);
-  const armedAt = useRef(0);
+  const timers = useRef([]);
   const goRef = useRef(onGo);
   goRef.current = onGo;
 
-  function arm() {
-    fired.current = false;
-    armedAt.current = Date.now();
-    unlockAudio();
-    setBeat(3);
+  function clearTimers() {
+    timers.current.forEach((id) => window.clearTimeout(id));
+    timers.current = [];
   }
 
   function fire() {
     if (fired.current) return;
     fired.current = true;
+    clearTimers();
     play("start");
     goRef.current();
     setBeat(null);
   }
 
-  function advance() {
-    if (beat === null) return;
-    if (Date.now() - armedAt.current < ARM_GUARD_MS) return;
-    if (beat === "go") {
-      fire();
-      return;
+  function arm() {
+    clearTimers();
+    fired.current = false;
+    unlockAudio();
+    setBeat(3);
+    play("tick");
+    const plan = [
+      [BEAT_MS, 2],
+      [BEAT_MS * 2, 1],
+      [BEAT_MS * 3, "go"],
+      [BEAT_MS * 3 + GO_MS, "fire"],
+    ];
+    for (const [ms, next] of plan) {
+      timers.current.push(
+        window.setTimeout(() => {
+          if (fired.current) return;
+          if (next === "fire") {
+            fire();
+            return;
+          }
+          setBeat(next);
+          if (next !== "go") play("tick");
+        }, ms)
+      );
     }
-    setBeat(beat === 1 ? "go" : ((beat - 1) as Beat));
   }
 
-  useEffect(() => {
-    if (beat === null) return;
-    if (beat === "go") {
-      const t = window.setTimeout(fire, GO_MS);
-      return () => window.clearTimeout(t);
-    }
-    play("tick");
-    const t = window.setTimeout(() => {
-      setBeat(beat === 1 ? "go" : ((beat - 1) as Beat));
-    }, BEAT_MS);
-    return () => window.clearTimeout(t);
-  }, [beat]);
+  useEffect(() => () => clearTimers(), []);
 
-  return { beat, arm, advance, armed: beat !== null };
+  return { beat, arm, fire, armed: beat !== null };
 }
 
 export function CountdownOverlay({
   beat,
-  onAdvance,
+  onGo,
 }: {
   beat: Beat | null;
-  onAdvance: () => void;
+  onGo: () => void;
 }) {
   const { t } = useI18n();
   const [ready, setReady] = useState(false);
-  const [live, setLive] = useState(false);
-
   useEffect(() => setReady(true), []);
-
-  useEffect(() => {
-    if (beat === null) {
-      setLive(false);
-      return;
-    }
-    setLive(false);
-    const t = window.setTimeout(() => setLive(true), ARM_GUARD_MS);
-    return () => window.clearTimeout(t);
-  }, [beat]);
-
   if (!ready || beat === null) return null;
 
   const label = beat === "go" ? t.lobby.go : String(beat);
 
   return createPortal(
-    <button
-      type="button"
+    <div
+      role="status"
       aria-live="assertive"
       data-signal-countdown
-      onClick={onAdvance}
-      className={cn(
-        "countdown-veil",
-        beat === "go" && "countdown-go",
-        `countdown-${beat}`,
-        !live && "countdown-armed"
-      )}
+      className={cn("countdown-veil", beat === "go" && "countdown-go", `countdown-${beat}`)}
+      onClick={beat === "go" ? onGo : undefined}
     >
       <span className="countdown-kicker">{beat === "go" ? t.lobby.start : t.lobby.ready}</span>
       <span key={label} className="countdown-num">
         {label}
       </span>
-    </button>,
+    </div>,
     document.body
   );
 }
