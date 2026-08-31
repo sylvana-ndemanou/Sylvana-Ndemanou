@@ -304,11 +304,10 @@ export function PortfolioNav() {
                   aria-expanded={open === track.id}
                   aria-controls="signal-tray-games"
                   onClick={() => pickTrack(track.id)}
-                  onPointerEnter={() => {
-                    if (canHover()) {
-                      setMenuOpen(true);
-                      setOpen(track.id);
-                    }
+                  onPointerEnter={(event) => {
+                    if (event.pointerType === "touch") return;
+                    setMenuOpen(true);
+                    setOpen(track.id);
                   }}
                   className={cn("nav-link nav-link-quiet relative z-10", open === track.id && "text-foreground")}
                 >

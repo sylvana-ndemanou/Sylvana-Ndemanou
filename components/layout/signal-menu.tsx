@@ -192,8 +192,9 @@ export function SignalNavItem({
                   role="menuitem"
                   aria-expanded={on}
                   aria-controls="signal-nav-tray-games"
-                  onPointerEnter={() => {
-                    if (canHover()) setTrack(id);
+                  onPointerEnter={(event) => {
+                    if (event.pointerType === "touch") return;
+                    setTrack(id);
                   }}
                   onFocus={() => setTrack(id)}
                   onClick={() => {
