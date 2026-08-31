@@ -50,6 +50,9 @@ export function GameShell({
   if (briefQuestion && veil.key !== briefKey) {
     setVeil({ key: briefKey, open: true });
   }
+  const dismissBrief = useCallback(() => {
+    setVeil((s) => ({ ...s, open: false }));
+  }, []);
   const briefing = Boolean(briefQuestion && veil.open);
   useEffect(() => {
     setAudioPalette(session.slug);
@@ -121,7 +124,7 @@ export function GameShell({
           <QuestionBeat
             context={briefContext}
             question={briefQuestion}
-            onGo={() => setVeil((s) => ({ ...s, open: false }))}
+            onGo={dismissBrief}
           />
         ) : (
           children
@@ -323,7 +326,7 @@ export function QuestionBeat({
     const arm = window.setTimeout(() => {
       armed.current = true;
     }, 520);
-    const id = window.setTimeout(onGo, 4500);
+    const id = window.setTimeout(onGo, 5200);
     return () => {
       window.clearTimeout(arm);
       window.clearTimeout(id);
