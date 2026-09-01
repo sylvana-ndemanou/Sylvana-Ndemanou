@@ -8,11 +8,11 @@ import { cn } from "@s/lib/utils";
 type Stop = { t: number; label: string; rows?: string };
 
 const TRAIN_W = 220;
-const ENTER_X = -240;
-const SPEED_PX = 220;
+const ENTER_X = -260;
+const SPEED_PX = 168;
 
 function stopX(head: number, n: number, width: number) {
-  const pad = TRAIN_W / 2 + 12;
+  const pad = Math.min(width * 0.42, Math.max(TRAIN_W / 2 + 32, width * 0.2));
   const inner = Math.max(1, width - pad * 2);
   const t = n <= 1 ? 0.5 : head / (n - 1);
   return pad + t * inner;
@@ -143,7 +143,7 @@ export function VoyageTram({
           <div className="pointer-events-none absolute inset-x-0 top-[4.35rem] h-8">
             {events.map((ev, i) => {
               const t = n <= 1 ? 0.5 : i / (n - 1);
-              const pad = TRAIN_W / 2 + 12;
+              const pad = Math.min(trackRef.current?.clientWidth * 0.42 || TRAIN_W, Math.max(TRAIN_W / 2 + 32, (trackRef.current?.clientWidth || 1) * 0.2));
               return (
                 <button
                   key={`${ev.t}-${i}`}

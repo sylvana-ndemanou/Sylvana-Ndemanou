@@ -2355,6 +2355,10 @@
   min-height: 11.5rem;
 }
 
+.voyage-track {
+  margin-inline: 0.85rem;
+}
+
 .dark .voyage-sky {
   background: linear-gradient(180deg, oklch(0.28 0.04 130) 0%, oklch(0.2 0.03 118) 100%);
 }
