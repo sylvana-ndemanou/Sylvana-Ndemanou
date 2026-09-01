@@ -2,7 +2,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { GameShell, Intro, PlayStage, QuestionBeat, Result, RoundHeader, Verdict, useBriefRound } from "@s/components/game-shell";
+import { GameShell, Intro, PlayStage, Result, RoundHeader, Verdict } from "@s/components/game-shell";
 import { LockBar } from "@s/components/interact";
 import { play } from "@s/lib/audio";
 import { POINTS_PER_ROUND } from "@s/lib/games";
@@ -256,7 +256,6 @@ export function ElagageGame({ onFinish }: { onFinish: (score: number) => void })
   const [scan, setScan] = useState<string[]>([]);
   const [locked, setLocked] = useState(false);
 
-  const { brief, go } = useBriefRound(index, phase === "play");
   const round = playI18n.overlay(deck[index]);
   const correct = sameSet(scan, round?.scan ?? []);
 
@@ -302,14 +301,6 @@ export function ElagageGame({ onFinish }: { onFinish: (score: number) => void })
           setScore(0);
         }}
       />
-    );
-  }
-
-  if (brief) {
-    return (
-      <GameShell slug="elagage" round={index} total={total} score={score} maxScore={maxScore}>
-        <QuestionBeat context={round.context} question={playI18n.ui.elagage.question} onGo={go} />
-      </GameShell>
     );
   }
 

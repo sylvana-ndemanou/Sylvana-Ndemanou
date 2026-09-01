@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { GameShell, Intro, PlayStage, QuestionBeat, Result, Verdict, useBriefRound } from "@s/components/game-shell";
+import { GameShell, Intro, PlayStage, Result, Verdict, useBriefRound } from "@s/components/game-shell";
 import { LockBar } from "@s/components/interact";
 import { Button } from "@s/components/ui/button";
 import { play } from "@s/lib/audio";
@@ -409,16 +409,8 @@ export function MemoireGame({ onFinish }: { onFinish: (score: number) => void })
     );
   }
 
-  if (brief) {
-    return (
-      <GameShell slug="memoire" round={index} total={total} score={score} maxScore={maxScore}>
-        <QuestionBeat context={round.filter} question={round.question} onGo={go} />
-      </GameShell>
-    );
-  }
-
   return (
-    <GameShell slug="memoire" round={index} total={total} score={score} maxScore={maxScore} briefContext={round.filter} briefQuestion={round.question}>
+    <GameShell slug="memoire" round={index} total={total} score={score} maxScore={maxScore} briefContext={round.filter} briefQuestion={round.question} onBriefDismiss={go}>
       <PlayStage slug="memoire" className="mt-2">
       {mode === "flash" ? (
         <>

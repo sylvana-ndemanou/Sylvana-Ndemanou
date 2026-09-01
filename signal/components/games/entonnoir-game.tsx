@@ -5,7 +5,7 @@ import { useCallback, useMemo, useState } from "react";
 import { DragBoard, Draggable, DropSlot, shuffle } from "@s/components/drag-kit";
 import { FunnelShape } from "@s/components/mini-charts";
 import { LockBar } from "@s/components/interact";
-import { GameShell, Intro, PlayStage, QuestionBeat, Result, RoundHeader, Verdict, useBriefRound } from "@s/components/game-shell";
+import { GameShell, Intro, PlayStage, Result, RoundHeader, Verdict } from "@s/components/game-shell";
 import { play } from "@s/lib/audio";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
@@ -169,7 +169,6 @@ export function EntonnoirGame({ onFinish }: { onFinish: (score: number) => void 
   const [pour, setPour] = useState(false);
   const [points, setPoints] = useState(0);
 
-  const { brief, go } = useBriefRound(index, phase === "play");
   const scenario = playI18n.overlay(deck[index]);
   const n = scenario?.steps.length ?? 0;
   const idle = pool.filter((s) => !stack.includes(s));
@@ -252,14 +251,6 @@ export function EntonnoirGame({ onFinish }: { onFinish: (score: number) => void 
     scenario.rates.length > 0
       ? scenario.rates.indexOf(Math.min(...scenario.rates)) + 1
       : -1;
-
-  if (brief) {
-    return (
-      <GameShell slug="entonnoir" round={index} total={total} score={score} maxScore={maxScore}>
-        <QuestionBeat context={scenario.name} question={playI18n.ui.funnelQ} onGo={go} />
-      </GameShell>
-    );
-  }
 
   return (
     <GameShell slug="entonnoir" round={index} total={total} score={score} maxScore={maxScore} briefContext={scenario.name} briefQuestion={playI18n.ui.funnelQ}>

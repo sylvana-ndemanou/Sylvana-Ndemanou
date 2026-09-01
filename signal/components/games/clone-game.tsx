@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { GameShell, Intro, PlayStage, QuestionBeat, Result, RoundHeader, Verdict, useBriefRound } from "@s/components/game-shell";
+import { GameShell, Intro, PlayStage, Result, RoundHeader, Verdict } from "@s/components/game-shell";
 import { LockBar } from "@s/components/interact";
 import { play, unlockAudio } from "@s/lib/audio";
 import { POINTS_PER_ROUND } from "@s/lib/games";
@@ -159,7 +159,6 @@ export function CloneGame({ onFinish }: { onFinish: (score: number) => void }) {
   const holdRef = useRef<number | null>(null);
   const startedAt = useRef(0);
 
-  const { brief, go } = useBriefRound(index, phase === "play");
   const round = playI18n.overlay(deck[index]);
   const holdNeed = holdMsAt(difficulty, index, total);
   const correct = zone === round?.answer;
@@ -276,14 +275,6 @@ export function CloneGame({ onFinish }: { onFinish: (score: number) => void }) {
           setLocked(false);
         }}
       />
-    );
-  }
-
-  if (brief) {
-    return (
-      <GameShell slug="clone" round={index} total={total} score={score} maxScore={maxScore}>
-        <QuestionBeat context={round.context} question={round.question} onGo={go} />
-      </GameShell>
     );
   }
 

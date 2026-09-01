@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { GameShell, Intro, PlayStage, QuestionBeat, Result, RoundHeader, Verdict, useBriefRound } from "@s/components/game-shell";
+import { GameShell, Intro, PlayStage, Result, RoundHeader, Verdict, useBriefRound } from "@s/components/game-shell";
 import { Button } from "@s/components/ui/button";
 import { play } from "@s/lib/audio";
 import { POINTS_PER_ROUND } from "@s/lib/games";
@@ -299,16 +299,8 @@ export function FluxGame({ onFinish }: { onFinish: (score: number) => void }) {
     );
   }
 
-  if (brief) {
-    return (
-      <GameShell slug="flux" round={index} total={total} score={score} maxScore={maxScore}>
-        <QuestionBeat context={round.context} question={round.question} onGo={go} />
-      </GameShell>
-    );
-  }
-
   return (
-    <GameShell slug="flux" round={index} total={total} score={score} maxScore={maxScore} briefContext={round.context} briefQuestion={round.question}>
+    <GameShell slug="flux" round={index} total={total} score={score} maxScore={maxScore} briefContext={round.context} briefQuestion={round.question} onBriefDismiss={go}>
       <RoundHeader context={round.context} question={round.question} />
       <PlayStage slug="flux" className="mt-6">
       <div className="flex flex-col items-center">

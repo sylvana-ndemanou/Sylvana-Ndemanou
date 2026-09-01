@@ -3,7 +3,7 @@
 
 import { useMemo, useState } from "react";
 import { BarChart, weekLabels } from "@s/components/mini-charts";
-import { GameShell, Intro, PlayStage, QuestionBeat, Result, RoundHeader, Verdict, useBriefRound } from "@s/components/game-shell";
+import { GameShell, Intro, PlayStage, Result, RoundHeader, Verdict } from "@s/components/game-shell";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
 import type { Difficulty } from "@s/lib/play";
@@ -275,8 +275,6 @@ export function AnomalieGame({ onFinish }: { onFinish: (score: number) => void }
   const [score, setScore] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [revealed, setRevealed] = useState(false);
-  const { brief, go } = useBriefRound(index, phase === "play");
-
   const raw = rounds[index];
   const round = playI18n.overlay(raw);
   const correct = picked === raw?.answer;
@@ -326,14 +324,6 @@ export function AnomalieGame({ onFinish }: { onFinish: (score: number) => void }
 
   if (phase === "done") {
     return <Result slug="anomalie" score={score} max={maxScore} onReplay={replay} />;
-  }
-
-  if (brief) {
-    return (
-      <GameShell slug="anomalie" round={index} total={total} score={score} maxScore={maxScore}>
-        <QuestionBeat context={round.title} question={question} onGo={go} />
-      </GameShell>
-    );
   }
 
   return (

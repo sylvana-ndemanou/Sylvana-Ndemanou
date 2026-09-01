@@ -5,7 +5,7 @@ import { useMemo, useRef, useState } from "react";
 import { Sparkline } from "@s/components/mini-charts";
 import { DragBoard, Draggable, DropSlot } from "@s/components/drag-kit";
 import { ChoiceTile, LockBar } from "@s/components/interact";
-import { GameShell, Intro, PlayStage, QuestionBeat, Result, RoundHeader, Verdict, useBriefRound } from "@s/components/game-shell";
+import { GameShell, Intro, PlayStage, Result, RoundHeader, Verdict } from "@s/components/game-shell";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
 import { usePlay } from "@s/lib/play-text";
@@ -221,7 +221,6 @@ export function BruitGame({ onFinish }: { onFinish: (score: number) => void }) {
   const [locked, setLocked] = useState(false);
   const sealed = useRef(false);
 
-  const { brief, go } = useBriefRound(index, phase === "play");
   const round = playI18n.overlay(deck[index]);
   const labels = round ? stampsFor(round.answer, difficulty, index, total) : [];
   const correct = stamp === round?.answer;
@@ -278,14 +277,6 @@ export function BruitGame({ onFinish }: { onFinish: (score: number) => void }) {
           sealed.current = false;
         }}
       />
-    );
-  }
-
-  if (brief) {
-    return (
-      <GameShell slug="bruit" round={index} total={total} score={score} maxScore={maxScore}>
-        <QuestionBeat context={round.title} question={playI18n.ui.bruitQ} onGo={go} />
-      </GameShell>
     );
   }
 

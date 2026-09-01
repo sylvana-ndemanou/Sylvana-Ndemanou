@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { MiniTable } from "@s/components/data-glyphs";
 import { sameSet } from "@s/components/drag-kit";
 import { LockBar } from "@s/components/interact";
-import { GameShell, Intro, PlayStage, QuestionBeat, Result, RoundHeader, Verdict, useBriefRound } from "@s/components/game-shell";
+import { GameShell, Intro, PlayStage, Result, RoundHeader, Verdict } from "@s/components/game-shell";
 import { play } from "@s/lib/audio";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
@@ -313,7 +313,6 @@ export function GrainGame({ onFinish }: { onFinish: (score: number) => void }) {
   const [picked, setPicked] = useState<string[]>([]);
   const [locked, setLocked] = useState(false);
 
-  const { brief, go } = useBriefRound(index, phase === "play");
   const round = playI18n.overlay(deck[index]);
   const headers = round?.table.headers ?? [];
   const fold = useMemo(
@@ -378,14 +377,6 @@ export function GrainGame({ onFinish }: { onFinish: (score: number) => void }) {
           setLocked(false);
         }}
       />
-    );
-  }
-
-  if (brief) {
-    return (
-      <GameShell slug="grain" round={index} total={total} score={score} maxScore={maxScore}>
-        <QuestionBeat context={round.context} question={round.question} onGo={go} />
-      </GameShell>
     );
   }
 

@@ -84,6 +84,7 @@ export function setMuted(next: boolean) {
   } catch {
     /* ignore */
   }
+  if (next) hushTrain(false);
   emit();
 }
 
@@ -267,3 +268,118 @@ export function play(cue: Cue) {
 }
 
 export const playCue = play;
+
+let trainRunning = false;
+let trainGain: GainNode | null = null;
+let trainSource: AudioBufferSourceNode | null = null;
+let trainClacks: number | null = null;
+let trainStopTimer: number | null = null;
+
+function rumbleBuffer(audio: AudioContext, seconds: number) {
+  const length = Math.max(1, Math.floor(audio.sampleRate * seconds));
+  const buffer = audio.createBuffer(1, length, audio.sampleRate);
+  const data = buffer.getChannelData(0);
+  let last = 0;
+  for (let i = 0; i < length; i += 1) {
+    const white = Math.random() * 2 - 1;
+    last = (last + 0.018 * white) / 1.018;
+    data[i] = Math.max(-1, Math.min(1, last * 4.2));
+  }
+  return buffer;
+}
+
+function clack(audio: AudioContext) {
+  const t = audio.currentTime + 0.001;
+  playNoise(audio, t, { duration: 0.032, freq: 210, q: 9, gain: 0.045 });
+  playNoise(audio, t + 0.028, { duration: 0.024, freq: 380, q: 7, gain: 0.028 });
+}
+
+function hushTrain(brake: boolean) {
+  const audio = ctx;
+  const src = trainSource;
+  const g = trainGain;
+  trainSource = null;
+  trainGain = null;
+  if (trainClacks != null) {
+    window.clearInterval(trainClacks);
+    trainClacks = null;
+  }
+  if (trainStopTimer != null) {
+    window.clearTimeout(trainStopTimer);
+    trainStopTimer = null;
+  }
+  if (g && audio) {
+    const now = audio.currentTime;
+    g.gain.cancelScheduledValues(now);
+    g.gain.setValueAtTime(Math.max(0.0001, g.gain.value), now);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + (brake ? 0.42 : 0.12));
+    if (brake && !muted) {
+      playNoise(audio, now, { duration: 0.55, freq: 2800, q: 0.55, gain: 0.05, type: "highpass" });
+      playNoise(audio, now, { duration: 0.4, freq: 160, q: 0.9, gain: 0.06, type: "lowpass" });
+      playTone(audio, now, { freq: 196, duration: 0.38, gain: 0.028, slide: 72, type: "sawtooth" });
+    }
+  }
+  trainStopTimer = window.setTimeout(() => {
+    try {
+      src?.stop();
+    } catch {
+      /* already stopped */
+    }
+    trainStopTimer = null;
+  }, brake ? 480 : 160);
+  trainRunning = false;
+}
+
+export function trainBell() {
+  hydrateMute();
+  if (muted) return;
+  const audio = getCtx();
+  if (!audio) return;
+  const t = audio.currentTime + 0.001;
+  playTone(audio, t, { freq: 392, duration: 0.22, gain: 0.055, type: "triangle" });
+  playTone(audio, t + 0.16, { freq: 523.25, duration: 0.28, gain: 0.05, type: "triangle" });
+  playTone(audio, t + 0.42, { freq: 329.63, duration: 0.18, gain: 0.03, type: "sine" });
+}
+
+export function startTrainRoll() {
+  hydrateMute();
+  if (muted || trainRunning) return;
+  if (trainStopTimer != null) {
+    window.clearTimeout(trainStopTimer);
+    trainStopTimer = null;
+  }
+  const audio = getCtx();
+  if (!audio) return;
+  trainRunning = true;
+  const rumble = audio.createBufferSource();
+  rumble.buffer = rumbleBuffer(audio, 1.6);
+  rumble.loop = true;
+  const hp = audio.createBiquadFilter();
+  hp.type = "highpass";
+  hp.frequency.value = 36;
+  const lp = audio.createBiquadFilter();
+  lp.type = "lowpass";
+  lp.frequency.value = 210;
+  const g = audio.createGain();
+  const now = audio.currentTime;
+  g.gain.setValueAtTime(0.0001, now);
+  g.gain.exponentialRampToValueAtTime(0.09, now + 0.45);
+  rumble.connect(hp);
+  hp.connect(lp);
+  lp.connect(g);
+  g.connect(audio.destination);
+  rumble.start();
+  trainSource = rumble;
+  trainGain = g;
+  clack(audio);
+  trainClacks = window.setInterval(() => {
+    if (!trainRunning || muted) return;
+    const live = getCtx();
+    if (live) clack(live);
+  }, 170);
+}
+
+export function stopTrainRoll() {
+  if (!trainRunning) return;
+  hushTrain(true);
+}

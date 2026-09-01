@@ -4,7 +4,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { DragBoard, Draggable, DropSlot, shuffle } from "@s/components/drag-kit";
 import { LockBar } from "@s/components/interact";
-import { GameShell, Intro, PlayStage, QuestionBeat, Result, RoundHeader, Verdict, useBriefRound } from "@s/components/game-shell";
+import { GameShell, Intro, PlayStage, Result, RoundHeader, Verdict } from "@s/components/game-shell";
 import { play } from "@s/lib/audio";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
@@ -156,7 +156,6 @@ export function PipelineGame({ onFinish }: { onFinish: (score: number) => void }
   const [boom, setBoom] = useState(-1);
   const [points, setPoints] = useState(0);
 
-  const { brief, go } = useBriefRound(index, phase === "play");
   const scenario = playI18n.overlay(deck[index]);
   const n = scenario?.steps.length ?? 0;
   const used = new Set(docks.filter(Boolean) as string[]);
@@ -295,14 +294,6 @@ export function PipelineGame({ onFinish }: { onFinish: (score: number) => void }
   }
 
   const perfect = points === POINTS_PER_ROUND;
-
-  if (brief) {
-    return (
-      <GameShell slug="pipeline" round={index} total={total} score={score} maxScore={maxScore}>
-        <QuestionBeat context={scenario.name} question={playI18n.ui.pipelineQ} onGo={go} />
-      </GameShell>
-    );
-  }
 
   return (
     <GameShell slug="pipeline" round={index} total={total} score={score} maxScore={maxScore} briefContext={scenario.name} briefQuestion={playI18n.ui.pipelineQ}>

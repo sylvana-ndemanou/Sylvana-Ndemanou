@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { DragBoard, Draggable, DropSlot } from "@s/components/drag-kit";
 import { LockBar } from "@s/components/interact";
-import { GameShell, Intro, PlayStage, QuestionBeat, Result, RoundHeader, Verdict, useBriefRound } from "@s/components/game-shell";
+import { GameShell, Intro, PlayStage, Result, RoundHeader, Verdict } from "@s/components/game-shell";
 import { Button } from "@s/components/ui/button";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
@@ -284,7 +284,6 @@ export function SchemaGame({ onFinish }: { onFinish: (score: number) => void }) 
   const [locked, setLocked] = useState(false);
   const [ok, setOk] = useState(false);
 
-  const { brief, go } = useBriefRound(index, phase === "play");
   const round = playI18n.overlay(deck[index]);
 
   function lock(correct: boolean) {
@@ -328,14 +327,6 @@ export function SchemaGame({ onFinish }: { onFinish: (score: number) => void }) 
           setOk(false);
         }}
       />
-    );
-  }
-
-  if (brief) {
-    return (
-      <GameShell slug="schema" round={index} total={total} score={score} maxScore={maxScore}>
-        <QuestionBeat context={round.context} question={round.question} onGo={go} />
-      </GameShell>
     );
   }
 

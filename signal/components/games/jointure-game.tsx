@@ -5,7 +5,7 @@ import { useMemo, useRef, useState } from "react";
 import { JoinVenn, MiniTable } from "@s/components/data-glyphs";
 import { DragBoard, Draggable, DropSlot } from "@s/components/drag-kit";
 import { ChoiceTile, LockBar } from "@s/components/interact";
-import { GameShell, Intro, PlayStage, QuestionBeat, Result, RoundHeader, Verdict, useBriefRound } from "@s/components/game-shell";
+import { GameShell, Intro, PlayStage, Result, RoundHeader, Verdict } from "@s/components/game-shell";
 import { POINTS_PER_ROUND } from "@s/lib/games";
 import { usePlaySession } from "@s/components/play-session";
 import { usePlay } from "@s/lib/play-text";
@@ -425,7 +425,6 @@ export function JointureGame({ onFinish }: { onFinish: (score: number) => void }
   const [locked, setLocked] = useState(false);
   const sealed = useRef(false);
 
-  const { brief, go } = useBriefRound(index, phase === "play");
   const round = playI18n.overlay(deck[index]);
   const lenses = round ? lensesFor(difficulty, index, total, round.answer) : LENSES;
   const correct = lens === round?.answer;
@@ -498,14 +497,6 @@ export function JointureGame({ onFinish }: { onFinish: (score: number) => void }
           sealed.current = false;
         }}
       />
-    );
-  }
-
-  if (brief) {
-    return (
-      <GameShell slug="jointure" round={index} total={total} score={score} maxScore={maxScore}>
-        <QuestionBeat context={round.context} question={round.question} onGo={go} />
-      </GameShell>
     );
   }
 

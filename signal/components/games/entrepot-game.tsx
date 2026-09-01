@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { GameShell, Intro, PlayStage, QuestionBeat, Result, RoundHeader, Verdict, useBriefRound } from "@s/components/game-shell";
+import { GameShell, Intro, PlayStage, Result, RoundHeader, Verdict } from "@s/components/game-shell";
 import { LockBar } from "@s/components/interact";
 import { Button } from "@s/components/ui/button";
 import { play } from "@s/lib/audio";
@@ -316,7 +316,6 @@ export function EntrepotGame({ onFinish }: { onFinish: (score: number) => void }
   const [locked, setLocked] = useState(false);
   const [guess60, setGuess60] = useState("");
 
-  const { brief, go } = useBriefRound(index, phase === "play");
   const round = playI18n.overlay(deck[index]);
   const size = SIZES[sizeIdx];
   const isMinBill = index === 3;
@@ -377,14 +376,6 @@ export function EntrepotGame({ onFinish }: { onFinish: (score: number) => void }
           setScore(0);
         }}
       />
-    );
-  }
-
-  if (brief) {
-    return (
-      <GameShell slug="entrepot" round={index} total={total} score={score} maxScore={maxScore}>
-        <QuestionBeat context={round.context} question={round.question} onGo={go} />
-      </GameShell>
     );
   }
 

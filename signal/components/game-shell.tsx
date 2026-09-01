@@ -29,6 +29,7 @@ export function GameShell({
   footer,
   briefContext,
   briefQuestion,
+  onBriefDismiss,
 }: {
   slug?: GameSlug;
   title?: string;
@@ -40,6 +41,7 @@ export function GameShell({
   footer?: ReactNode;
   briefContext?: string;
   briefQuestion?: string;
+  onBriefDismiss?: () => void;
 }) {
   const { t } = useI18n();
   const heading = title ?? (slug ? t.games[slug].name : "");
@@ -52,7 +54,8 @@ export function GameShell({
   }
   const dismissBrief = useCallback(() => {
     setVeil((s) => ({ ...s, open: false }));
-  }, []);
+    onBriefDismiss?.();
+  }, [onBriefDismiss]);
   const briefing = Boolean(briefQuestion && veil.open);
   useEffect(() => {
     setAudioPalette(session.slug);

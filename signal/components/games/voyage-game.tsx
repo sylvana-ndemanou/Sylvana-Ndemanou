@@ -2,7 +2,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { GameShell, Intro, PlayStage, QuestionBeat, Result, RoundHeader, Verdict, useBriefRound } from "@s/components/game-shell";
+import { GameShell, Intro, PlayStage, Result, RoundHeader, Verdict } from "@s/components/game-shell";
 import { VoyageTram } from "@s/components/voyage-tram";
 import { ChoiceTile, LockBar } from "@s/components/interact";
 import { POINTS_PER_ROUND } from "@s/lib/games";
@@ -254,8 +254,6 @@ export function VoyageGame({ onFinish }: { onFinish: (score: number) => void }) 
   const [locked, setLocked] = useState(false);
   const [touchedHead, setTouchedHead] = useState(false);
   const sealed = useRef(false);
-  const { brief, go } = useBriefRound(index, phase === "play");
-
   const raw = deck[index];
   const round = playI18n.overlay(raw);
   const actions = raw ? actionsFor(difficulty, index, total, raw.answer) : ACTION_IDS;
@@ -323,14 +321,6 @@ export function VoyageGame({ onFinish }: { onFinish: (score: number) => void }) 
           sealed.current = false;
         }}
       />
-    );
-  }
-
-  if (brief) {
-    return (
-      <GameShell slug="voyage" round={index} total={total} score={score} maxScore={maxScore}>
-        <QuestionBeat context={round.context} question={round.question} onGo={go} />
-      </GameShell>
     );
   }
 
