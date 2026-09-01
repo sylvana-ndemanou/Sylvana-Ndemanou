@@ -327,7 +327,7 @@ export function PipelineGame({ onFinish }: { onFinish: (score: number) => void }
                 id={`dock-${di}`}
                 className={cn(
                   "flex h-[4.6rem] w-full items-center justify-center rounded-2xl border-2 border-dashed px-1.5 text-center text-[11px] leading-tight",
-                  id ? "border-solid border-border bg-card" : "border-border/70 bg-muted/30",
+                  id ? "border-solid border-border bg-card" : "life-shelf life-shelf-empty border-border/70 bg-muted/30",
                   held && !id && "border-primary bg-primary/10",
                   boom === di && "border-anomaly bg-anomaly/20 bar-miss",
                   packetAt === di && boom !== di && "border-primary bg-primary/15"
@@ -357,15 +357,16 @@ export function PipelineGame({ onFinish }: { onFinish: (score: number) => void }
         </div>
         <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{playI18n.ui.jobPile}</p>
         <div className="mt-2 flex min-h-[4.4rem] flex-wrap gap-2 rounded-2xl border border-dashed border-border bg-muted/40 p-3">
-          {idle.map((step) => (
+          {idle.map((step, i) => (
             <Draggable key={step} id={step} disabled={busy}>
               <div
                 className={cn(
                   "rounded-xl border px-3 py-2 text-left text-[12px] leading-tight transition",
                   held === step
                     ? "border-primary bg-primary text-primary-foreground shadow-[0_0_20px_color-mix(in_oklch,var(--primary)_35%,transparent)]"
-                    : "border-border bg-card hover:border-primary/50"
+                    : "life-bob border-border bg-card hover:border-primary/50"
                 )}
+                style={held === step ? undefined : { animationDelay: `${i * 90}ms` }}
               >
                 {step}
               </div>

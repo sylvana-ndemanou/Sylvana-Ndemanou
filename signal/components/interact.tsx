@@ -82,7 +82,7 @@ export function ChoiceTile({
         "rounded-2xl border px-3 py-3 text-left transition duration-200",
         "hover:-translate-y-0.5 hover:border-primary/40",
         selected && "border-primary bg-primary/15 shadow-[0_0_18px_color-mix(in_oklch,var(--primary)_22%,transparent)]",
-        !selected && "border-border bg-card",
+        !selected && "life-bob border-border bg-card",
         locked && isAnswer && "border-ok bg-ok/15",
         locked && isWrong && "border-anomaly bg-anomaly/10"
       )}

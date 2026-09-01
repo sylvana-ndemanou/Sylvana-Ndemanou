@@ -327,11 +327,11 @@ export function ElagageGame({ onFinish }: { onFinish: (score: number) => void })
               onClick={() => toggle(p.id)}
               className={cn(
                 "part-tile rounded-2xl border px-3 py-3 text-left transition",
-                on && !locked && "border-primary bg-primary/20",
+                on && !locked && "life-scan-target border-primary bg-primary/20",
                 !on && "border-border bg-card hover:border-primary/40",
-                locked && should && "border-ok bg-ok/15",
+                locked && should && "life-scan-keep border-ok bg-ok/15",
                 locked && on && !should && "border-anomaly bg-anomaly/15",
-                locked && !on && !should && "opacity-45"
+                locked && !should && "life-pruned"
               )}
             >
               <p className="font-mono text-[10px] text-muted-foreground">{playI18n.ui.elagage.part(i)}</p>

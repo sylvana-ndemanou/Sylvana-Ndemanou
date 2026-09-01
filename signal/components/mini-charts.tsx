@@ -56,7 +56,8 @@ export function BarChart({
 
   return (
     <div className={cn("chart-stage w-full", className)}>
-      <div className="chart-plot relative flex h-48 items-stretch gap-0.5 sm:h-56 sm:gap-1">
+      <div className="chart-plot relative flex h-48 items-stretch gap-0.5 overflow-hidden sm:h-56 sm:gap-1">
+        {interactive && revealed === null ? <span className="life-hunt" aria-hidden /> : null}
         {showMean ? (
           <span
             className="chart-mean pointer-events-none absolute inset-x-0 z-[1] border-t border-dashed border-foreground/25"

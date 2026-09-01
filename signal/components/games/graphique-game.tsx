@@ -346,7 +346,7 @@ export function GraphiqueGame({ onFinish }: { onFinish: (score: number) => void 
                 className={cn(
                   "flex w-full flex-col items-center gap-1 rounded-2xl border px-1 py-3 transition duration-200",
                   tool === kind && "border-primary bg-primary/15 shadow-[0_0_18px_color-mix(in_oklch,var(--primary)_22%,transparent)]",
-                  tool !== kind && "border-border bg-card hover:border-primary/40",
+                  tool !== kind && "life-bob border-border bg-card hover:border-primary/40",
                   locked && kind === round.answer && "border-ok bg-ok/15",
                   locked && tool === kind && kind !== round.answer && "border-anomaly bg-anomaly/10"
                 )}

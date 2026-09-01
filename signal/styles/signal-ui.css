@@ -2329,7 +2329,7 @@
 
 @keyframes world-orbit {
   to {
-    offset-distance: 100%;
+    offset-distance: calc(100% * 1);
   }
 }
 
@@ -2675,7 +2675,7 @@
   overflow: hidden;
 }
 
-.life-shelf:not(:has(.magnet-snap))::after {
+.life-shelf-empty::after {
   content: "";
   position: absolute;
   left: 50%;
@@ -2717,6 +2717,35 @@
 
 .life-link {
   animation: life-link 1.8s ease-in-out infinite;
+}
+
+.life-hunt {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 18%;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklch, var(--primary) 22%, transparent),
+    transparent
+  );
+  animation: life-hunt 2.6s linear infinite;
+}
+
+.life-scan-target {
+  animation: life-slot 1.6s ease-in-out infinite;
+}
+
+.life-scan-keep {
+  animation: life-keep 1.4s ease-in-out infinite;
+}
+
+.life-pruned {
+  animation: life-prune 0.55s ease both;
 }
 
 .clone-links {
@@ -2899,6 +2928,38 @@
   }
 }
 
+@keyframes life-hunt {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(620%);
+  }
+}
+
+@keyframes life-keep {
+  0%,
+  100% {
+    box-shadow: 0 0 0 transparent;
+  }
+  50% {
+    box-shadow: 0 0 20px -6px color-mix(in oklch, var(--ok) 55%, transparent);
+  }
+}
+
+@keyframes life-prune {
+  from {
+    transform: scale(1);
+    opacity: 1;
+    filter: grayscale(0);
+  }
+  to {
+    transform: scale(0.97);
+    opacity: 0.42;
+    filter: grayscale(0.55);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .bar-grow,
   .bar-miss,
@@ -2951,7 +3012,7 @@
   .voyage-steam circle,
   .life-tile,
   .life-bob,
-  .life-shelf:not(:has(.magnet-snap))::after,
+  .life-shelf-empty::after,
   .funnel-band,
   .life-slot,
   .join-l,
@@ -2964,7 +3025,11 @@
   .part-tile::before,
   .wh-node,
   .bar-body.life-pick,
-  .bar-body.life-hit {
+  .bar-body.life-hit,
+  .life-hunt,
+  .life-scan-target,
+  .life-scan-keep,
+  .life-pruned {
     animation: none;
   }
 }

@@ -35,7 +35,7 @@ export function MiniTable({
   const living = new Set(liveRows ?? []);
   const interactive = Boolean(onToggleCol) && !disabled;
   return (
-    <div className="min-w-0 overflow-x-auto rounded-xl border border-border bg-card">
+    <div className="table-in min-w-0 overflow-x-auto rounded-xl border border-border bg-card">
       <p className="border-b border-border px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-signal">
         {name}
       </p>
@@ -54,7 +54,7 @@ export function MiniTable({
                         "w-full px-2 py-2 text-left transition",
                         on && selectTone === "key" && "life-key bg-primary text-primary-foreground",
                         on && selectTone === "yank" && "bg-anomaly/20 text-anomaly line-through",
-                        !on && "hover:bg-muted hover:text-foreground"
+                        !on && "life-slot hover:bg-muted hover:text-foreground"
                       )}
                     >
                       {on ? (selectTone === "yank" ? `☠️ ${h}` : `🔑 ${h}`) : h}

@@ -299,6 +299,7 @@ export function EntonnoirGame({ onFinish }: { onFinish: (score: number) => void 
                   id={`shelf-${si}`}
                   className={cn(
                     "flex h-12 items-center justify-center rounded-2xl border-2 border-dashed px-3 text-sm life-shelf",
+                    !id && "life-shelf-empty",
                     id ? "border-solid border-border bg-card" : "border-border/70 bg-muted/30",
                     si === stack.length && idle.length > 0 && "border-primary/50"
                   )}
@@ -321,9 +322,12 @@ export function EntonnoirGame({ onFinish }: { onFinish: (score: number) => void 
             {playI18n.ui.looseSteps}
           </p>
           <div className="mt-2 flex min-h-[4.2rem] flex-wrap gap-2 rounded-2xl border border-dashed border-border bg-muted/40 p-3">
-            {idle.map((step) => (
+            {idle.map((step, i) => (
               <Draggable key={step} id={step} disabled={locked || stack.length >= n}>
-                <div className="rounded-xl border border-border bg-card px-3 py-2 text-sm transition hover:border-primary/50">
+                <div
+                  className="life-bob rounded-xl border border-border bg-card px-3 py-2 text-sm transition hover:border-primary/50"
+                  style={{ animationDelay: `${i * 90}ms` }}
+                >
                   {step}
                 </div>
               </Draggable>
