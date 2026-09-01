@@ -1554,7 +1554,7 @@
     var(--foreground) 0 10px,
     transparent 10px 20px
   );
-  opacity: 0.35;
+  opacity: 0.62;
   animation: life-belt 0.4s linear infinite;
   pointer-events: none;
 }
