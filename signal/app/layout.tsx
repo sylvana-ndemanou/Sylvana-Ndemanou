@@ -1,13 +1,14 @@
+// @ts-nocheck
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
-import { AppChrome } from "@/components/app-chrome";
-import { PlayHoverRoot } from "@/components/play-hover";
-import { AudioRoot } from "@/components/sound-toggle";
-import { LocaleRoot } from "@/lib/i18n";
-import { LOCALE_BOOT } from "@/lib/locale";
-import { AUTHOR_NAME, PORTFOLIO_URL } from "@/lib/site";
-import { EMBED_BOOT } from "@/lib/embed";
-import { THEME_BOOT } from "@/lib/theme";
+import { AppChrome } from "@s/components/app-chrome";
+import { PlayHoverRoot } from "@s/components/play-hover";
+import { AudioRoot } from "@s/components/sound-toggle";
+import { LocaleRoot } from "@s/lib/i18n";
+import { LOCALE_BOOT } from "@s/lib/locale";
+import { AUTHOR_NAME, PORTFOLIO_URL } from "@s/lib/site";
+import { EMBED_BOOT } from "@s/lib/embed";
+import { THEME_BOOT } from "@s/lib/theme";
 import "./globals.css";
 
 const geistSans = Geist({

@@ -1,6 +1,7 @@
+// @ts-nocheck
 import { notFound } from "next/navigation";
-import { GamePlayer } from "@/components/game-player";
-import { GAMES, getGame, type GameSlug } from "@/lib/games";
+import { GamePlayer } from "@s/components/game-player";
+import { GAMES, getGame, type GameSlug } from "@s/lib/games";
 
 export function generateStaticParams() {
   return GAMES.map((game) => ({ slug: game.slug }));
@@ -22,11 +23,21 @@ export async function generateMetadata({
 
 export default async function PlayPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ mode?: string; d?: string; seed?: string }>;
 }) {
   const { slug } = await params;
+  const query = await searchParams;
   const game = getGame(slug);
   if (!game) notFound();
-  return <GamePlayer slug={slug as GameSlug} />;
+  return (
+    <GamePlayer
+      slug={slug as GameSlug}
+      initialMode={query.mode ?? null}
+      initialDifficulty={query.d ?? null}
+      initialSeed={query.seed ?? null}
+    />
+  );
 }

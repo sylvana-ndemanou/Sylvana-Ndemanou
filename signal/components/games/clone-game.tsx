@@ -1,19 +1,21 @@
+// @ts-nocheck
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { GameShell, Intro, Result, RoundHeader, Verdict } from "@/components/game-shell";
-import { LockBar } from "@/components/interact";
-import { play, unlockAudio } from "@/lib/audio";
-import { POINTS_PER_ROUND } from "@/lib/games";
-import { usePlaySession } from "@/components/play-session";
-import { holdMsAt, takeDeck } from "@/lib/play";
-import type { Difficulty } from "@/lib/play";
-import { scoreLine } from "@/lib/feedback";
-import { cn } from "@/lib/utils";
+import { GameShell, Intro, PlayStage, Result, RoundHeader, Verdict } from "@s/components/game-shell";
+import { LockBar } from "@s/components/interact";
+import { play, unlockAudio } from "@s/lib/audio";
+import { POINTS_PER_ROUND } from "@s/lib/games";
+import { usePlaySession } from "@s/components/play-session";
+import { usePlay } from "@s/lib/play-text";
+import { holdMsAt, takeDeck } from "@s/lib/play";
+import type { Difficulty } from "@s/lib/play";
+import { cn } from "@s/lib/utils";
 
 type Move = "clone" | "ctas" | "dml";
 
 type Round = {
+  id: string;
   tier: Difficulty;
   context: string;
   question: string;
@@ -25,6 +27,7 @@ type Round = {
 const ROUNDS_DATA: Round[] = [
   {
     tier: "easy",
+    id: "sandbox",
     context: "Les devs veulent un bac à sable de prod, tout de suite. Pas de facture storage en plus.",
     question: "Un tap. Pas une copie. Quelle opération ?",
     answer: "clone",
@@ -33,6 +36,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "easy",
+    id: "export",
     context: "Le comptable n’a pas Snowflake. Il veut un export, un vrai fichier.",
     question: "Là, tu veux des octets. Maintiens jusqu’au bout.",
     answer: "ctas",
@@ -41,6 +45,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "easy",
+    id: "dml",
     context: "Le clone existe. Quelqu’un UPDATE 1 % des lignes dessus.",
     question: "Le stockage a-t-il bougé ? Frappe le clone.",
     answer: "dml",
@@ -49,6 +54,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "sandbox-hard",
     context: "Les devs veulent une copie de prod_ventes pour tester, maintenant, sans doubler le stockage.",
     question: "Quelle opération ? Tape, maintiens, ou frappe.",
     answer: "clone",
@@ -57,6 +63,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "export-hard",
     context: "Un partenaire hors Snowflake doit recevoir un export physique indépendant.",
     question: "Là, tu veux de vrais fichiers, pas des pointeurs.",
     answer: "ctas",
@@ -65,6 +72,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "dml-hard",
     context: "Clone créé. Un stagiaire UPDATE 1 % des lignes sur le clone.",
     question: "Que se passe-t-il côté stockage ?",
     answer: "dml",
@@ -73,6 +81,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "clustering",
     context: "Table avec clustering key. Tu clones.",
     question: "Le clustering key est copié. Automatic clustering, lui ?",
     answer: "clone",
@@ -81,6 +90,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "2to",
     context: "Table de 2 To. Les devs veulent un sandbox aujourd’hui, sans ligne de stockage en plus.",
     question: "Quelle opération garde la facture storage plate ?",
     answer: "clone",
@@ -89,6 +99,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "transient",
     context: "CLONE d’une table transient. Time Travel du clone ?",
     question: "L’opération est un CLONE. Le piège est dans ce que tu hérites.",
     answer: "clone",
@@ -97,6 +108,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "vendor",
     context: "Devs veulent une copie indépendante pour un vendor qui n’a pas accès au compte.",
     question: "Zéro-copie ne sert à rien hors du compte. Quelle opération ?",
     answer: "ctas",
@@ -105,6 +117,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "diverge",
     context: "Après CLONE, un DELETE de 40 % des lignes sur le clone, puis un INSERT massif.",
     question: "Le stockage a divergé. Quel geste l’a fait ?",
     answer: "dml",
@@ -113,6 +126,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "clone-at",
     context: "CLONE AT (TIMESTAMP => hier 09:00) d’une table de 800 Go.",
     question: "Toujours zéro-copie, même dans le passé ?",
     answer: "clone",
@@ -121,6 +135,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "swap",
     context: "SWAP d’une table clone vers prod après un backfill. Le backfill a tout réécrit.",
     question: "Le backfill, c’était quel geste ?",
     answer: "dml",
@@ -131,6 +146,7 @@ const ROUNDS_DATA: Round[] = [
 
 export function CloneGame({ onFinish }: { onFinish: (score: number) => void }) {
   const { rounds: total, maxScore, difficulty } = usePlaySession();
+  const playI18n = usePlay("clone");
   const deck = useMemo(() => takeDeck(ROUNDS_DATA, difficulty), [difficulty]);
   const [phase, setPhase] = useState<"intro" | "play" | "done">("intro");
   const [index, setIndex] = useState(0);
@@ -143,7 +159,7 @@ export function CloneGame({ onFinish }: { onFinish: (score: number) => void }) {
   const holdRef = useRef<number | null>(null);
   const startedAt = useRef(0);
 
-  const round = deck[index];
+  const round = playI18n.overlay(deck[index]);
   const holdNeed = holdMsAt(difficulty, index, total);
   const correct = zone === round?.answer;
   const blocks = 8;
@@ -158,8 +174,18 @@ export function CloneGame({ onFinish }: { onFinish: (score: number) => void }) {
 
   useEffect(() => () => clearHold(), []);
 
+  function seal() {
+    if (locked || !zone) return;
+    setLocked(true);
+    setScore((s) => s + (zone === round.answer ? POINTS_PER_ROUND : 0));
+  }
+
   function chooseClone() {
     if (locked) return;
+    if (zone === "clone") {
+      seal();
+      return;
+    }
     clearHold();
     unlockAudio();
     play("ok");
@@ -199,6 +225,10 @@ export function CloneGame({ onFinish }: { onFinish: (score: number) => void }) {
 
   function punchDml() {
     if (locked) return;
+    if (zone === "dml") {
+      seal();
+      return;
+    }
     clearHold();
     unlockAudio();
     play("grain");
@@ -225,8 +255,7 @@ export function CloneGame({ onFinish }: { onFinish: (score: number) => void }) {
   if (phase === "intro") {
     return (
       <Intro
-        title="Clone"
-        how="CLONE, un tap : pointeurs, ding, instantané. CTAS, tu maintiens — ça rumble, les octets se copient. UPDATE, tu frappes le clone : de nouveaux µ-parts rouges apparaissent."
+        slug="clone"
         onStart={() => setPhase("play")}
       />
     );
@@ -235,10 +264,9 @@ export function CloneGame({ onFinish }: { onFinish: (score: number) => void }) {
   if (phase === "done") {
     return (
       <Result
-        title="Clone"
+        slug="clone"
         score={score}
         max={maxScore}
-        line={scoreLine(score, maxScore)}
         onReplay={() => {
           setPhase("intro");
           setIndex(0);
@@ -251,33 +279,35 @@ export function CloneGame({ onFinish }: { onFinish: (score: number) => void }) {
   }
 
   return (
-    <GameShell title="Clone" round={index} total={total} score={score} maxScore={maxScore}>
+    <GameShell slug="clone" round={index} total={total} score={score} maxScore={maxScore} briefContext={round.context} briefQuestion={round.question}>
       <RoundHeader context={round.context} question={round.question} />
-      <div className="mt-6">
-        <div className="mb-4 flex items-end justify-between gap-4">
+      <PlayStage slug="clone" className="mt-6">
+      <div>
+      <div className="relative mb-4 flex items-end justify-between gap-4">
           <div>
-            <p className="font-mono text-[10px] uppercase text-muted-foreground">prod_ventes</p>
+            <p className="font-mono text-[10px] uppercase text-muted-foreground">{playI18n.ui.clone.prod}</p>
             <div className="mt-2 grid grid-cols-4 gap-1">
               {Array.from({ length: blocks }).map((_, i) => (
-                <span key={i} className="size-6 rounded-sm bg-primary/80" />
+                <span key={i} className="life-block size-6 rounded-sm bg-primary/80" />
               ))}
             </div>
           </div>
+          {shared ? <div className="clone-links" aria-hidden /> : null}
           <div>
             <p className="font-mono text-[10px] uppercase text-muted-foreground">
               {zone === "clone"
-                ? "clone · pointeurs"
+                ? playI18n.ui.clone.pointers
                 : zone === "ctas"
-                  ? "ctas · octets"
+                  ? playI18n.ui.clone.bytes
                   : zone === "dml"
-                    ? "clone + delta"
-                    : "cible"}
+                    ? playI18n.ui.clone.delta
+                    : playI18n.ui.clone.target}
             </p>
             <div className={cn("mt-2 grid grid-cols-4 gap-1", copying && "hold-rumble opacity-70")}>
               {Array.from({ length: zone ? blocks : 0 }).map((_, i) => (
                 <span
                   key={i}
-                  className={cn("size-6 rounded-sm magnet-snap", shared ? "bg-primary/30 ring-1 ring-primary" : "bg-chart-3")}
+                  className={cn("size-6 rounded-sm magnet-snap", shared ? "life-link bg-primary/30 ring-1 ring-primary" : "bg-chart-3")}
                 />
               ))}
               {Array.from({ length: extra }).map((_, i) => (
@@ -297,7 +327,7 @@ export function CloneGame({ onFinish }: { onFinish: (score: number) => void }) {
             )}
           >
             <span className="font-mono text-sm">CLONE</span>
-            <span className="mt-1 text-center text-[11px] text-muted-foreground">tap · zéro copie</span>
+            <span className="mt-1 text-center text-[11px] text-muted-foreground">{playI18n.ui.clone.tap}</span>
           </button>
           <button
             type="button"
@@ -318,7 +348,7 @@ export function CloneGame({ onFinish }: { onFinish: (score: number) => void }) {
             />
             <span className="relative font-mono text-sm">CTAS / COPY</span>
             <span className="relative mt-1 text-center text-[11px] text-muted-foreground">
-              maintiens {Math.round(holdNeed / 100) / 10}s · octets
+              {playI18n.ui.clone.hold(Math.round(holdNeed / 100) / 10)}
             </span>
           </button>
           <button
@@ -332,26 +362,21 @@ export function CloneGame({ onFinish }: { onFinish: (score: number) => void }) {
             )}
           >
             <span className="font-mono text-sm">UPDATE clone</span>
-            <span className="mt-1 text-center text-[11px] text-muted-foreground">frappe · nouveaux µ-part</span>
+            <span className="mt-1 text-center text-[11px] text-muted-foreground">{playI18n.ui.clone.punch}</span>
           </button>
         </div>
       </div>
+      </PlayStage>
       {locked ? (
         <Verdict
           tone={correct ? "ok" : "miss"}
-          title={correct ? "Pointeurs justes." : "Mauvaise copie."}
+          title={playI18n.punch(correct)}
           lesson={correct ? round.ok : round.miss}
           onNext={next}
-          nextLabel={index + 1 >= total ? "Voir le score" : "Manche suivante"}
+          isLast={index + 1 >= total}
         />
       ) : (
-        <LockBar
-          disabled={!zone}
-          onLock={() => {
-            setLocked(true);
-            setScore((s) => s + (correct ? POINTS_PER_ROUND : 0));
-          }}
-        />
+        <LockBar disabled={!zone} onLock={seal} />
       )}
     </GameShell>
   );

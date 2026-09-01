@@ -1,0 +1,3 @@
+{
+  "ignoreCommand": "node -e \"process.exit(process.env.VERCEL_PROJECT_ID === 'prj_TRBVfAPCOV2cXGO9gAksGiMLlWLF' ? 0 : 1)\""
+}

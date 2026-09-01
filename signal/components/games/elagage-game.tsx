@@ -1,20 +1,22 @@
+// @ts-nocheck
 "use client";
 
 import { useMemo, useState } from "react";
-import { GameShell, Intro, Result, RoundHeader, Verdict } from "@/components/game-shell";
-import { LockBar } from "@/components/interact";
-import { play } from "@/lib/audio";
-import { POINTS_PER_ROUND } from "@/lib/games";
-import { usePlaySession } from "@/components/play-session";
-import { heat, scaleByHeat, takeDeck } from "@/lib/play";
-import type { Difficulty } from "@/lib/play";
-import { sameSet } from "@/components/drag-kit";
-import { scoreLine } from "@/lib/feedback";
-import { cn } from "@/lib/utils";
+import { GameShell, Intro, PlayStage, Result, RoundHeader, Verdict } from "@s/components/game-shell";
+import { LockBar } from "@s/components/interact";
+import { play } from "@s/lib/audio";
+import { POINTS_PER_ROUND } from "@s/lib/games";
+import { usePlaySession } from "@s/components/play-session";
+import { usePlay } from "@s/lib/play-text";
+import { countAlong, takeDeck } from "@s/lib/play";
+import type { Difficulty } from "@s/lib/play";
+import { sameSet } from "@s/components/drag-kit";
+import { cn } from "@s/lib/utils";
 
 type Part = { id: string; dates: string; region: string; d0: number; d1: number; regionCode: string };
 
 type Round = {
+  id: string;
   tier: Difficulty;
   context: string;
   sql: string;
@@ -27,6 +29,7 @@ type Round = {
 const ROUNDS_DATA: Round[] = [
   {
     tier: "easy",
+    id: "dec-25",
     context: "Quatre tuiles. Filtre sur une date de fin décembre.",
     sql: "WHERE date = '2024-12-25'",
     parts: [
@@ -41,6 +44,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "easy",
+    id: "sud",
     context: "Filtre région Sud. Deux tuiles Sud, deux Nord.",
     sql: "WHERE region = 'Sud'",
     parts: [
@@ -55,6 +59,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "easy",
+    id: "december",
     context: "Décembre entier.",
     sql: "WHERE date BETWEEN '2024-12-01' AND '2024-12-31'",
     parts: [
@@ -68,6 +73,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "date-hard",
     context: "Table ventes, 8 micro-partitions. Filtre sur une date.",
     sql: "WHERE date = '2024-12-25'",
     parts: [
@@ -84,6 +90,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "region",
     context: "Même table, filtre région.",
     sql: "WHERE region = 'Sud'",
     parts: [
@@ -100,6 +107,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "between",
     context: "Un BETWEEN large. Beaucoup d’overlap.",
     sql: "WHERE date BETWEEN '2024-12-01' AND '2024-12-31'",
     parts: [
@@ -116,6 +124,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "subquery",
     context: "Predicate avec sous-requête. Snowflake ne prune pas là-dessus.",
     sql: "WHERE date = (SELECT MAX(date) FROM cal)",
     parts: [
@@ -130,6 +139,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "depth",
     context: "Clustering depth : les ranges se chevauchent trop.",
     sql: "WHERE date = '2024-12-25'  — table mal clusterisée",
     parts: [
@@ -144,6 +154,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "expr",
     context: "Filtre sur une expression : DATE_TRUNC('week', date) = …",
     sql: "WHERE DATE_TRUNC('week', date) = '2024-12-23'",
     parts: [
@@ -159,6 +170,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "or",
     context: "OR entre deux colonnes. Le pruning devient timide.",
     sql: "WHERE date = '2024-12-25' OR region = 'Sud'",
     parts: [
@@ -173,6 +185,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "cluster-region",
     context: "Clustering key sur region, filtre sur date. Les min/max date sont larges.",
     sql: "WHERE date = '2024-12-25'",
     parts: [
@@ -187,6 +200,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "inlist",
     context: "IN list de 3 dates, partitions serrées.",
     sql: "WHERE date IN ('2024-12-01', '2024-12-25', '2024-12-31')",
     parts: [
@@ -202,6 +216,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "cast",
     context: "CAST(date AS string) = '2024-12-25'. Encore une expression.",
     sql: "WHERE CAST(date AS VARCHAR) = '2024-12-25'",
     parts: [
@@ -217,17 +232,20 @@ const ROUNDS_DATA: Round[] = [
 
 function scaleElagage(round: Round, difficulty: Difficulty, roundIndex: number, totalRounds: number): Round {
   if (round.tier) return round;
-  const h = heat(difficulty, roundIndex, totalRounds);
   const needed = round.parts.filter((part) => round.scan.includes(part.id));
   const decoys = round.parts.filter((part) => !round.scan.includes(part.id));
   if (decoys.length === 0) return round;
-  const decoyN = Math.max(1, Math.round(scaleByHeat(1, decoys.length, h)));
+  const decoyN = Math.max(
+    1,
+    countAlong(difficulty, roundIndex, totalRounds, [1, 1], [2, Math.min(3, decoys.length)], [decoys.length, decoys.length])
+  );
   const kept = new Set(needed.concat(decoys.slice(0, decoyN)).map((part) => part.id));
   return { ...round, parts: round.parts.filter((part) => kept.has(part.id)) };
 }
 
 export function ElagageGame({ onFinish }: { onFinish: (score: number) => void }) {
   const { rounds: total, maxScore, difficulty } = usePlaySession();
+  const playI18n = usePlay("elagage");
   const deck = useMemo(
     () => takeDeck(ROUNDS_DATA, difficulty).map((item, i) => scaleElagage(item, difficulty, i, total)),
     [difficulty, total]
@@ -238,7 +256,7 @@ export function ElagageGame({ onFinish }: { onFinish: (score: number) => void })
   const [scan, setScan] = useState<string[]>([]);
   const [locked, setLocked] = useState(false);
 
-  const round = deck[index];
+  const round = playI18n.overlay(deck[index]);
   const correct = sameSet(scan, round?.scan ?? []);
 
   function toggle(id: string) {
@@ -265,8 +283,7 @@ export function ElagageGame({ onFinish }: { onFinish: (score: number) => void })
   if (phase === "intro") {
     return (
       <Intro
-        title="Élagage"
-        how="Les données Snowflake vivent en micro-partitions colonnaires (50–500 Mo non compressés). Tu touches celles que le filtre doit scanner. Les autres restent muettes : pruned."
+        slug="elagage"
         onStart={() => setPhase("play")}
       />
     );
@@ -275,10 +292,9 @@ export function ElagageGame({ onFinish }: { onFinish: (score: number) => void })
   if (phase === "done") {
     return (
       <Result
-        title="Élagage"
+        slug="elagage"
         score={score}
         max={maxScore}
-        line={scoreLine(score, maxScore)}
         onReplay={() => {
           setPhase("intro");
           setIndex(0);
@@ -289,13 +305,20 @@ export function ElagageGame({ onFinish }: { onFinish: (score: number) => void })
   }
 
   return (
-    <GameShell title="Élagage" round={index} total={total} score={score} maxScore={maxScore}>
-      <RoundHeader context={round.context} question="Touche les micro-partitions à scanner. Le silence, c’est du pruning." />
-      <p className="mt-4 rounded-xl border border-border bg-card px-3 py-2 font-mono text-xs text-signal">{round.sql}</p>
+    <GameShell slug="elagage" round={index} total={total} score={score} maxScore={maxScore} briefContext={round.context} briefQuestion={playI18n.ui.elagage.question}>
+      <RoundHeader context={round.context} question={playI18n.ui.elagage.question} />
+      <PlayStage slug="elagage" className="mt-4">
+      <p className="rounded-xl border border-border bg-card px-3 py-2 font-mono text-xs text-signal">{round.sql}</p>
       <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
         {round.parts.map((p, i) => {
           const on = scan.includes(p.id);
           const should = round.scan.includes(p.id);
+          const span = round.parts.reduce(
+            (acc, part) => ({ min: Math.min(acc.min, part.d0), max: Math.max(acc.max, part.d1) }),
+            { min: p.d0, max: p.d1 }
+          );
+          const width = Math.max(8, ((p.d1 - p.d0) / Math.max(1, span.max - span.min)) * 100);
+          const left = ((p.d0 - span.min) / Math.max(1, span.max - span.min)) * 100;
           return (
             <button
               key={p.id}
@@ -303,35 +326,49 @@ export function ElagageGame({ onFinish }: { onFinish: (score: number) => void })
               disabled={locked}
               onClick={() => toggle(p.id)}
               className={cn(
-                "rounded-2xl border px-3 py-3 text-left transition",
-                on && !locked && "border-primary bg-primary/20",
+                "part-tile rounded-2xl border px-3 py-3 text-left transition",
+                on && !locked && "life-scan-target border-primary bg-primary/20",
                 !on && "border-border bg-card hover:border-primary/40",
-                locked && should && "border-ok bg-ok/15",
-                locked && on && !should && "border-anomaly bg-anomaly/15"
+                locked && should && "life-scan-keep border-ok bg-ok/15",
+                locked && on && !should && "border-anomaly bg-anomaly/15",
+                locked && !should && "life-pruned"
               )}
             >
-              <p className="font-mono text-[10px] text-muted-foreground">μ-part {i + 1}</p>
+              <p className="font-mono text-[10px] text-muted-foreground">{playI18n.ui.elagage.part(i)}</p>
               <p className="mt-1 font-mono text-sm">{p.dates}</p>
               <p className="text-xs text-muted-foreground">{p.region}</p>
+              <span className="part-range mt-2 block">
+                <span className="part-range-fill" style={{ left: `${left}%`, width: `${width}%` }} />
+              </span>
+              {locked ? (
+                <p className={cn("mt-1 font-mono text-[10px] uppercase", should ? "text-ok" : "text-muted-foreground")}>
+                  {should ? "scan" : "pruned"}
+                </p>
+              ) : null}
             </button>
           );
         })}
       </div>
       <p className="mt-3 text-center text-xs text-muted-foreground">
-        {scan.length} scannée{scan.length > 1 ? "s" : ""} · une note à chaque scan
+        {playI18n.ui.elagage.scanN(
+          scan.length,
+          round.parts.length - scan.length,
+          Math.round(((round.parts.length - scan.length) / Math.max(1, round.parts.length)) * 100)
+        )}
       </p>
+      </PlayStage>
       {locked ? (
         <Verdict
           tone={correct ? "ok" : "miss"}
-          title={correct ? "Pruning net." : "Trop (ou trop peu) lu."}
+          title={playI18n.punch(correct)}
           lesson={correct ? round.ok : round.miss}
           onNext={next}
-          nextLabel={index + 1 >= total ? "Voir le score" : "Manche suivante"}
+          isLast={index + 1 >= total}
         />
       ) : (
         <LockBar
           disabled={scan.length === 0}
-          label="Lancer le scan"
+          label={playI18n.ui.scan}
           onLock={() => {
             setLocked(true);
             setScore((s) => s + (correct ? POINTS_PER_ROUND : 0));

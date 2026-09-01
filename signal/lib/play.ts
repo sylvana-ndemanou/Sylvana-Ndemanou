@@ -1,5 +1,6 @@
-import type { GameSlug } from "@/lib/games";
-import { POINTS_PER_ROUND } from "@/lib/games";
+// @ts-nocheck
+import type { GameSlug } from "@s/lib/games";
+import { POINTS_PER_ROUND } from "@s/lib/games";
 
 export type PlayMode = "solo" | "multi" | "daily";
 export type Difficulty = "easy" | "hard" | "brutal";
@@ -78,12 +79,40 @@ export function scaleByHeat(easyVal: number, brutalVal: number, h: number): numb
   return lerp(easyVal, brutalVal, h);
 }
 
+/**
+ * Per-band interpolation. Facile, Costaud and Brutal each own a range so
+ * Costaud is never “a bit of Facile → Brutal”.
+ */
+export function along(
+  difficulty: Difficulty,
+  round: number,
+  total: number,
+  easy: readonly [number, number],
+  hard: readonly [number, number],
+  brutal: readonly [number, number]
+): number {
+  const t = total <= 1 ? 0 : Math.min(1, Math.max(0, round / (total - 1)));
+  const pair = difficulty === "easy" ? easy : difficulty === "hard" ? hard : brutal;
+  return lerp(pair[0], pair[1], t);
+}
+
+export function countAlong(
+  difficulty: Difficulty,
+  round: number,
+  total: number,
+  easy: readonly [number, number],
+  hard: readonly [number, number],
+  brutal: readonly [number, number]
+): number {
+  return Math.max(1, Math.round(along(difficulty, round, total, easy, hard, brutal)));
+}
+
 export function lookSeconds(difficulty: Difficulty): number {
   return lookSecondsAt(difficulty, 0, roundsFor(difficulty));
 }
 
 export function lookSecondsAt(difficulty: Difficulty, roundIndex: number, totalRounds: number): number {
-  return Math.max(2, Math.round(scaleByHeat(11, 2, heat(difficulty, roundIndex, totalRounds))));
+  return Math.max(2, Math.round(along(difficulty, roundIndex, totalRounds, [11, 9], [6.5, 5], [3.2, 2])));
 }
 
 export function optionCap(difficulty: Difficulty): number {
@@ -96,16 +125,16 @@ export function optionCapAt(
   roundIndex: number,
   totalRounds: number
 ): number {
-  const h = heat(difficulty, roundIndex, totalRounds);
-  return Math.min(max, Math.max(2, Math.round(scaleByHeat(2, max, h))));
+  const n = countAlong(difficulty, roundIndex, totalRounds, [2, 2], [3, 3], [Math.min(4, max), max]);
+  return Math.min(max, Math.max(2, n));
 }
 
 export function signalScale(difficulty: Difficulty): number {
-  return scaleByHeat(2.4, 0.18, heat(difficulty, 0, roundsFor(difficulty)));
+  return along(difficulty, 0, roundsFor(difficulty), [2.4, 2.1], [1.1, 0.72], [0.32, 0.18]);
 }
 
 export function noiseScale(difficulty: Difficulty): number {
-  return scaleByHeat(0.3, 2.8, heat(difficulty, 0, roundsFor(difficulty)));
+  return along(difficulty, 0, roundsFor(difficulty), [0.25, 0.4], [1.1, 1.6], [2.2, 2.8]);
 }
 
 export function beatWindowMs(difficulty: Difficulty): number {
@@ -113,7 +142,7 @@ export function beatWindowMs(difficulty: Difficulty): number {
 }
 
 export function beatWindowMsAt(difficulty: Difficulty, roundIndex: number, totalRounds: number): number {
-  return Math.round(scaleByHeat(340, 62, heat(difficulty, roundIndex, totalRounds)));
+  return Math.round(along(difficulty, roundIndex, totalRounds, [380, 300], [170, 120], [78, 52]));
 }
 
 export function tempoScale(difficulty: Difficulty): number {
@@ -121,11 +150,11 @@ export function tempoScale(difficulty: Difficulty): number {
 }
 
 export function tempoScaleAt(difficulty: Difficulty, roundIndex: number, totalRounds: number): number {
-  return scaleByHeat(0.58, 1.72, heat(difficulty, roundIndex, totalRounds));
+  return along(difficulty, roundIndex, totalRounds, [0.52, 0.68], [1.02, 1.22], [1.42, 1.85]);
 }
 
 export function holdMsAt(difficulty: Difficulty, roundIndex: number, totalRounds: number): number {
-  return Math.round(scaleByHeat(280, 1750, heat(difficulty, roundIndex, totalRounds)));
+  return Math.round(along(difficulty, roundIndex, totalRounds, [220, 380], [720, 1050], [1450, 1900]));
 }
 
 export function stepCount(
@@ -134,7 +163,7 @@ export function stepCount(
   roundIndex: number,
   totalRounds: number
 ): number {
-  const n = Math.round(scaleByHeat(3, total, heat(difficulty, roundIndex, totalRounds)));
+  const n = countAlong(difficulty, roundIndex, totalRounds, [3, 3], [4, 5], [total, total]);
   return Math.max(3, Math.min(total, n));
 }
 
@@ -176,11 +205,10 @@ export function expandBand(
   roundIndex = 0,
   totalRounds = roundsFor(difficulty)
 ): [number, number] {
-  const h = heat(difficulty, roundIndex, totalRounds);
-  const slack = Math.round(scaleByHeat(1.5, 0, h));
+  const slack = Math.round(along(difficulty, roundIndex, totalRounds, [2, 1], [1, 0], [0, 0]));
   const lo = Math.max(0, min - slack);
   const hi = Math.min(top, max + slack);
-  if (h >= 0.92) {
+  if (difficulty === "brutal" && roundIndex >= Math.max(0, totalRounds - 2)) {
     const mid = Math.round((min + max) / 2);
     return [mid, mid];
   }

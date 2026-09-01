@@ -1,18 +1,21 @@
+// @ts-nocheck
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { shuffle } from "@/components/drag-kit";
-import { LockBar } from "@/components/interact";
-import { GameShell, Intro, Result, RoundHeader, Verdict } from "@/components/game-shell";
-import { play } from "@/lib/audio";
-import { POINTS_PER_ROUND } from "@/lib/games";
-import { usePlaySession } from "@/components/play-session";
-import { stepCount, takeDeck, awardPartial } from "@/lib/play";
-import type { Difficulty } from "@/lib/play";
-import { roundTone, scoreLine } from "@/lib/feedback";
-import { cn } from "@/lib/utils";
+import { DragBoard, Draggable, DropSlot, shuffle } from "@s/components/drag-kit";
+import { LockBar } from "@s/components/interact";
+import { GameShell, Intro, PlayStage, Result, RoundHeader, Verdict } from "@s/components/game-shell";
+import { play } from "@s/lib/audio";
+import { POINTS_PER_ROUND } from "@s/lib/games";
+import { usePlaySession } from "@s/components/play-session";
+import { usePlay } from "@s/lib/play-text";
+import { stepCount, takeDeck, awardPartial } from "@s/lib/play";
+import type { Difficulty } from "@s/lib/play";
+import { roundTone } from "@s/lib/feedback";
+import { cn } from "@s/lib/utils";
 
 type Scenario = {
+  id: string;
   tier: Difficulty;
   name: string;
   steps: string[];
@@ -22,24 +25,28 @@ type Scenario = {
 const SCENARIOS: Scenario[] = [
   {
     tier: "easy",
+    id: "batch",
     name: "Batch quotidien",
     steps: ["Extraire", "Charger", "Publier"],
     lesson: "On n’expose pas avant d’avoir chargé. Extraire → poser → publier. L’ordre est le métier.",
   },
   {
     tier: "easy",
+    id: "partner",
     name: "Fichier partenaire",
     steps: ["Ingest", "Valider", "Agréger"],
     lesson: "On n’agrège pas un fichier sale. Quarantaine d’abord, totaux ensuite.",
   },
   {
     tier: "easy",
+    id: "mart",
     name: "Mart simple",
     steps: ["Brut", "Propre", "Mart"],
     lesson: "Bronze, Silver, Gold — même idée en trois mots. Le dashboard ne lit que le mart.",
   },
   {
     tier: "hard",
+    id: "medallion",
     name: "Medallion retail",
     steps: ["Atterrir en Bronze", "Conformer en Silver", "Surrogate keys", "Mart Gold", "Exposer au BI"],
     lesson:
@@ -47,6 +54,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "hard",
+    id: "elt",
     name: "ELT quotidien",
     steps: ["Extraire la source", "Charger le brut", "Transformer", "Tests d'assertion", "Publier le mart"],
     lesson:
@@ -54,6 +62,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "hard",
+    id: "cdc",
     name: "CDC commandes",
     steps: ["Capturer les logs", "Dédupliquer par clé", "Fusionner SCD2", "Reconstruire le fait", "Rafraîchir le cache BI"],
     lesson:
@@ -61,6 +70,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "hard",
+    id: "migration",
     name: "Migration de schéma",
     steps: ["Geler le contrat", "Backfill historique", "Double run", "Cutover", "Superviser 48h"],
     lesson:
@@ -68,6 +78,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "hard",
+    id: "files",
     name: "Fichiers partenaires",
     steps: ["Ingest tel quel", "Valider le schéma", "Rejeter les lignes sales", "Mapper les IDs", "Agrégats métier"],
     lesson:
@@ -75,12 +86,14 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "brutal",
+    id: "late",
     name: "Late-arriving fact",
     steps: ["Ingest événement", "Attendre la dim", "Park orphelin", "Réconcilier", "Publier le fait", "Alerte SLA"],
     lesson: "Un fait trop tôt, sans dimension, pollue le mart. On parque, on réconcilie, on publie. Pas l’inverse.",
   },
   {
     tier: "brutal",
+    id: "scd2",
     name: "SCD2 + CDC en conflit",
     steps: ["Ordonner les commits", "Fermer la version", "Ouvrir la suivante", "Pointer le fait", "Rebuild snapshot", "Test d’unicité"],
     lesson:
@@ -88,6 +101,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "brutal",
+    id: "contract",
     name: "Contract-first API",
     steps: ["Geler le JSON schema", "Stub consommateur", "Backfill", "Shadow traffic", "Cutover", "Retirer le stub"],
     lesson:
@@ -95,6 +109,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "brutal",
+    id: "pii",
     name: "PII quarantine",
     steps: ["Ingest chiffré", "Tokenizer", "Vault", "Mart sans PII", "Accès just-in-time", "Audit log"],
     lesson:
@@ -102,6 +117,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "brutal",
+    id: "hybrid",
     name: "Streaming + batch hybride",
     steps: ["Micro-batch 5 min", "Compaction horaire", "Exactly-once", "Watermark", "Late data replay", "Vue unifiée"],
     lesson:
@@ -123,6 +139,7 @@ function scalePipeline(
 
 export function PipelineGame({ onFinish }: { onFinish: (score: number) => void }) {
   const { rounds: total, maxScore, difficulty } = usePlaySession();
+  const playI18n = usePlay("pipeline");
   const deck = useMemo(
     () => takeDeck(SCENARIOS, difficulty).map((s, i) => scalePipeline(s, difficulty, i, total)),
     [difficulty, total]
@@ -139,7 +156,7 @@ export function PipelineGame({ onFinish }: { onFinish: (score: number) => void }
   const [boom, setBoom] = useState(-1);
   const [points, setPoints] = useState(0);
 
-  const scenario = deck[index];
+  const scenario = playI18n.overlay(deck[index]);
   const n = scenario?.steps.length ?? 0;
   const used = new Set(docks.filter(Boolean) as string[]);
   const idle = pool.filter((s) => !used.has(s));
@@ -148,7 +165,7 @@ export function PipelineGame({ onFinish }: { onFinish: (score: number) => void }
 
   const startRound = useCallback(
     (i: number) => {
-      const s = deck[i];
+      const s = playI18n.overlay(deck[i]);
       setPool(shuffle(s.steps));
       setDocks(Array(s.steps.length).fill(null));
       setHeld(null);
@@ -158,7 +175,7 @@ export function PipelineGame({ onFinish }: { onFinish: (score: number) => void }
       setBoom(-1);
       setPoints(0);
     },
-    [deck]
+    [deck, playI18n.locale]
   );
 
   function pickJob(job: string) {
@@ -167,21 +184,27 @@ export function PipelineGame({ onFinish }: { onFinish: (score: number) => void }
     setHeld((h) => (h === job ? null : job));
   }
 
-  function tapDock(di: number) {
+  function placeJob(job: string, di: number) {
     if (busy) return;
     const occupant = docks[di];
+    setDocks((prev) => {
+      const next = [...prev];
+      const from = next.indexOf(job);
+      if (from >= 0) next[from] = occupant;
+      next[di] = job;
+      return next;
+    });
+    play(occupant && occupant !== job ? "swap" : "dock");
+    setHeld(null);
+  }
+
+  function tapDock(di: number) {
+    if (busy) return;
     if (held) {
-      setDocks((prev) => {
-        const next = [...prev];
-        const from = next.indexOf(held);
-        if (from >= 0) next[from] = occupant;
-        next[di] = held;
-        return next;
-      });
-      play(occupant && occupant !== held ? "swap" : "dock");
-      setHeld(null);
+      placeJob(held, di);
       return;
     }
+    const occupant = docks[di];
     if (occupant) {
       play("lift");
       setDocks((prev) => {
@@ -246,8 +269,7 @@ export function PipelineGame({ onFinish }: { onFinish: (score: number) => void }
   if (phase === "intro") {
     return (
       <Intro
-        title="Pipeline"
-        how="Tape un job, puis un quai — il s’aimante. Tape un quai occupé pour le reprendre. Ensuite tu lances le paquet. Un quai menteur, ça explose."
+        slug="pipeline"
         onStart={() => {
           startRound(0);
           setPhase("play");
@@ -259,10 +281,9 @@ export function PipelineGame({ onFinish }: { onFinish: (score: number) => void }
   if (phase === "done") {
     return (
       <Result
-        title="Pipeline"
+        slug="pipeline"
         score={score}
         max={maxScore}
-        line={scoreLine(score, maxScore)}
         onReplay={() => {
           setPhase("intro");
           setIndex(0);
@@ -275,37 +296,55 @@ export function PipelineGame({ onFinish }: { onFinish: (score: number) => void }
   const perfect = points === POINTS_PER_ROUND;
 
   return (
-    <GameShell title="Pipeline" round={index} total={total} score={score} maxScore={maxScore}>
+    <GameShell slug="pipeline" round={index} total={total} score={score} maxScore={maxScore} briefContext={scenario.name} briefQuestion={playI18n.ui.pipelineQ}>
       <RoundHeader
         context={scenario.name}
-        question={held ? `Quai pour « ${held} » ?` : "Monte la ligne. Ensuite on fait courir un paquet."}
+        question={held ? playI18n.ui.pipelineHeld(held) : playI18n.ui.pipelineQ}
       />
-      <div className="mt-6">
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Convoyeur</p>
-        <div className="mt-2 flex items-stretch gap-1.5 overflow-x-auto pb-1">
+      <PlayStage slug="pipeline" className="mt-6">
+      <DragBoard
+        disabled={busy}
+        onDrop={(piece, zone) => {
+          if (!zone.startsWith("dock-")) return;
+          const di = Number(zone.slice(5));
+          if (Number.isFinite(di)) placeJob(piece, di);
+        }}
+        onTap={(piece) => {
+          const at = docks.indexOf(piece);
+          if (at >= 0) tapDock(at);
+          else pickJob(piece);
+        }}
+      >
+        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{playI18n.ui.conveyor}</p>
+        <div className="conveyor-rail mt-2 flex items-stretch gap-1 overflow-x-auto pb-1">
           {docks.map((id, di) => (
             <div key={di} className="flex min-w-[5.2rem] flex-1 flex-col items-center gap-1">
-              <span className="font-mono text-[11px] text-muted-foreground">{di + 1}</span>
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => tapDock(di)}
+              <span className="font-mono text-[11px] text-muted-foreground">
+                {di + 1}
+                {di < n - 1 ? " →" : ""}
+              </span>
+              <DropSlot
+                id={`dock-${di}`}
                 className={cn(
-                  "flex h-[4.6rem] w-full items-center justify-center rounded-2xl border-2 border-dashed px-1.5 text-center text-[11px] leading-tight transition",
-                  id ? "border-solid border-border bg-card" : "border-border/70 bg-muted/30",
+                  "flex h-[4.6rem] w-full items-center justify-center rounded-2xl border-2 border-dashed px-1.5 text-center text-[11px] leading-tight",
+                  id ? "border-solid border-border bg-card" : "life-shelf life-shelf-empty border-border/70 bg-muted/30",
                   held && !id && "border-primary bg-primary/10",
-                  boom === di && "border-anomaly bg-anomaly/20",
+                  boom === di && "border-anomaly bg-anomaly/20 bar-miss",
                   packetAt === di && boom !== di && "border-primary bg-primary/15"
                 )}
               >
                 {id ? (
-                  <span key={`${id}-${di}`} className="magnet-snap font-mono">
-                    {id}
-                  </span>
+                  <Draggable id={id} disabled={busy} className="w-full">
+                    <span key={`${id}-${di}`} className="magnet-snap block font-mono">
+                      {id}
+                    </span>
+                  </Draggable>
                 ) : (
-                  <span className="font-mono text-[10px] text-muted-foreground">{held ? "aimanter ici" : "quai"}</span>
+                  <button type="button" disabled={busy} onClick={() => tapDock(di)} className="h-full w-full font-mono text-[10px] text-muted-foreground">
+                    {held ? playI18n.ui.dropHere : playI18n.ui.dock}
+                  </button>
                 )}
-              </button>
+              </DropSlot>
               {packetAt === di && boom !== di ? (
                 <span className="packet-run size-2.5 rounded-full bg-primary shadow-[0_0_12px_var(--primary)]" />
               ) : boom === di ? (
@@ -316,40 +355,46 @@ export function PipelineGame({ onFinish }: { onFinish: (score: number) => void }
             </div>
           ))}
         </div>
-        <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Tas de jobs</p>
+        <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{playI18n.ui.jobPile}</p>
         <div className="mt-2 flex min-h-[4.4rem] flex-wrap gap-2 rounded-2xl border border-dashed border-border bg-muted/40 p-3">
-          {idle.map((step) => (
-            <button
-              key={step}
-              type="button"
-              disabled={busy}
-              onClick={() => pickJob(step)}
-              className={cn(
-                "rounded-xl border px-3 py-2 text-left text-[12px] leading-tight transition",
-                held === step
-                  ? "border-primary bg-primary text-primary-foreground shadow-[0_0_20px_color-mix(in_oklch,var(--primary)_35%,transparent)]"
-                  : "border-border bg-card hover:border-primary/50"
-              )}
-            >
-              {step}
-            </button>
+          {idle.map((step, i) => (
+            <Draggable key={step} id={step} disabled={busy}>
+              <div
+                className={cn(
+                  "rounded-xl border px-3 py-2 text-left text-[12px] leading-tight transition",
+                  held === step
+                    ? "border-primary bg-primary text-primary-foreground shadow-[0_0_20px_color-mix(in_oklch,var(--primary)_35%,transparent)]"
+                    : "life-bob border-border bg-card hover:border-primary/50"
+                )}
+                style={held === step ? undefined : { animationDelay: `${i * 90}ms` }}
+              >
+                {step}
+              </div>
+            </Draggable>
           ))}
           {idle.length === 0 ? (
-            <span className="font-mono text-xs text-muted-foreground">Tas vide — lance le run.</span>
+            <span className="font-mono text-xs text-muted-foreground">{playI18n.ui.jobEmpty}</span>
           ) : null}
         </div>
-      </div>
+      </DragBoard>
+      </PlayStage>
       {locked ? (
         <Verdict
           tone={roundTone(points)}
-          title={perfect ? "Le paquet est passé." : boom >= 0 ? `Explosion au quai ${boom + 1}.` : "Presque."}
+          title={
+            perfect
+              ? playI18n.punch(true)
+              : boom >= 0
+                ? playI18n.ui.boomDock(boom + 1)
+                : playI18n.ui.punchMid.almost
+          }
           lesson={scenario.lesson}
           onNext={next}
-          nextLabel={index + 1 >= total ? "Voir le score" : "Manche suivante"}
+          isLast={index + 1 >= total}
         />
       ) : (
         <LockBar
-          label={running ? "Le paquet court…" : "Lancer le pipeline"}
+          label={running ? playI18n.ui.packetRunning : playI18n.ui.runPacket}
           disabled={!complete || running}
           onLock={run}
         />

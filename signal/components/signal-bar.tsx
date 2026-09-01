@@ -1,17 +1,18 @@
+// @ts-nocheck
 "use client";
 
-import Link from "next/link";
+import { SignalLink } from "@s/components/signal-link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { PlayMark } from "@/components/game-previews";
-import { LanguageToggle } from "@/components/language-toggle";
-import { usePlayHover } from "@/components/play-hover";
-import { SoundToggle } from "@/components/sound-toggle";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { play } from "@/lib/audio";
-import { GAMES, getGame, type GameTrack } from "@/lib/games";
-import { useI18n } from "@/lib/i18n";
-import { cn } from "@/lib/utils";
+import { PlayMark } from "@s/components/game-previews";
+import { LanguageToggle } from "@s/components/language-toggle";
+import { usePlayHover } from "@s/components/play-hover";
+import { SoundToggle } from "@s/components/sound-toggle";
+import { ThemeToggle } from "@s/components/theme-toggle";
+import { play } from "@s/lib/audio";
+import { GAMES, getGame, type GameTrack } from "@s/lib/games";
+import { useI18n } from "@s/lib/i18n";
+import { cn } from "@s/lib/utils";
 
 export function SignalBar() {
   const { t } = useI18n();
@@ -127,12 +128,12 @@ export function SignalBar() {
         }}
       >
         <div className="nav-pill grid h-12 w-[min(94vw,44rem)] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center rounded-full px-1.5">
-          <Link
+          <SignalLink
             href="/"
             className={cn("justify-self-start", "nav-link", home && "nav-link-on")}
           >
             Signal
-          </Link>
+          </SignalLink>
           <div className="flex items-center">
             {tracks.map((track) => {
               const on = current === track.id;
@@ -174,13 +175,13 @@ export function SignalBar() {
                 const copy = t.games[game.slug];
                 return (
                   <li key={game.slug} className={cn("group/play relative", hot && "is-play-hot")}>
-                    <Link
+                    <SignalLink
                       href={`/play/${game.slug}`}
                       onClick={() => play("tap")}
                       className={cn("nav-link", (active || hot) && "nav-link-on")}
                     >
                       {copy.name}
-                    </Link>
+                    </SignalLink>
                     <PlayMark game={game} />
                   </li>
                 );

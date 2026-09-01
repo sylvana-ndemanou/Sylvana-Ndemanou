@@ -15,6 +15,7 @@ import {
 } from "react";
 
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import { NavSoundToggle, SignalNavItem } from "@/components/layout/signal-menu";
 
 type NavItem = {
   key: "home" | "projects" | "about" | "signal";
@@ -190,7 +191,7 @@ export function Nav(): ReactNode {
   return (
     <nav
       aria-label="Primary"
-      className="fixed top-6 left-1/2 z-50 -translate-x-1/2"
+      className="fixed top-6 left-1/2 z-50 -translate-x-1/2 overflow-visible"
     >
       <div className="bg-background border-foreground/8 flex items-center gap-1 rounded-full border p-1.5 shadow-sm">
         <ul ref={listRef} className="relative flex items-center gap-1">
@@ -210,6 +211,27 @@ export function Nav(): ReactNode {
           )}
           {NAV_ITEMS.map((item, index) => {
             const isActive = index === activeIndex;
+            if (item.key === "signal") {
+              return (
+                <SignalNavItem
+                  key={item.href}
+                  active={isActive}
+                  itemRef={(el) => {
+                    itemRefs.current[index] = el;
+                  }}
+                >
+                  <span
+                    className={
+                      isActive
+                        ? "text-foreground relative z-10"
+                        : "text-foreground/60 hover:text-foreground relative z-10"
+                    }
+                  >
+                    {t(item.key)}
+                  </span>
+                </SignalNavItem>
+              );
+            }
             return (
               <li
                 key={item.href}
@@ -238,6 +260,7 @@ export function Nav(): ReactNode {
           })}
         </ul>
         <LanguageToggle />
+        <NavSoundToggle />
         <NavThemeToggle />
       </div>
     </nav>

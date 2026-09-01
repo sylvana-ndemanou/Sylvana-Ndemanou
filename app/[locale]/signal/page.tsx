@@ -1,4 +1,4 @@
-import { SignalFrame } from "@/components/signal/signal-frame";
+import { SignalApp } from "@/components/signal/signal-app";
 import { routing } from "@/i18n/routing";
 import { createMetadata } from "@/lib/metadata";
 import type { Metadata } from "next";
@@ -38,7 +38,7 @@ export default async function SignalPage({
       id="main-content"
       className="relative flex flex-1 flex-col pt-[5.75rem]"
     >
-      <SignalFrame />
+      <SignalApp locale={locale} basePath={`/${locale}/signal`} />
     </main>
   );
 }

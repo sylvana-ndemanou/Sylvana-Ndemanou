@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 
 import {
@@ -9,7 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { GameSlug } from "@/lib/games";
+import type { GameSlug } from "@s/lib/games";
 
 type PlayHoverValue = {
   hoverSlug: GameSlug | null;

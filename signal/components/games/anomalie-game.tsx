@@ -1,15 +1,17 @@
+// @ts-nocheck
 "use client";
 
 import { useMemo, useState } from "react";
-import { BarChart, weekLabels } from "@/components/mini-charts";
-import { GameShell, Intro, Result, RoundHeader, Verdict } from "@/components/game-shell";
-import { POINTS_PER_ROUND } from "@/lib/games";
-import { usePlaySession } from "@/components/play-session";
-import type { Difficulty } from "@/lib/play";
-import { heat, scaleByHeat, takeDeck } from "@/lib/play";
-import { scoreLine } from "@/lib/feedback";
+import { BarChart, weekLabels } from "@s/components/mini-charts";
+import { GameShell, Intro, PlayStage, Result, RoundHeader, Verdict } from "@s/components/game-shell";
+import { POINTS_PER_ROUND } from "@s/lib/games";
+import { usePlaySession } from "@s/components/play-session";
+import type { Difficulty } from "@s/lib/play";
+import { along, takeDeck } from "@s/lib/play";
+import { usePlay } from "@s/lib/play-text";
 
 type Round = {
+  id?: string;
   title: string;
   unit: string;
   values: number[];
@@ -20,11 +22,82 @@ type Round = {
   miss: string;
 };
 
-type Spec = Omit<Round, "values" | "labels" | "answer"> & { tier: Difficulty };
+type Spec = Omit<Round, "values" | "labels" | "answer"> & { id: string; tier: Difficulty };
+
+function neighbors(n: number, answer: number, radius: number) {
+  const lo = Math.max(0, answer - radius);
+  const hi = Math.min(n - 1, answer + radius);
+  return Array.from({ length: hi - lo + 1 }, (_, i) => lo + i).filter((i) => i !== answer);
+}
+
+function capExcept(values: number[], answer: number, limit: number, kind: "spike" | "dip") {
+  for (let i = 0; i < values.length; i += 1) {
+    if (i === answer) continue;
+    if (kind === "spike" && values[i] >= limit) values[i] = limit;
+    if (kind === "dip" && values[i] <= limit) values[i] = limit;
+  }
+}
+
+function sealSpike(values: number[], answer: number, difficulty: Difficulty, rng: () => number) {
+  const n = values.length;
+  if (difficulty === "easy") {
+    const peak = Math.max(...values.filter((_, i) => i !== answer));
+    values[answer] = Math.round(peak * 1.78);
+    return;
+  }
+  const local = neighbors(n, answer, difficulty === "hard" ? 1 : 2);
+  const base = Math.round(local.reduce((sum, i) => sum + values[i], 0) / Math.max(local.length, 1));
+  if (difficulty === "hard") {
+    const gap = Math.max(3, Math.round(base * 0.08));
+    for (const i of local) values[i] = base;
+    values[answer] = base + gap;
+    capExcept(values, answer, values[answer] - 1, "spike");
+    return;
+  }
+  for (const i of local) values[i] = base + (rng() < 0.5 ? 0 : 1);
+  values[answer] = base + 2;
+  capExcept(values, answer, values[answer] - 1, "spike");
+}
+
+function sealDip(values: number[], answer: number, difficulty: Difficulty, rng: () => number) {
+  const n = values.length;
+  if (difficulty === "easy") {
+    const floor = Math.min(...values.filter((_, i) => i !== answer));
+    values[answer] = Math.max(3, Math.round(floor * 0.38));
+    return;
+  }
+  const local = neighbors(n, answer, difficulty === "hard" ? 1 : 2);
+  const base = Math.round(local.reduce((sum, i) => sum + values[i], 0) / Math.max(local.length, 1));
+  if (difficulty === "hard") {
+    const gap = Math.max(3, Math.round(base * 0.08));
+    for (const i of local) values[i] = base;
+    values[answer] = Math.max(3, base - gap);
+    capExcept(values, answer, values[answer] + 1, "dip");
+    return;
+  }
+  for (const i of local) values[i] = base - (rng() < 0.5 ? 0 : 1);
+  values[answer] = Math.max(3, base - 2);
+  capExcept(values, answer, values[answer] + 1, "dip");
+}
+
+function sealBreak(values: number[], answer: number, step: number, difficulty: Difficulty) {
+  for (let i = answer; i < values.length; i += 1) {
+    values[i] = Math.round(values[i] + step);
+  }
+  if (difficulty !== "brutal") return;
+  const before = values[Math.max(0, answer - 1)] ?? values[answer];
+  const after = values[answer];
+  if (Math.abs(after - before) > Math.max(2, Math.round(Math.abs(before) * 0.06))) {
+    const target = before + (after > before ? 1 : -1) * Math.max(1, Math.round(Math.abs(before) * 0.04));
+    const delta = target - values[answer];
+    for (let i = answer; i < values.length; i += 1) values[i] = Math.round(values[i] + delta);
+  }
+}
 
 function makeRounds(rng: () => number, difficulty: Difficulty, total: number): Round[] {
   const specs: Spec[] = [
     {
+      id: "ca-shop",
       tier: "easy",
       title: "CA hebdo — boutique en ligne",
       unit: "k€",
@@ -34,6 +107,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
     },
     {
       tier: "easy",
+      id: "conv-landing",
       title: "Taux de conversion — landing",
       unit: "%",
       kind: "dip",
@@ -42,6 +116,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
     },
     {
       tier: "easy",
+      id: "tickets",
       title: "Tickets support — file unique",
       unit: "vol.",
       kind: "spike",
@@ -50,6 +125,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
     },
     {
       tier: "hard",
+      id: "ca-market",
       title: "CA hebdo — marketplace",
       unit: "k€",
       kind: "spike",
@@ -58,6 +134,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
     },
     {
       tier: "hard",
+      id: "conv-funnel",
       title: "Taux de conversion — tunnel 4 étapes",
       unit: "%",
       kind: "dip",
@@ -66,6 +143,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
     },
     {
       tier: "hard",
+      id: "panier-mix",
       title: "Panier moyen — mix canaux",
       unit: "€",
       kind: "dip",
@@ -74,6 +152,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
     },
     {
       tier: "hard",
+      id: "nps",
       title: "NPS — vagues mensuelles",
       unit: "pts",
       kind: "spike",
@@ -82,6 +161,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
     },
     {
       tier: "hard",
+      id: "dau-app",
       title: "Utilisateurs actifs — app",
       unit: "k",
       kind: "break",
@@ -90,6 +170,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
     },
     {
       tier: "brutal",
+      id: "marge",
       title: "Marge brute — SKU mixés",
       unit: "%",
       kind: "dip",
@@ -98,6 +179,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
     },
     {
       tier: "brutal",
+      id: "sessions-track",
       title: "Sessions — après refonte tracking",
       unit: "k",
       kind: "break",
@@ -106,6 +188,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
     },
     {
       tier: "brutal",
+      id: "delay-3pl",
       title: "Délai livraison — 3PL",
       unit: "j",
       kind: "spike",
@@ -114,6 +197,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
     },
     {
       tier: "brutal",
+      id: "open-rate",
       title: "Taux d’ouverture — 18 envois",
       unit: "%",
       kind: "dip",
@@ -122,6 +206,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
     },
     {
       tier: "brutal",
+      id: "ca-daily",
       title: "CA quotidien — 14 jours",
       unit: "k€",
       kind: "break",
@@ -131,27 +216,47 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
   ];
 
   return takeDeck(specs, difficulty).map((spec, round) => {
-    const h = heat(difficulty, round, total);
-    const n = Math.round(scaleByHeat(5, 16, h));
+    const n = Math.round(along(difficulty, round, total, [5, 7], [9, 12], [14, 18]));
     const labels = weekLabels(n);
-    const start = 40 + round * 8 + Math.round(rng() * 12);
-    const slope = spec.kind === "break" ? 0.4 : 1.2 + round * 0.15;
-    const noise = scaleByHeat(0.35, 7.4, h);
+    const start = 42 + round * 6 + Math.round(rng() * 10);
+    const slope =
+      spec.kind === "break"
+        ? along(difficulty, round, total, [0.15, 0.1], [0.28, 0.18], [0.22, 0.14])
+        : along(difficulty, round, total, [0.35, 0.55], [0.55, 0.85], [0.35, 0.5]);
+    const noise = along(difficulty, round, total, [0.55, 1.1], [2.2, 3.4], [3.8, 5.6]);
     const values = Array.from({ length: n }, (_, i) => {
       const trend = start + slope * i;
-      return Math.max(4, Math.round(trend + (rng() - 0.5) * noise));
+      return Math.max(4, Math.round(trend + (rng() - 0.5) * 2 * noise));
     });
-    const margin = Math.round(scaleByHeat(2, 3, h));
-    const answer = margin + Math.floor(rng() * Math.max(1, n - margin * 2));
-    const subtlety = scaleByHeat(1.15, 0.07, h);
+    const edge = difficulty === "easy" ? 1 : 2;
+    const answer = edge + Math.floor(rng() * Math.max(1, n - edge * 2));
     if (spec.kind === "spike") {
-      values[answer] = Math.round(values[answer] * (1 + subtlety));
+      sealSpike(values, answer, difficulty, rng);
     } else if (spec.kind === "dip") {
-      values[answer] = Math.max(3, Math.round(values[answer] * (1 - subtlety)));
+      sealDip(values, answer, difficulty, rng);
     } else {
-      const lift = start * scaleByHeat(0.58, 0.09, h);
-      for (let i = answer; i < n; i += 1) {
-        values[i] = Math.round(values[i] + lift);
+      const step = Math.round(
+        start * along(difficulty, round, total, [0.48, 0.36], [0.12, 0.08], [0.045, 0.028])
+      );
+      sealBreak(values, answer, step, difficulty);
+    }
+    if (difficulty === "brutal") {
+      const others = values.filter((_, i) => i !== answer);
+      const lo = Math.min(...others);
+      const hi = Math.max(...others);
+      const spread = hi - lo;
+      const cap = Math.max(4, Math.round(start * 0.06));
+      if (spread > cap) {
+        const mid = (lo + hi) / 2;
+        for (let i = 0; i < values.length; i += 1) {
+          if (i === answer) continue;
+          values[i] = Math.round(mid + ((values[i] - mid) * cap) / spread);
+        }
+        if (spec.kind === "spike") {
+          values[answer] = Math.max(...values.filter((_, i) => i !== answer)) + 1;
+        } else if (spec.kind === "dip") {
+          values[answer] = Math.max(3, Math.min(...values.filter((_, i) => i !== answer)) - 1);
+        }
       }
     }
     return { ...spec, values, labels, answer };
@@ -159,6 +264,7 @@ function makeRounds(rng: () => number, difficulty: Difficulty, total: number): R
 }
 
 export function AnomalieGame({ onFinish }: { onFinish: (score: number) => void }) {
+  const playI18n = usePlay("anomalie");
   const { rounds: total, maxScore, rng, difficulty } = usePlaySession();
   const rounds = useMemo(
     () => makeRounds(rng, difficulty, total).slice(0, total),
@@ -169,15 +275,27 @@ export function AnomalieGame({ onFinish }: { onFinish: (score: number) => void }
   const [score, setScore] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [revealed, setRevealed] = useState(false);
-
-  const round = rounds[index];
-  const correct = picked === round?.answer;
+  const raw = rounds[index];
+  const round = playI18n.overlay(raw);
+  const correct = picked === raw?.answer;
+  const question =
+    difficulty === "easy" && raw
+      ? raw.kind === "spike"
+        ? playI18n.ui.anomalieQ.spike
+        : raw.kind === "dip"
+          ? playI18n.ui.anomalieQ.dip
+          : playI18n.ui.anomalieQ.break
+      : playI18n.ui.anomalieQ.intruder;
+  const helpers = {
+    showValues: difficulty === "easy",
+    showMean: difficulty === "easy",
+  };
 
   function pick(i: number) {
     if (revealed || picked !== null) return;
     setPicked(i);
     setRevealed(true);
-    setScore((s) => s + (i === round.answer ? POINTS_PER_ROUND : 0));
+    setScore((s) => s + (i === raw.answer ? POINTS_PER_ROUND : 0));
   }
 
   function next() {
@@ -201,25 +319,17 @@ export function AnomalieGame({ onFinish }: { onFinish: (score: number) => void }
   }
 
   if (phase === "intro") {
-    return (
-      <Intro
-        title="Anomalie"
-        how="Un graphique, un intrus. Touche la barre qui n'appartient pas à la série — spike, creux, ou rupture."
-        onStart={() => setPhase("play")}
-      />
-    );
+    return <Intro slug="anomalie" onStart={() => setPhase("play")} />;
   }
 
   if (phase === "done") {
-    return (
-      <Result title="Anomalie" score={score} max={maxScore} line={scoreLine(score, maxScore)} onReplay={replay} />
-    );
+    return <Result slug="anomalie" score={score} max={maxScore} onReplay={replay} />;
   }
 
   return (
-    <GameShell title="Anomalie" round={index} total={total} score={score} maxScore={maxScore}>
-      <RoundHeader context={round.title} question="Où est l’intrus ?" />
-      <div className="mt-8">
+    <GameShell slug="anomalie" round={index} total={total} score={score} maxScore={maxScore} briefContext={round.title} briefQuestion={question}>
+      <RoundHeader context={round.title} question={question} />
+      <PlayStage slug="anomalie" className="mt-8">
         <BarChart
           values={round.values}
           labels={round.labels}
@@ -227,19 +337,23 @@ export function AnomalieGame({ onFinish }: { onFinish: (score: number) => void }
           revealed={revealed ? round.answer : null}
           onSelect={pick}
           disabled={revealed}
+          unit={round.unit}
+          kind={round.kind}
+          showValues={helpers.showValues}
+          showMean={helpers.showMean}
         />
-      </div>
+      </PlayStage>
       {revealed ? (
         <Verdict
           tone={correct ? "ok" : "miss"}
-          title={correct ? "Vu." : "À côté."}
+          title={playI18n.punch(correct)}
           lesson={correct ? round.ok : round.miss}
           onNext={next}
-          nextLabel={index + 1 >= total ? "Voir le score" : "Manche suivante"}
+          isLast={index + 1 >= total}
         />
       ) : (
         <p className="mt-8 text-center text-sm text-muted-foreground">
-          Unité : {round.unit}. Touche une barre.
+          {difficulty === "easy" ? playI18n.ui.unit(round.unit) : playI18n.ui.compareBars}
         </p>
       )}
     </GameShell>

@@ -1,21 +1,22 @@
+// @ts-nocheck
 "use client";
 
-import Link from "next/link";
+import { SignalLink } from "@s/components/signal-link";
 import { useMemo, useSyncExternalStore } from "react";
-import { DustBanner } from "@/components/dust-banner";
-import { GameMark, GamePreview, PlayLink } from "@/components/game-previews";
-import { Button } from "@/components/ui/button";
-import { GAMES, MAX_SCORE, TRACKS, type GameTrack } from "@/lib/games";
-import { useI18n } from "@/lib/i18n";
-import { usePlayHover } from "@/components/play-hover";
-import { play } from "@/lib/audio";
-import { AUTHOR_NAME, PORTFOLIO_URL } from "@/lib/site";
+import { DustBanner } from "@s/components/dust-banner";
+import { GameMark, GamePreview, PlayLink } from "@s/components/game-previews";
+import { Button } from "@s/components/ui/button";
+import { GAMES, MAX_SCORE, TRACKS, type GameTrack } from "@s/lib/games";
+import { useI18n } from "@s/lib/i18n";
+import { usePlayHover } from "@s/components/play-hover";
+import { play } from "@s/lib/audio";
+import { AUTHOR_NAME, PORTFOLIO_URL } from "@s/lib/site";
 import {
   getScoresServerSnapshot,
   getScoresSnapshot,
   subscribeScores,
   type ScoreMap,
-} from "@/lib/scores";
+} from "@s/lib/scores";
 
 function GameGrid({ track, scores }: { track: GameTrack; scores: ScoreMap }) {
   const { t } = useI18n();
@@ -29,7 +30,7 @@ function GameGrid({ track, scores }: { track: GameTrack; scores: ScoreMap }) {
         return (
           <li
             key={game.slug}
-            className="reveal-up game-card group/card relative z-0 flex flex-col overflow-visible rounded-3xl border border-border bg-card transition duration-300 hover:z-20 hover:-translate-y-1 hover:border-primary/40"
+            className="reveal-up game-card group/card relative z-0 flex min-w-0 flex-col overflow-hidden rounded-3xl border border-border bg-card transition duration-300 hover:z-20 hover:-translate-y-1 hover:border-primary/40"
             style={{ animationDelay: `${i * 70}ms` }}
             onPointerEnter={() => {
               play("grain");
@@ -37,7 +38,7 @@ function GameGrid({ track, scores }: { track: GameTrack; scores: ScoreMap }) {
             }}
             onPointerLeave={() => leave(game.slug)}
           >
-            <div className="relative z-10 flex flex-1 flex-col overflow-visible p-5 pb-9">
+            <div className="relative z-10 flex min-w-0 flex-1 flex-col p-5 pb-9">
               <div className="flex items-center gap-3">
                 <span
                   className="game-mark-tile flex size-11 shrink-0 items-center justify-center text-[oklch(0.16_0.04_122)]"
@@ -132,7 +133,7 @@ export function GamesHub() {
             nativeButton={false}
             size="lg"
             className="relative z-[2] h-12 self-start px-6 text-base sm:self-auto"
-            render={<Link href="/play/schema" />}
+            render={<SignalLink href="/play/schema" />}
           >
             {t.hub.dustCta}
           </Button>

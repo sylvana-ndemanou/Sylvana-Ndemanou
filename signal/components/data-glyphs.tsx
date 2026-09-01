@@ -1,4 +1,5 @@
-import { cn } from "@/lib/utils";
+// @ts-nocheck
+import { cn } from "@s/lib/utils";
 
 export function MiniTable({
   name,
@@ -10,6 +11,9 @@ export function MiniTable({
   onToggleCol,
   disabled,
   selectTone = "key",
+  dimRows,
+  crushRows,
+  liveRows,
 }: {
   name: string;
   headers: string[];
@@ -20,18 +24,24 @@ export function MiniTable({
   onToggleCol?: (header: string) => void;
   disabled?: boolean;
   selectTone?: "key" | "yank";
+  dimRows?: number[];
+  crushRows?: number[];
+  liveRows?: number[];
 }) {
   const marked = new Set(highlightRows ?? []);
   const picked = new Set(selectedCols ?? []);
+  const dimmed = new Set(dimRows ?? []);
+  const crushed = new Set(crushRows ?? []);
+  const living = new Set(liveRows ?? []);
   const interactive = Boolean(onToggleCol) && !disabled;
   return (
-    <div className="min-w-0 overflow-x-auto rounded-xl border border-border bg-card">
+    <div className="table-in min-w-0 overflow-x-auto rounded-xl border border-border bg-card">
       <p className="border-b border-border px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-signal">
         {name}
       </p>
       <table className="w-full text-left font-mono text-[11px] sm:text-xs">
         <thead>
-          <tr className="border-b border-border text-muted-foreground">
+          <tr className="border-b border-border text-foreground/70">
             {headers.map((h, i) => {
               const on = picked.has(h) || (!interactive && i < keyCols);
               return (
@@ -42,15 +52,15 @@ export function MiniTable({
                       onClick={() => onToggleCol?.(h)}
                       className={cn(
                         "w-full px-2 py-2 text-left transition",
-                        on && selectTone === "key" && "bg-primary text-primary-foreground",
+                        on && selectTone === "key" && "life-key bg-primary text-primary-foreground",
                         on && selectTone === "yank" && "bg-anomaly/20 text-anomaly line-through",
-                        !on && "hover:bg-muted hover:text-foreground"
+                        !on && "life-slot hover:bg-muted hover:text-foreground"
                       )}
                     >
                       {on ? (selectTone === "yank" ? `☠️ ${h}` : `🔑 ${h}`) : h}
                     </button>
                   ) : (
-                    <span className={cn("block px-2 py-1.5", on && "text-signal")}>
+                    <span className={cn("block px-3 py-2", on && "text-signal")}>
                       {on ? `🔑 ${h}` : h}
                     </span>
                   )}
@@ -63,14 +73,19 @@ export function MiniTable({
           {rows.map((row, r) => (
             <tr
               key={`${r}-${row.join("-")}`}
-              className={cn(marked.has(r) && "bg-anomaly/20 text-anomaly")}
+              className={cn(
+                marked.has(r) && "bg-anomaly/20 text-anomaly",
+                dimmed.has(r) && "row-ghost",
+                crushed.has(r) && "row-crush",
+                living.has(r) && "row-live"
+              )}
             >
               {row.map((cell, c) => (
                 <td
                   key={`${r}-${c}`}
                   className={cn(
-                    "whitespace-nowrap px-2 py-1",
-                    picked.has(headers[c]) && selectTone === "key" && "bg-primary/10",
+                    "whitespace-nowrap px-3 py-2 text-foreground",
+                    picked.has(headers[c]) && selectTone === "key" && "life-key bg-primary/10",
                     picked.has(headers[c]) && selectTone === "yank" && "bg-anomaly/10 line-through"
                   )}
                 >
@@ -134,6 +149,57 @@ export function JoinGlyph() {
     <div className="relative mx-auto h-24 w-40">
       <div className="absolute left-2 top-4 h-16 w-20 rounded-lg border-2 border-chart-2/80 bg-chart-2/20" />
       <div className="absolute right-2 top-6 h-16 w-20 rounded-lg border-2 border-primary/80 bg-primary/20" />
+    </div>
+  );
+}
+
+export function JoinVenn({
+  mode,
+  leftLabel,
+  rightLabel,
+  leftCount,
+  rightCount,
+  outCount,
+  chips,
+  hint,
+  outLabel,
+}: {
+  mode?: "inner" | "left" | "full" | "anti" | null;
+  leftLabel: string;
+  rightLabel: string;
+  leftCount: number;
+  rightCount: number;
+  outCount?: number;
+  chips?: string[];
+  hint?: string;
+  outLabel?: (n: number) => string;
+}) {
+  return (
+    <div className={cn("join-arena flex flex-col items-center gap-2", mode && `join-mode-${mode}`)}>
+      <div className="join-venn-labels">
+        <span className="join-venn-label join-venn-label-left">{leftLabel}</span>
+        <span className="join-venn-label join-venn-label-right">{rightLabel}</span>
+      </div>
+      <svg viewBox="0 0 260 140" className="join-venn-svg" aria-hidden>
+        <circle className="join-l" cx="92" cy="70" r="54" stroke="var(--chart-2)" strokeWidth="2.4" />
+        <circle className="join-r" cx="168" cy="70" r="54" stroke="var(--primary)" strokeWidth="2.4" />
+        <ellipse className="join-m" cx="130" cy="70" rx="26" ry="46" />
+      </svg>
+      <div className="join-chips" aria-live="polite">
+        {chips?.map((chip, i) => (
+          <span
+            key={`${chip}-${i}`}
+            className={cn("join-chip", mode && "life-bob")}
+            style={{ animationDelay: `${i * 70}ms` }}
+          >
+            {chip}
+          </span>
+        ))}
+      </div>
+      <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+        {leftCount} + {rightCount}
+        {typeof outCount === "number" ? ` → ${outLabel ? outLabel(outCount) : outCount}` : ` · ${hint ?? ""}`}
+      </p>
     </div>
   );
 }

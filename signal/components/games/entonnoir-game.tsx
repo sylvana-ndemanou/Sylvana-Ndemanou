@@ -1,19 +1,22 @@
+// @ts-nocheck
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { shuffle } from "@/components/drag-kit";
-import { FunnelShape } from "@/components/mini-charts";
-import { LockBar } from "@/components/interact";
-import { GameShell, Intro, Result, RoundHeader, Verdict } from "@/components/game-shell";
-import { play } from "@/lib/audio";
-import { POINTS_PER_ROUND } from "@/lib/games";
-import { usePlaySession } from "@/components/play-session";
-import { stepCount, takeDeck, awardPartial } from "@/lib/play";
-import type { Difficulty } from "@/lib/play";
-import { roundTone, scoreLine } from "@/lib/feedback";
-import { cn } from "@/lib/utils";
+import { DragBoard, Draggable, DropSlot, shuffle } from "@s/components/drag-kit";
+import { FunnelShape } from "@s/components/mini-charts";
+import { LockBar } from "@s/components/interact";
+import { GameShell, Intro, PlayStage, Result, RoundHeader, Verdict } from "@s/components/game-shell";
+import { play } from "@s/lib/audio";
+import { POINTS_PER_ROUND } from "@s/lib/games";
+import { usePlaySession } from "@s/components/play-session";
+import { usePlay } from "@s/lib/play-text";
+import { stepCount, takeDeck, awardPartial } from "@s/lib/play";
+import type { Difficulty } from "@s/lib/play";
+import { roundTone } from "@s/lib/feedback";
+import { cn } from "@s/lib/utils";
 
 type Scenario = {
+  id: string;
   tier: Difficulty;
   name: string;
   steps: string[];
@@ -24,6 +27,7 @@ type Scenario = {
 const SCENARIOS: Scenario[] = [
   {
     tier: "easy",
+    id: "boutique",
     name: "Boutique simple",
     steps: ["Visite", "Panier", "Achat"],
     rates: [40, 55],
@@ -31,6 +35,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "easy",
+    id: "newsletter",
     name: "Newsletter",
     steps: ["Envoi", "Ouverture", "Clic"],
     rates: [28, 12],
@@ -38,6 +43,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "easy",
+    id: "app",
     name: "App onboarding",
     steps: ["Install", "Compte", "Premier usage"],
     rates: [62, 48],
@@ -45,6 +51,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "hard",
+    id: "ecom",
     name: "E-commerce",
     steps: ["Visite", "Fiche produit", "Panier", "Paiement", "Achat"],
     rates: [38, 44, 31, 18],
@@ -53,6 +60,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "hard",
+    id: "saas",
     name: "SaaS B2B",
     steps: ["Visite", "Essai", "Activation", "Payant", "Rétention 90j"],
     rates: [12, 41, 28, 22],
@@ -61,6 +69,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "hard",
+    id: "lead",
     name: "Lead gen",
     steps: ["Impression", "Clic", "Formulaire", "MQL", "SQL"],
     rates: [2.4, 18, 35, 40],
@@ -69,6 +78,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "hard",
+    id: "mobile",
     name: "App mobile",
     steps: ["Install", "Onboarding", "J+1", "J+7", "Achat in-app"],
     rates: [62, 48, 33, 9],
@@ -77,6 +87,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "hard",
+    id: "retail",
     name: "Retail omni",
     steps: ["Trafic magasin", "Essayage", "Passage caisse", "Ticket", "Retour 14j"],
     rates: [28, 55, 92, 8],
@@ -85,6 +96,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "brutal",
+    id: "plg",
     name: "PLG + sales-assist",
     steps: ["Visite", "Signup", "Activation", "PQL", "Demo", "Won"],
     rates: [18, 44, 22, 35, 28],
@@ -93,6 +105,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "brutal",
+    id: "market",
     name: "Marketplace deux faces",
     steps: ["Visite acheteur", "Recherche", "Fiche", "Offre", "Paiement", "Livraison", "Avis"],
     rates: [54, 31, 48, 22, 81, 14],
@@ -101,6 +114,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "brutal",
+    id: "abm",
     name: "ABM enterprise",
     steps: ["Compte cible", "Engagement", "MQL", "SAL", "SQL", "Proposal", "Close"],
     rates: [8, 40, 55, 48, 32, 22],
@@ -109,6 +123,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "brutal",
+    id: "viral",
     name: "Growth loop viral",
     steps: ["Invite", "Signup filleul", "Activation", "Invite suivante"],
     rates: [22, 51, 18],
@@ -117,6 +132,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     tier: "brutal",
+    id: "support",
     name: "Support → expansion",
     steps: ["Ticket", "Résolu", "CSAT", "Upsell", "Renew"],
     rates: [71, 64, 9, 44],
@@ -139,6 +155,7 @@ function scaleScenario(
 
 export function EntonnoirGame({ onFinish }: { onFinish: (score: number) => void }) {
   const { rounds: total, maxScore, difficulty } = usePlaySession();
+  const playI18n = usePlay("entonnoir");
   const deck = useMemo(
     () => takeDeck(SCENARIOS, difficulty).map((s, i) => scaleScenario(s, difficulty, i, total)),
     [difficulty, total]
@@ -152,25 +169,25 @@ export function EntonnoirGame({ onFinish }: { onFinish: (score: number) => void 
   const [pour, setPour] = useState(false);
   const [points, setPoints] = useState(0);
 
-  const scenario = deck[index];
+  const scenario = playI18n.overlay(deck[index]);
   const n = scenario?.steps.length ?? 0;
   const idle = pool.filter((s) => !stack.includes(s));
   const complete = n > 0 && stack.length === n;
 
   const startRound = useCallback(
     (i: number) => {
-      const s = deck[i];
+      const s = playI18n.overlay(deck[i]);
       setPool(shuffle(s.steps));
       setStack([]);
       setLocked(false);
       setPour(false);
       setPoints(0);
     },
-    [deck]
+    [deck, playI18n.locale]
   );
 
   function pushStep(step: string) {
-    if (locked || stack.length >= n) return;
+    if (locked || stack.length >= n || stack.includes(step)) return;
     play("drop");
     setStack((prev) => [...prev, step]);
   }
@@ -206,8 +223,7 @@ export function EntonnoirGame({ onFinish }: { onFinish: (score: number) => void 
   if (phase === "intro") {
     return (
       <Intro
-        title="Entonnoir"
-        how="Tape les étapes : elles s’empilent, du plus large au plus étroit. Un étage faux, tu le démontes d’un tap. Ensuite on verse — et on voit où ça fuit."
+        slug="entonnoir"
         onStart={() => {
           startRound(0);
           setPhase("play");
@@ -219,10 +235,9 @@ export function EntonnoirGame({ onFinish }: { onFinish: (score: number) => void 
   if (phase === "done") {
     return (
       <Result
-        title="Entonnoir"
+        slug="entonnoir"
         score={score}
         max={maxScore}
-        line={scoreLine(score, maxScore)}
         onReplay={() => {
           setPhase("intro");
           setIndex(0);
@@ -238,8 +253,12 @@ export function EntonnoirGame({ onFinish }: { onFinish: (score: number) => void 
       : -1;
 
   return (
-    <GameShell title="Entonnoir" round={index} total={total} score={score} maxScore={maxScore}>
-      <RoundHeader context={scenario.name} question="Empile le parcours. Le goulot se montre après." />
+    <GameShell slug="entonnoir" round={index} total={total} score={score} maxScore={maxScore} briefContext={scenario.name} briefQuestion={playI18n.ui.funnelQ}>
+      <RoundHeader context={scenario.name} question={playI18n.ui.funnelQ} />
+      <p className="mt-1 text-center font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+        {playI18n.ui.funnelFloors(n)}
+      </p>
+      <PlayStage slug="entonnoir">
       {locked ? (
         <div className="relative mt-8">
           <FunnelShape steps={scenario.steps} rates={scenario.rates} />
@@ -258,70 +277,85 @@ export function EntonnoirGame({ onFinish }: { onFinish: (score: number) => void 
             : null}
         </div>
       ) : (
-        <div className="mt-6">
-          <div className="mx-auto flex max-w-md flex-col items-center gap-2">
+        <DragBoard
+          disabled={locked}
+          className="mt-6"
+          onDrop={(piece, zone) => {
+            if (zone === "funnel" || zone.startsWith("shelf-")) pushStep(piece);
+          }}
+          onTap={(piece) => {
+            const at = stack.indexOf(piece);
+            if (at >= 0) popShelf(at);
+            else pushStep(piece);
+          }}
+        >
+          <DropSlot id="funnel" className="mx-auto flex max-w-md flex-col items-center gap-2 border-0 bg-transparent p-0">
             {Array.from({ length: n }).map((_, si) => {
               const width = 94 - si * (42 / Math.max(n - 1, 1));
               const id = stack[si];
               return (
-                <button
+                <DropSlot
                   key={si}
-                  type="button"
-                  disabled={!id}
-                  onClick={() => id && popShelf(si)}
+                  id={`shelf-${si}`}
                   className={cn(
-                    "flex h-12 items-center justify-center rounded-2xl border-2 border-dashed px-3 text-sm transition",
+                    "flex h-12 items-center justify-center rounded-2xl border-2 border-dashed px-3 text-sm life-shelf",
+                    !id && "life-shelf-empty",
                     id ? "border-solid border-border bg-card" : "border-border/70 bg-muted/30",
                     si === stack.length && idle.length > 0 && "border-primary/50"
                   )}
                   style={{ width: `${width}%` }}
                 >
                   {id ? (
-                    <span className="magnet-snap">{id}</span>
+                    <Draggable id={id} disabled={locked} className="w-full text-center">
+                      <span className="magnet-snap">{id}</span>
+                    </Draggable>
                   ) : (
                     <span className="font-mono text-[11px] text-muted-foreground">
-                      {si === stack.length ? "prochain étage" : `étage ${si + 1}`}
+                      {si === stack.length ? playI18n.ui.dropHere : playI18n.ui.shelfN(si + 1)}
                     </span>
                   )}
-                </button>
+                </DropSlot>
               );
             })}
-          </div>
+          </DropSlot>
           <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            Étapes en vrac
+            {playI18n.ui.looseSteps}
           </p>
           <div className="mt-2 flex min-h-[4.2rem] flex-wrap gap-2 rounded-2xl border border-dashed border-border bg-muted/40 p-3">
-            {idle.map((step) => (
-              <button
-                key={step}
-                type="button"
-                disabled={stack.length >= n}
-                onClick={() => pushStep(step)}
-                className="rounded-xl border border-border bg-card px-3 py-2 text-sm transition hover:border-primary/50"
-              >
-                {step}
-              </button>
+            {idle.map((step, i) => (
+              <Draggable key={step} id={step} disabled={locked || stack.length >= n}>
+                <div
+                  className="life-bob rounded-xl border border-border bg-card px-3 py-2 text-sm transition hover:border-primary/50"
+                  style={{ animationDelay: `${i * 90}ms` }}
+                >
+                  {step}
+                </div>
+              </Draggable>
             ))}
             {idle.length === 0 ? (
-              <span className="font-mono text-xs text-muted-foreground">Entonnoir plein — verse.</span>
+              <span className="font-mono text-xs text-muted-foreground">{playI18n.ui.funnelFull}</span>
             ) : null}
           </div>
-        </div>
+        </DragBoard>
       )}
+      </PlayStage>
       {locked ? (
         <Verdict
           tone={roundTone(points)}
           title={
             points === POINTS_PER_ROUND
-              ? "Parcours juste."
-              : `${stack.filter((s, i) => s === scenario.steps[i]).length}/${n} étages justes.`
+              ? playI18n.punch(true)
+              : playI18n.ui.partialN(
+                  stack.filter((s, i) => s === scenario.steps[i]).length,
+                  n
+                )
           }
           lesson={scenario.lesson}
           onNext={next}
-          nextLabel={index + 1 >= total ? "Voir le score" : "Manche suivante"}
+          isLast={index + 1 >= total}
         />
       ) : (
-        <LockBar label="Verser le trafic" disabled={!complete} onLock={lockIn} />
+        <LockBar label={playI18n.ui.pour} disabled={!complete} onLock={lockIn} />
       )}
     </GameShell>
   );

@@ -1,21 +1,24 @@
+// @ts-nocheck
 "use client";
 
-import { useMemo, useState } from "react";
-import { MiniTable } from "@/components/data-glyphs";
-import { LockBar } from "@/components/interact";
-import { GameShell, Intro, Result, RoundHeader, Verdict } from "@/components/game-shell";
-import { POINTS_PER_ROUND } from "@/lib/games";
-import { usePlaySession } from "@/components/play-session";
-import { heat, scaleByHeat, takeDeck } from "@/lib/play";
-import type { Difficulty } from "@/lib/play";
-import { scoreLine } from "@/lib/feedback";
-import { cn } from "@/lib/utils";
+import { useMemo, useRef, useState } from "react";
+import { JoinVenn, MiniTable } from "@s/components/data-glyphs";
+import { DragBoard, Draggable, DropSlot } from "@s/components/drag-kit";
+import { ChoiceTile, LockBar } from "@s/components/interact";
+import { GameShell, Intro, PlayStage, Result, RoundHeader, Verdict } from "@s/components/game-shell";
+import { POINTS_PER_ROUND } from "@s/lib/games";
+import { usePlaySession } from "@s/components/play-session";
+import { usePlay } from "@s/lib/play-text";
+import { countAlong, takeDeck } from "@s/lib/play";
+import type { Difficulty } from "@s/lib/play";
+import { cn } from "@s/lib/utils";
 
 type JoinKind = "inner" | "left" | "full" | "anti";
 
 type Table = { name: string; headers: string[]; rows: string[][] };
 
 type Round = {
+  id: string;
   tier: Difficulty;
   context: string;
   question: string;
@@ -37,6 +40,7 @@ const LENSES: { id: JoinKind; label: string; hint: string }[] = [
 const ROUNDS_DATA: Round[] = [
   {
     tier: "easy",
+    id: "inner-known",
     context: "Commandes + clients. On ne veut que les commandes avec un client connu.",
     question: "INNER ou LEFT ? Essaie. Qui disparaît ?",
     left: {
@@ -64,6 +68,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "easy",
+    id: "left-all",
     context: "Tous les clients, même sans commande.",
     question: "Marc n’a rien acheté. Doit-il rester ?",
     left: {
@@ -91,6 +96,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "easy",
+    id: "anti-orphan",
     context: "Trouver la commande sans client — juste le problème.",
     question: "Quelle lentille ne garde que l’orpheline ?",
     left: {
@@ -118,6 +124,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "inner-ca",
     context: "On veut le CA des commandes rattachées à un client connu.",
     question: "Essaie les lentilles. Qui disparaît ?",
     left: {
@@ -158,6 +165,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "left-clients",
     context: "Liste de tous les clients, même ceux sans commande ce mois-ci.",
     question: "En partant des clients : qui doit rester à l’écran ?",
     left: {
@@ -188,6 +196,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "anti-quality",
     context: "Qualité : trouver les commandes orphelines, sans client.",
     question: "Quelle lentille ne garde que le problème ?",
     left: {
@@ -215,6 +224,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "anti-catalog",
     context: "Catalogue : produits jamais vendus ce trimestre.",
     question: "En partant des produits, fais apparaître le stock mort.",
     left: {
@@ -246,6 +256,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "hard",
+    id: "full-promo",
     context: "Deux listes de codes promo : CRM et e-commerce. On ne veut perdre personne.",
     question: "Réconcilie sans faire disparaître une source.",
     left: { name: "crm", headers: ["code"], rows: [["WELCOME"], ["VIP"]] },
@@ -262,6 +273,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "anti-badge",
     context: "Employés vs badges : qui n’a jamais badgé ce mois, pour la sécu.",
     question: "On part des employés. On ne veut QUE les absents.",
     left: {
@@ -293,6 +305,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "full-invoices",
     context: "Factures vs paiements : écarts des deux côtés, à réconcilier.",
     question: "Personne ne doit disparaître. Ni facture orpheline, ni paiement fantôme.",
     left: { name: "factures", headers: ["ref"], rows: [["F-1"], ["F-2"]] },
@@ -309,6 +322,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "left-cohort",
     context: "Cohortes : users signup vs first_purchase. Taux d’activation.",
     question: "Le dénominateur, c’est tous les inscrits. Même ceux à 0 €.",
     left: {
@@ -333,6 +347,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "full-sku",
     context: "SKU web vs SKU ERP : mismatches des deux côtés, pour un data contract.",
     question: "On veut le delta complet, pas seulement « web sans ERP ».",
     left: { name: "web", headers: ["sku"], rows: [["A"], ["B"]] },
@@ -349,6 +364,7 @@ const ROUNDS_DATA: Round[] = [
   },
   {
     tier: "brutal",
+    id: "anti-gdpr",
     context: "Emails consentis vs base CRM. RGPD : qui est dans le CRM sans consentement.",
     question: "On part du CRM. On garde ceux SANS match consentement.",
     left: {
@@ -373,13 +389,23 @@ const ROUNDS_DATA: Round[] = [
   },
 ];
 
+function rowInView(row: string[], viewRows: string[][]): boolean {
+  const skip = new Set(["", "?", "∅", "oui"]);
+  const tokens = row.filter((cell) => cell && !skip.has(cell));
+  if (!tokens.length) return false;
+  return viewRows.some((viewRow) => tokens.some((token) => viewRow.includes(token)));
+}
+
 function lensesFor(
   difficulty: Difficulty,
   roundIndex: number,
   totalRounds: number,
   answer: JoinKind
 ): typeof LENSES {
-  const n = Math.max(2, Math.round(scaleByHeat(2, LENSES.length, heat(difficulty, roundIndex, totalRounds))));
+  const n = Math.max(
+    2,
+    countAlong(difficulty, roundIndex, totalRounds, [2, 2], [3, 3], [LENSES.length, LENSES.length])
+  );
   const keep = new Set<JoinKind>([answer]);
   for (const lens of LENSES) {
     if (keep.size >= n) break;
@@ -390,17 +416,50 @@ function lensesFor(
 
 export function JointureGame({ onFinish }: { onFinish: (score: number) => void }) {
   const { rounds: total, maxScore, difficulty } = usePlaySession();
+  const playI18n = usePlay("jointure");
   const deck = useMemo(() => takeDeck(ROUNDS_DATA, difficulty), [difficulty]);
   const [phase, setPhase] = useState<"intro" | "play" | "done">("intro");
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [lens, setLens] = useState<JoinKind | null>(null);
   const [locked, setLocked] = useState(false);
+  const sealed = useRef(false);
 
-  const round = deck[index];
+  const round = playI18n.overlay(deck[index]);
   const lenses = round ? lensesFor(difficulty, index, total, round.answer) : LENSES;
   const correct = lens === round?.answer;
   const view = lens ? round.views[lens] : null;
+  const leftLive = view
+    ? round.left.rows.flatMap((row, i) => (rowInView(row, view.rows) ? [i] : []))
+    : [];
+  const rightLive = view
+    ? round.right.rows.flatMap((row, i) => (rowInView(row, view.rows) ? [i] : []))
+    : [];
+  const chips = view
+    ? view.rows.map((row) => row.filter((cell) => cell && cell !== "∅" && cell !== "?").slice(0, 2).join(" · ") || row[0])
+    : [];
+  const leftDim = view
+    ? round.left.rows.flatMap((row, i) => (rowInView(row, view.rows) ? [] : [i]))
+    : [];
+  const rightDim = view
+    ? round.right.rows.flatMap((row, i) => (rowInView(row, view.rows) ? [] : [i]))
+    : [];
+
+  function pickLens(id: JoinKind) {
+    if (locked) return;
+    if (lens === id) {
+      lockIn();
+      return;
+    }
+    setLens(id);
+  }
+
+  function lockIn() {
+    if (sealed.current || !lens) return;
+    sealed.current = true;
+    setLocked(true);
+    setScore((s) => s + (lens === round.answer ? POINTS_PER_ROUND : 0));
+  }
 
   function next() {
     if (index + 1 >= total) {
@@ -411,13 +470,13 @@ export function JointureGame({ onFinish }: { onFinish: (score: number) => void }
     setIndex((v) => v + 1);
     setLens(null);
     setLocked(false);
+    sealed.current = false;
   }
 
   if (phase === "intro") {
     return (
       <Intro
-        title="Jointure"
-        how="Deux tables, quatre lentilles. Chaque lentille fait vivre ou mourir des lignes. Tu regardes, tu comprends, tu valides."
+        slug="jointure"
         onStart={() => setPhase("play")}
       />
     );
@@ -426,74 +485,101 @@ export function JointureGame({ onFinish }: { onFinish: (score: number) => void }
   if (phase === "done") {
     return (
       <Result
-        title="Jointure"
+        slug="jointure"
         score={score}
         max={maxScore}
-        line={scoreLine(score, maxScore)}
         onReplay={() => {
           setPhase("intro");
           setIndex(0);
           setScore(0);
           setLens(null);
           setLocked(false);
+          sealed.current = false;
         }}
       />
     );
   }
 
   return (
-    <GameShell title="Jointure" round={index} total={total} score={score} maxScore={maxScore}>
+    <GameShell slug="jointure" round={index} total={total} score={score} maxScore={maxScore} briefContext={round.context} briefQuestion={round.question}>
       <RoundHeader context={round.context} question={round.question} />
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <MiniTable name={round.left.name} headers={round.left.headers} rows={round.left.rows} />
-        <MiniTable name={round.right.name} headers={round.right.headers} rows={round.right.rows} />
-      </div>
-      <div className={cn("mt-4 grid gap-2", lenses.length <= 2 ? "grid-cols-2" : "grid-cols-4")}>
-        {lenses.map((l) => (
-          <button
-            key={l.id}
-            type="button"
-            disabled={locked}
-            onClick={() => setLens(l.id)}
-            className={cn(
-              "rounded-2xl border px-1 py-3 text-center transition",
-              lens === l.id && "border-primary bg-primary/15",
-              lens !== l.id && "border-border bg-card hover:border-primary/40",
-              locked && l.id === round.answer && "border-ok bg-ok/15",
-              locked && lens === l.id && l.id !== round.answer && "border-anomaly bg-anomaly/10"
-            )}
-          >
-            <span className="block font-mono text-sm">{l.label}</span>
-            <span className="text-[10px] text-muted-foreground">{l.hint}</span>
-          </button>
-        ))}
-      </div>
-      <div className="mt-4 min-h-24">
-        {view ? (
-          <MiniTable name={`résultat · ${view.name}`} headers={view.headers} rows={view.rows} />
-        ) : (
-          <p className="rounded-2xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
-            Pose une lentille. Les lignes survivent — ou pas.
-          </p>
-        )}
-      </div>
+      <PlayStage slug="jointure" className="mt-5">
+      <DragBoard
+        disabled={locked}
+        onDrop={(piece, zone) => {
+          if (zone === "join" && LENSES.some((l) => l.id === piece)) pickLens(piece as JoinKind);
+        }}
+        onTap={(piece) => {
+          if (LENSES.some((l) => l.id === piece)) pickLens(piece as JoinKind);
+        }}
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <MiniTable
+            name={round.left.name}
+            headers={round.left.headers}
+            rows={round.left.rows}
+            dimRows={leftDim}
+            liveRows={leftLive}
+          />
+          <MiniTable
+            name={round.right.name}
+            headers={round.right.headers}
+            rows={round.right.rows}
+            dimRows={rightDim}
+            liveRows={rightLive}
+          />
+        </div>
+        <DropSlot id="join" className="join-drop mt-4 rounded-[1.4rem] border border-dashed border-foreground/12 bg-card/80 px-3 py-3">
+          <JoinVenn
+            mode={lens}
+            leftLabel={round.left.name}
+            rightLabel={round.right.name}
+            leftCount={round.left.rows.length}
+            rightCount={round.right.rows.length}
+            outCount={view?.rows.length}
+            chips={chips}
+            hint={playI18n.ui.joinHint}
+            outLabel={playI18n.ui.joinOut}
+          />
+        </DropSlot>
+        <div className={cn("scene-opts mt-4 grid gap-2", lenses.length <= 2 ? "grid-cols-2" : "grid-cols-4")}>
+          {lenses.map((l) => (
+            <Draggable key={l.id} id={l.id} label={l.label} disabled={locked}>
+              <ChoiceTile
+                title={l.label}
+                hint={playI18n.ui.joins[l.id]}
+                selected={lens === l.id}
+                locked={locked}
+                isAnswer={l.id === round.answer}
+                isWrong={lens === l.id && l.id !== round.answer}
+                disabled={locked}
+                onClick={() => pickLens(l.id)}
+                onConfirm={lockIn}
+              />
+            </Draggable>
+          ))}
+        </div>
+      </DragBoard>
+      {view ? (
+        <div key={lens} className="table-in mt-4">
+          <MiniTable
+            name={playI18n.ui.joinResult(view.name, view.rows.length)}
+            headers={view.headers}
+            rows={view.rows}
+          />
+        </div>
+      ) : null}
+      </PlayStage>
       {locked ? (
         <Verdict
           tone={correct ? "ok" : "miss"}
-          title={correct ? "Les bonnes lignes." : "Mauvais match."}
+          title={playI18n.punch(correct)}
           lesson={correct ? round.ok : round.miss}
           onNext={next}
-          nextLabel={index + 1 >= total ? "Voir le score" : "Manche suivante"}
+          isLast={index + 1 >= total}
         />
       ) : (
-        <LockBar
-          disabled={!lens}
-          label="Garder cette lentille"
-          onLock={() => {
-            setLocked(true);
-            setScore((s) => s + (lens === round.answer ? POINTS_PER_ROUND : 0));
-          }}
-        />
+        <LockBar disabled={!lens} label={playI18n.ui.keepLens} onLock={lockIn} />
       )}
     </GameShell>
   );

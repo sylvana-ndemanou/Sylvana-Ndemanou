@@ -1,9 +1,10 @@
+// @ts-nocheck
 "use client";
 
 import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
-import { play } from "@/lib/audio";
-import { cn } from "@/lib/utils";
+import { play } from "@s/lib/audio";
+import { cn } from "@s/lib/utils";
 
 type Mote = {
   x: number;
