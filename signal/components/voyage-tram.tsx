@@ -62,11 +62,6 @@ export function VoyageTram({
     const aim = () => {
       const next = stopX(head, n, el.clientWidth || 1);
       targetRef.current = next;
-      if (reducedRef.current) {
-        xRef.current = next;
-        setPose({ x: next, wheel: wheelRef.current, rolling: false });
-        stopTrainRoll();
-      }
     };
     aim();
     const ro = new ResizeObserver(aim);
@@ -80,25 +75,24 @@ export function VoyageTram({
     let postedX = ENTER_X;
     let postedRoll = true;
     const tick = (now: number) => {
+      const speed = reducedRef.current ? SPEED_PX * 2.4 : SPEED_PX;
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
       const target = targetRef.current;
       let x = xRef.current;
       const dx = target - x;
       const moving = Math.abs(dx) > 1.2;
-      if (reducedRef.current) {
-        x = target;
-      } else if (moving) {
-        const step = SPEED_PX * dt * Math.sign(dx);
+      if (moving) {
+        const step = speed * dt * Math.sign(dx);
         x = Math.abs(step) > Math.abs(dx) ? target : x + step;
         wheelRef.current += (x - xRef.current) * 1.35;
         if (!rollingRef.current) {
           rollingRef.current = true;
           if (!bellRef.current) {
             bellRef.current = true;
-            trainBell();
+            if (!reducedRef.current) trainBell();
           }
-          startTrainRoll();
+          if (!reducedRef.current) startTrainRoll();
         }
       } else {
         x = target;
