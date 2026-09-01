@@ -1158,13 +1158,29 @@
 
 .bar-grow {
   transform-origin: center bottom;
-  animation: bar-grow 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation:
+    bar-grow 0.55s cubic-bezier(0.22, 1, 0.36, 1) both,
+    life-breathe 2.8s ease-in-out infinite;
+  animation-delay: var(--bar-delay, 0s), calc(var(--bar-delay, 0s) + 0.65s);
 }
 
 .bar-miss {
   animation:
     bar-grow 0.55s cubic-bezier(0.22, 1, 0.36, 1) both,
-    shake 0.38s ease;
+    shake 0.38s ease !important;
+}
+
+.bar-body.life-pick {
+  animation:
+    bar-grow 0.55s cubic-bezier(0.22, 1, 0.36, 1) both,
+    life-pick 1.15s ease-in-out infinite;
+  animation-delay: var(--bar-delay, 0s), 0.2s;
+}
+
+.bar-body.life-hit {
+  animation:
+    bar-grow 0.55s cubic-bezier(0.22, 1, 0.36, 1) both,
+    life-hit 0.9s ease-in-out infinite;
 }
 
 .chart-stage {
@@ -1233,6 +1249,7 @@
   border-radius: 0.3rem;
   background: color-mix(in oklch, var(--primary) 55%, transparent);
   box-shadow: 0 0 0 1px color-mix(in oklch, var(--primary) 25%, transparent);
+  animation: life-hum 2.4s ease-in-out infinite;
 }
 
 .wh-cluster[data-run] .wh-node {
@@ -1342,7 +1359,9 @@
 
 .spark-draw {
   stroke-dasharray: 640;
-  animation: spark-draw 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation:
+    spark-draw 0.85s cubic-bezier(0.22, 1, 0.36, 1) both,
+    life-ink 2.6s ease-in-out 0.9s infinite;
 }
 
 @keyframes overlay-in {
@@ -1528,19 +1547,39 @@
   left: 0.6rem;
   right: 0.6rem;
   top: 2.15rem;
-  height: 2px;
-  background: linear-gradient(
+  height: 3px;
+  background: repeating-linear-gradient(
     90deg,
-    transparent,
-    color-mix(in oklch, var(--primary) 45%, transparent),
-    transparent
+    color-mix(in oklch, var(--primary) 55%, transparent) 0 10px,
+    transparent 10px 18px
   );
+  background-size: 28px 3px;
+  animation: life-belt 0.7s linear infinite;
   pointer-events: none;
 }
 
 .part-tile {
   position: relative;
   overflow: hidden;
+}
+
+.part-tile::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 -40%;
+  width: 36%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklch, var(--primary) 22%, transparent),
+    transparent
+  );
+  animation: life-scan 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.part-tile[class*="bg-primary"]::before {
+  animation-duration: 1.4s;
 }
 
 .part-tile::after {
@@ -2611,6 +2650,255 @@
   );
 }
 
+.life-tile {
+  animation: life-tile 2.6s ease-in-out infinite;
+}
+
+.life-bob {
+  animation: life-bob 2.2s ease-in-out infinite;
+}
+
+.join-chip.life-bob {
+  animation:
+    join-fly 0.5s cubic-bezier(0.22, 1.2, 0.36, 1) both,
+    life-bob 2.4s ease-in-out 0.5s infinite;
+}
+
+.raw-dot {
+  animation:
+    bar-grow 0.45s cubic-bezier(0.22, 1, 0.36, 1) both,
+    life-bob 2.2s ease-in-out 0.5s infinite;
+}
+
+.life-shelf {
+  position: relative;
+  overflow: hidden;
+}
+
+.life-shelf:not(:has(.magnet-snap))::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0.35rem;
+  width: 5px;
+  height: 5px;
+  border-radius: 99px;
+  background: color-mix(in oklch, var(--primary) 70%, transparent);
+  animation: life-drip 1.6s ease-in infinite;
+  pointer-events: none;
+}
+
+.funnel-band {
+  animation: life-pour 2.4s ease-in-out infinite;
+}
+
+.life-slot {
+  animation: life-slot 2.2s ease-in-out infinite;
+}
+
+.join-l,
+.join-r {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: life-venn 3.2s ease-in-out infinite;
+}
+
+.join-r {
+  animation-delay: 0.45s;
+}
+
+.life-key {
+  animation: life-key 1.6s ease-in-out infinite;
+}
+
+.life-block {
+  animation: life-hum 2.8s ease-in-out infinite;
+}
+
+.life-link {
+  animation: life-link 1.8s ease-in-out infinite;
+}
+
+.clone-links {
+  position: absolute;
+  left: 28%;
+  right: 28%;
+  top: 2.6rem;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--primary) 70%, transparent) 0 8px,
+    transparent 8px 14px
+  );
+  animation: life-belt 0.9s linear infinite;
+  pointer-events: none;
+}
+
+.kpi-flash {
+  animation:
+    kpi-flash 0.4s cubic-bezier(0.22, 1, 0.36, 1) both,
+    life-tile 2.8s ease-in-out 0.5s infinite;
+}
+
+@keyframes life-breathe {
+  0%,
+  100% {
+    transform: scaleY(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scaleY(1.045);
+    filter: brightness(1.08);
+  }
+}
+
+@keyframes life-pick {
+  0%,
+  100% {
+    transform: scaleY(1) translateY(0);
+  }
+  50% {
+    transform: scaleY(1.06) translateY(-2px);
+    filter: brightness(1.12);
+  }
+}
+
+@keyframes life-hit {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(1.08);
+    filter: saturate(1.2);
+  }
+}
+
+@keyframes life-ink {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  50% {
+    filter: drop-shadow(0 0 7px color-mix(in oklch, var(--primary) 55%, transparent));
+  }
+}
+
+@keyframes life-hum {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes life-belt {
+  to {
+    background-position: 28px 0;
+  }
+}
+
+@keyframes life-scan {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(380%);
+    opacity: 0;
+  }
+}
+
+@keyframes life-tile {
+  0%,
+  100% {
+    transform: translateY(0);
+    box-shadow: 0 0 0 transparent;
+  }
+  50% {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px -16px color-mix(in oklch, var(--primary) 45%, transparent);
+  }
+}
+
+@keyframes life-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes life-drip {
+  0% {
+    transform: translate(-50%, 0);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(-50%, 18px);
+    opacity: 0;
+  }
+}
+
+@keyframes life-pour {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.12);
+  }
+}
+
+@keyframes life-slot {
+  0%,
+  100% {
+    box-shadow: 0 0 0 transparent;
+  }
+  50% {
+    box-shadow: 0 0 18px -8px color-mix(in oklch, var(--primary) 40%, transparent);
+  }
+}
+
+@keyframes life-venn {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.035);
+  }
+}
+
+@keyframes life-key {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.12);
+  }
+}
+
+@keyframes life-link {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .bar-grow,
   .bar-miss,
@@ -2660,7 +2948,23 @@
   .world-cloud,
   .voyage-skyline-live,
   .voyage-rails-live,
-  .voyage-steam circle {
+  .voyage-steam circle,
+  .life-tile,
+  .life-bob,
+  .life-shelf:not(:has(.magnet-snap))::after,
+  .funnel-band,
+  .life-slot,
+  .join-l,
+  .join-r,
+  .life-key,
+  .life-block,
+  .life-link,
+  .clone-links,
+  .conveyor-rail::before,
+  .part-tile::before,
+  .wh-node,
+  .bar-body.life-pick,
+  .bar-body.life-hit {
     animation: none;
   }
 }

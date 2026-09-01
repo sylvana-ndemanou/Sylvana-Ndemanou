@@ -52,7 +52,7 @@ export function MiniTable({
                       onClick={() => onToggleCol?.(h)}
                       className={cn(
                         "w-full px-2 py-2 text-left transition",
-                        on && selectTone === "key" && "bg-primary text-primary-foreground",
+                        on && selectTone === "key" && "life-key bg-primary text-primary-foreground",
                         on && selectTone === "yank" && "bg-anomaly/20 text-anomaly line-through",
                         !on && "hover:bg-muted hover:text-foreground"
                       )}
@@ -85,7 +85,7 @@ export function MiniTable({
                   key={`${r}-${c}`}
                   className={cn(
                     "whitespace-nowrap px-3 py-2 text-foreground",
-                    picked.has(headers[c]) && selectTone === "key" && "bg-primary/10",
+                    picked.has(headers[c]) && selectTone === "key" && "life-key bg-primary/10",
                     picked.has(headers[c]) && selectTone === "yank" && "bg-anomaly/10 line-through"
                   )}
                 >
@@ -187,7 +187,11 @@ export function JoinVenn({
       </svg>
       <div className="join-chips" aria-live="polite">
         {chips?.map((chip, i) => (
-          <span key={`${chip}-${i}`} className="join-chip" style={{ animationDelay: `${i * 70}ms` }}>
+          <span
+            key={`${chip}-${i}`}
+            className={cn("join-chip", mode && "life-bob")}
+            style={{ animationDelay: `${i * 70}ms` }}
+          >
             {chip}
           </span>
         ))}

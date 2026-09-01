@@ -92,7 +92,8 @@ export function BarChart({
                   className={cn(
                     "bar-grow bar-body w-full min-h-3 rounded-t-md transition-[filter,box-shadow,opacity,transform] duration-200",
                     interactive && "group-hover:brightness-125 group-hover:-translate-y-0.5",
-                    isSelected && revealed === null && "ring-2 ring-primary ring-offset-2 ring-offset-background",
+                    isSelected && revealed === null && "life-pick ring-2 ring-primary ring-offset-2 ring-offset-background",
+                    isReveal && "life-hit",
                     isReveal && kind === "dip" && "bg-chart-2",
                     isReveal && kind === "break" && "bg-chart-5",
                     isReveal && kind === "spike" && "bg-anomaly",
@@ -101,7 +102,7 @@ export function BarChart({
                   style={{
                     height: `${pct}%`,
                     backgroundColor: isReveal ? undefined : color,
-                    animationDelay: `${index * 45}ms`,
+                    ["--bar-delay"]: `${index * 45}ms`,
                   }}
                 />
               </span>
@@ -632,7 +633,7 @@ export function RawSeries({
         <div key={`${i}-${value}`} className="relative z-[1] flex min-w-0 flex-1 flex-col items-center gap-1">
           <span className="font-mono text-[10px] tabular-nums text-foreground/80">{value}</span>
           <span
-            className="raw-dot block w-full max-w-8 rounded-full bg-primary/55"
+          className="raw-dot life-bob block w-full max-w-8 rounded-full bg-primary/55"
             style={{ height: `${Math.max(8, (value / max) * 72)}px`, animationDelay: `${i * 40}ms` }}
           />
           <span className="absolute -bottom-5 font-mono text-[10px] text-muted-foreground">

@@ -283,15 +283,16 @@ export function CloneGame({ onFinish }: { onFinish: (score: number) => void }) {
       <RoundHeader context={round.context} question={round.question} />
       <PlayStage slug="clone" className="mt-6">
       <div>
-        <div className="mb-4 flex items-end justify-between gap-4">
+      <div className="relative mb-4 flex items-end justify-between gap-4">
           <div>
             <p className="font-mono text-[10px] uppercase text-muted-foreground">{playI18n.ui.clone.prod}</p>
             <div className="mt-2 grid grid-cols-4 gap-1">
               {Array.from({ length: blocks }).map((_, i) => (
-                <span key={i} className="size-6 rounded-sm bg-primary/80" />
+                <span key={i} className="life-block size-6 rounded-sm bg-primary/80" />
               ))}
             </div>
           </div>
+          {shared ? <div className="clone-links" aria-hidden /> : null}
           <div>
             <p className="font-mono text-[10px] uppercase text-muted-foreground">
               {zone === "clone"
@@ -306,7 +307,7 @@ export function CloneGame({ onFinish }: { onFinish: (score: number) => void }) {
               {Array.from({ length: zone ? blocks : 0 }).map((_, i) => (
                 <span
                   key={i}
-                  className={cn("size-6 rounded-sm magnet-snap", shared ? "bg-primary/30 ring-1 ring-primary" : "bg-chart-3")}
+                  className={cn("size-6 rounded-sm magnet-snap", shared ? "life-link bg-primary/30 ring-1 ring-primary" : "bg-chart-3")}
                 />
               ))}
               {Array.from({ length: extra }).map((_, i) => (

@@ -298,7 +298,7 @@ export function EntonnoirGame({ onFinish }: { onFinish: (score: number) => void 
                   key={si}
                   id={`shelf-${si}`}
                   className={cn(
-                    "flex h-12 items-center justify-center rounded-2xl border-2 border-dashed px-3 text-sm",
+                    "flex h-12 items-center justify-center rounded-2xl border-2 border-dashed px-3 text-sm life-shelf",
                     id ? "border-solid border-border bg-card" : "border-border/70 bg-muted/30",
                     si === stack.length && idle.length > 0 && "border-primary/50"
                   )}

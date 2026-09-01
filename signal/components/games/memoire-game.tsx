@@ -223,7 +223,7 @@ function DashboardPreview({ dash, blurred }: { dash: Dash; blurred?: boolean }) 
           <div
             key={kpi.label}
             className={cn(
-              "kpi-flash rounded-2xl border border-border bg-card p-4",
+              "kpi-flash life-tile rounded-2xl border border-border bg-card p-4",
               kpi.delta < 0 && "ring-1 ring-anomaly/30"
             )}
             style={{ animationDelay: `${i * 70}ms` }}

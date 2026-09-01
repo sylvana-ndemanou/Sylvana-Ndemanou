@@ -497,6 +497,7 @@ function StarPlay({ locked, onLock }: { locked: boolean; onLock: (ok: boolean) =
         data-star-slot={id}
         className={cn(
           "flex min-h-[4.5rem] min-w-[6.5rem] flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed px-3 py-2 transition",
+          !chip && "life-slot",
           tone === "fact" && "border-primary/50 bg-primary/10",
           tone === "dim" && "border-chart-2/40 bg-chart-2/10",
           chip && "border-solid",
